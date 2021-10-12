@@ -1,0 +1,4 @@
+{
+    "editor.formatOnSave": true,
+    "appService.defaultWebAppToDeploy": "/subscriptions/98d42051-32a1-4593-8ca5-7d37b8b41880/resourceGroups/repost/providers/Microsoft.Web/sites/repost-web",
+}
