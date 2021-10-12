@@ -13,16 +13,19 @@
   ],
   "scripts": {
     "build": "tsc",
-    "start": "probot run ./lib/index.js",
+    "start": "probot run ./lib/main.js",
     "test": "jest",
     "lint": "tsc --noEmit -p ."
   },
   "dependencies": {
-    "probot": "^11.0.1"
+    "node-fetch": "^2.6.2",
+    "probot": "^11.0.1",
+    "query-string": "^7.0.1"
   },
   "devDependencies": {
     "@types/jest": "^26.0.19",
     "@types/node": "^14.14.19",
+    "@types/node-fetch": "^2.0.0",
     "jest": "^26.6.3",
     "nock": "^13.0.5",
     "smee-client": "^1.2.2",
