@@ -57,7 +57,6 @@ export class TokenService {
       log: this._logger.child({ name: "my-octokit" }),
     });
 
-    // Get the currently authenticated user
     const user = await myOctokit.users.getAuthenticated();
 
     await this._container.items.upsert<TokenItem>({
@@ -94,5 +93,7 @@ export class TokenService {
       updatedRefreshToken,
       updatedRefreshTokenExpiresAt
     );
+
+    return activeToken;
   }
 }

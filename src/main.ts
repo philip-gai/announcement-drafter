@@ -1,9 +1,11 @@
-import { IssueCommentEventHandler } from "./issueCommentEventHandler";
-import { ApplicationFunctionOptions, Probot } from "probot";
+import { ApplicationFunctionOptions, Context, Probot } from "probot";
 import { ConfigService } from "./services/configService";
 import { TokenService } from "./services/tokenService";
 import { AuthService } from "./services/authService";
 import { RouterService } from "./services/routerService";
+import { PushEventHandler } from "./eventHandlers/pushEventHandler";
+import { ParserService } from "./services/parserService";
+import { GitHubService } from "./services/githubService";
 
 export = async (app: Probot, options: ApplicationFunctionOptions) => {
   try {
@@ -25,12 +27,12 @@ export = async (app: Probot, options: ApplicationFunctionOptions) => {
     app.log.debug("Done.");
 
     app.log.debug("Initializaing event handlers...");
-    const issueCommentEventHandler = new IssueCommentEventHandler();
+    const pushEventHandler = PushEventHandler.build(tokenService);
     app.log.debug("Done.");
 
-    app.on("issue_comment.created", (context) =>
-      issueCommentEventHandler.onCreated(context)
-    );
+    app.on("push", async (context) => {
+      await pushEventHandler.onPush(context);
+    });
   } catch (error: unknown) {
     let errorMessage = "An unknown error has occurred";
     if (error instanceof Error) {
