@@ -11,7 +11,7 @@ export = async (app: Probot, options: ApplicationFunctionOptions) => {
     logger.info("Running Probot app...");
 
     logger.debug("Initializaing services...");
-    const configService = await ConfigService.build();
+    const configService = await ConfigService.build(logger);
     const tokenService = TokenService.build(configService.appConfig, logger);
     const authService = AuthService.build(configService.appConfig, logger);
     RouterService.build(
@@ -25,11 +25,11 @@ export = async (app: Probot, options: ApplicationFunctionOptions) => {
       .addOAuthCallbackRoute();
     logger.debug("Done.");
 
-    logger.debug("Initializaing event handlers...");
-    const pushEventHandler = PushEventHandler.build(tokenService);
-    logger.debug("Done.");
-
     app.on("push", async (context) => {
+      const pushEventHandler = await PushEventHandler.build(
+        context,
+        tokenService
+      );
       await pushEventHandler.onPush(context);
     });
   } catch (error: unknown) {

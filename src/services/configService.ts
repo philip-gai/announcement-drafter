@@ -1,40 +1,56 @@
 import { Context } from "probot";
+import { DeprecatedLogger } from "probot/lib/types";
 import { AppConfig } from "../models/appConfig";
+import { AppSettings } from "../models/appSettings";
 
 export class ConfigService {
   static defaultConfig: AppConfig = this.getDefaultConfig();
 
   readonly appConfig: AppConfig;
+  private _logger: DeprecatedLogger;
 
-  private constructor(appConfig: AppConfig) {
+  private constructor(appConfig: AppConfig, logger: DeprecatedLogger) {
     this.appConfig = appConfig;
+    this._logger = logger;
   }
 
-  static async build(context?: Context<any>): Promise<ConfigService> {
-    const config = await this.loadConfig(context);
+  static async build(
+    logger: DeprecatedLogger,
+    context?: Context<any>
+  ): Promise<ConfigService> {
+    const config = await this.loadConfig(logger, context);
     if (!config) throw new Error("No config was found");
     const errorMessages = ConfigService.validateConfig(config);
     if (errorMessages.length > 0) {
       const errorStr = errorMessages.join("\n");
-      // core.error(errorStr);
+      logger.error(errorStr);
       throw new Error(errorStr);
     }
-    return new ConfigService(config);
+    return new ConfigService(config, logger);
   }
 
   /** Loads the config values from environment variables and input parameters */
   private static loadConfig = async (
+    logger: DeprecatedLogger,
     context?: Context<any>
   ): Promise<AppConfig | null> => {
     try {
       let config = this.defaultConfig;
 
       if (context) {
-        const loadedConfig =
-          (await context.config<AppConfig>("repost.yml")) ||
-          (await context.config<AppConfig>("repost.yaml"));
+        const appRepoSettings =
+          (await context.config<AppSettings>("repost-app.yml")) ||
+          (await context.config<AppSettings>("repost-app.yaml"));
+        if (!appRepoSettings)
+          logger.debug(
+            "No repost-app.y[a]ml file found in the repo, using defaults..."
+          );
 
-        // ConfigService.mergeSettings(config, loadedConfig);
+        logger.debug(
+          `Loaded repo app settings: ${JSON.stringify(appRepoSettings)}`
+        );
+
+        config.appSettings = appRepoSettings || this.getDefaultSettings();
       }
 
       return config;
@@ -46,12 +62,12 @@ export class ConfigService {
     }
   };
 
-  // private static mergeSettings(
-  //   config: AppConfig,
-  //   loadedConfig: AppConfig | null
-  // ) {
-  //   // config.github_token = loadedConfig?.github_token || config.github_token;
-  // }
+  private static getDefaultSettings(): AppSettings {
+    return {
+      watch_folders: ["docs/"],
+      ignore_folders: [],
+    };
+  }
 
   private static getDefaultConfig(): AppConfig {
     return {
@@ -61,6 +77,7 @@ export class ConfigService {
       github_callback_url: process.env["CALLBACK_URL"] || "",
       github_client_id: process.env["GITHUB_CLIENT_ID"] || "",
       github_client_secret: process.env["GITHUB_CLIENT_SECRET"] || "",
+      appSettings: this.getDefaultSettings(),
     };
   }
 

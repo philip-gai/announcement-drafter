@@ -1,5 +1,6 @@
 import { EventPayloads } from "@octokit/webhooks";
 import { Context } from "probot";
+import { AppSettings } from "../models/appSettings";
 import { ConfigService } from "../services/configService";
 import { GitHubService, OctokitPlus } from "../services/githubService";
 import { ParserService } from "../services/parserService";
@@ -7,12 +8,24 @@ import { TokenService } from "../services/tokenService";
 
 export class PushEventHandler {
   private _tokenService: TokenService;
-  private constructor(tokenService: TokenService) {
+  private _appSettings: AppSettings;
+
+  private constructor(tokenService: TokenService, appSettings: AppSettings) {
     this._tokenService = tokenService;
+    this._appSettings = appSettings;
   }
 
-  public static build(tokenService: TokenService) {
-    return new PushEventHandler(tokenService);
+  public static async build(
+    context: Context<EventPayloads.WebhookPayloadPush>,
+    tokenService: TokenService
+  ) {
+    const configService = await ConfigService.build(context.log, context);
+    const appSettings = configService.appConfig.appSettings;
+    if (!appSettings)
+      throw new Error(
+        "Make sure to build the config service with the webhook context"
+      );
+    return new PushEventHandler(tokenService, appSettings);
   }
 
   public onPush = async (
@@ -30,22 +43,28 @@ export class PushEventHandler {
       (commit) => commit.added
     ) as string[];
 
-    logger.debug(`# files added in push: ${filesAdded.length}`);
+    logger.debug(`Number of files added in push: ${filesAdded.length}`);
     logger.debug(`Files: ${filesAdded.join(", ")}`);
 
-    const filesToPost = filesAdded.filter(
-      (file) => file.includes("docs/team-posts") // TODO - Make location configurable
-    );
+    // Example filepath: "docs/team-posts/hello-world.md"
+    const filesToPost = filesAdded.filter((file) => {
+      const matchingWatchFolders = this._appSettings.watch_folders.filter(
+        (folder) => file.startsWith(folder)
+      );
+      const matchingIgnoreFolders = this._appSettings.ignore_folders.filter(
+        (folder) => file.startsWith(folder)
+      );
+      return (
+        matchingWatchFolders.length > 0 && matchingIgnoreFolders.length === 0
+      );
+    });
 
-    logger.debug(`# files to post: ${filesToPost.length}`);
+    logger.debug(`Number of files to post: ${filesToPost.length}`);
     logger.debug(`Files: ${filesToPost.join(", ")}`);
 
     const repo = context.payload.repository.name;
     const owner = context.payload.repository.owner.name || "";
     if (!owner) throw new Error("Missing repository owner (org) data");
-
-    // TODO - Where is this?
-    // const hasDiscussions = context.payload.repository.has_discussions
 
     if (isDefaultBranch && filesToPost.length > 0) {
       const appGitHubService = GitHubService.buildForApp(
@@ -53,7 +72,6 @@ export class PushEventHandler {
         logger
       );
 
-      // example filepath: "docs/team-posts/hello-world.md"
       for (const index in filesToPost) {
         const filepath = filesToPost[index];
         const fileContent = await appGitHubService.getFileContent(
