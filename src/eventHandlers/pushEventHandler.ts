@@ -49,7 +49,7 @@ export class PushEventHandler {
         );
 
         const parserService = ParserService.build(JSON.stringify(fileContent));
-        const authorLogin = parserService.getAuthor();
+        const authorLogin = parserService.getPostAuthor();
         const token = await this._tokenService.refreshUserToken(authorLogin);
         // TODO - if unable to refresh, create an issue and assign to author
         // Once author clicks the link, comment back that it was successful
@@ -57,6 +57,29 @@ export class PushEventHandler {
           token,
           context.log
         );
+
+        const postRepo = parserService.getRepoName();
+        const postTeam = parserService.getTeamName();
+        const discussionCategoryName =
+          parserService.getDiscussionCategoryName();
+        const postBody = parserService.getPostBody();
+        const postTitle = parserService.getPostTitle();
+        if (postRepo) {
+          await userGithubService.createRepoDiscussion(
+            postRepo,
+            discussionCategoryName,
+            postBody,
+            postTitle
+          );
+        }
+        if (postTeam) {
+          await userGithubService.createOrgTeamDiscussion(
+            parserService.getTeamOwner(),
+            postTeam,
+            postTitle,
+            postBody
+          );
+        }
       }
     }
   };

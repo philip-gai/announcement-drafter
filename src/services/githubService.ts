@@ -68,12 +68,17 @@ export class GitHubService {
     return content;
   }
 
-  public async createOrgTeamDiscussion(org: string) {
-    this._octokit.teams.createDiscussionInOrg({
-      org: org,
-      team_slug: "",
-      title: "",
-      body: "",
+  public async createOrgTeamDiscussion(
+    owner: string,
+    teamName: string,
+    postTitle: string,
+    postBody: string
+  ) {
+    await this._octokit.teams.createDiscussionInOrg({
+      org: owner,
+      team_slug: teamName,
+      title: postTitle,
+      body: postBody,
     });
   }
 

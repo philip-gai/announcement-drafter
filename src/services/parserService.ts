@@ -1,5 +1,3 @@
-import { Octokit } from "@octokit/core";
-import { ProbotOctokit } from "probot";
 import YAML from "yaml";
 
 export class ParserService {
@@ -24,14 +22,13 @@ export class ParserService {
     return yaml;
   }
 
-  public getAuthor(): string {
+  public getPostAuthor(): string {
     return this._yamlHeader.author?.replace("@", "") as string;
   }
-  public getRepository(): string {
+  public getRepoName(): string {
     const repoUrl = this.getRepoUrl();
-
-    const startIndex = repoUrl.lastIndexOf("/");
-    const repoName = repoUrl.substring(startIndex);
+    const repoName = repoUrl.split("/").pop();
+    if (!repoName) throw new Error("Unable to get repo name");
     return repoName;
   }
 
@@ -42,21 +39,40 @@ export class ParserService {
     );
   }
 
-  public getOwner(): string {
+  public getRepoOwner(): string {
     const repoUrl = this.getRepoUrl();
-    const owner = repoUrl.replace("https://github.com/", "").split("/")[0];
+    const owner = repoUrl.split("/")[3];
     return owner;
   }
 
-  public getTeam(): string {
+  public getTeamOwner(): string {
+    const teamUrl = this.getTeamUrl();
+    const owner = teamUrl.split("/")[4];
+    return owner;
+  }
+
+  public getTeamName(): string {
+    const teamUrl = this.getTeamUrl();
+    const teamName = teamUrl.split("/").pop();
+    if (!teamName) throw new Error("Unable to get team name");
+    return teamName;
+  }
+
+  private getTeamUrl(): string {
     return this._yamlHeader.team as string;
   }
-  public getDiscussionCategory(): string {
-    return this._yamlHeader.category as string;
+
+  public getDiscussionCategoryName(): string {
+    const rawCat = this._yamlHeader.category as string;
+    const categoryName = rawCat.split("/").pop();
+    if (!categoryName) throw new Error("Unable to get discussion category");
+    return categoryName;
   }
+
   public getPostTitle(): string {
     throw new Error("Method not implemented");
   }
+
   public getPostBody(): string {
     throw new Error("Method not implemented");
   }
