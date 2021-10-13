@@ -97,16 +97,21 @@ export class PullRequestEventHandler {
           appGitHubService,
           filepath,
           pullInfo,
-          logger
+          logger,
+          payload.pull_request.head.ref
         );
 
-        appGitHubService.addPullRequestReviewers({
+        if (parsedMarkdown.author !== payload.pull_request.user.login)
+          await appGitHubService.addPullRequestReviewers({
+            ...pullInfo,
+            reviewers: [parsedMarkdown.author],
+          });
+        await appGitHubService.commentOnPullRequest({
           ...pullInfo,
-          reviewers: [parsedMarkdown.author],
-        });
-        appGitHubService.commentOnPullRequest({
-          ...pullInfo,
-          body: `👀 A discussion post will be created for this file once this PR is merged.\n\nTo approve, @${parsedMarkdown.author} **must** react to this comment with a 🚀`,
+          commit_id: payload.pull_request.head.sha,
+          start_line: 1,
+          end_line: 6,
+          body: `⚠️⚠️ A discussion will be created using this file once this PR is merged ⚠️⚠️\n\nTo approve, @${parsedMarkdown.author} **must** react to this comment with a 🚀`,
           filepath: filepath,
         });
       }
@@ -145,8 +150,11 @@ export class PullRequestEventHandler {
     }
 
     // 1. (Shortcut) Look for comments made by (repo)st and which files they were made on
-    const authenticatedApp = await context.octokit.users.getAuthenticated();
-    const appLogin = authenticatedApp.data.login;
+    logger.info(`Getting authenticated app name...`);
+    const authenticatedApp = await context.octokit.apps.getAuthenticated();
+    const appLogin = `${authenticatedApp.data.name}[bot]`;
+    logger.info(`App Login: ${appLogin}`);
+
     const pullRequestComments = await appGitHubService.getPullRequestComments({
       ...pullInfo,
     });
@@ -156,9 +164,13 @@ export class PullRequestEventHandler {
       (comment) =>
         comment.user.login === appLogin &&
         !comment.in_reply_to_id &&
-        comment.path &&
-        comment.created_at === comment.updated_at
+        comment.path
     );
+
+    if (repostComments.length == 0) {
+      logger.info("No repost-app[bot] comments found on this PR");
+      return;
+    }
 
     // 2. Check for the reaction of "🚀" made by the author
     repostComments.forEach(async (fileToPostComment) => {
@@ -172,6 +184,8 @@ export class PullRequestEventHandler {
           reaction.content === "rocket" && reaction.user?.login === authorLogin
       );
       if (authorApprovalReaction) {
+        logger.info("Found an approval!");
+        logger.info("Found an approval!");
         // 3. Create the discussions based off of the file
         const filepath = fileToPostComment.path;
         await this.createDiscussion(
@@ -189,12 +203,15 @@ export class PullRequestEventHandler {
     appGitHubService: GitHubService,
     filepath: string,
     pullInfo: PullInfo,
-    logger: DeprecatedLogger
+    logger: DeprecatedLogger,
+    fileref?: string
   ): Promise<ParsedMarkdownDiscussion> {
     const fileContent = await appGitHubService.getFileContent({
       path: filepath,
+      ref: fileref,
       ...pullInfo,
     });
+    logger.info("Parsing the markdown information...");
     const parserService = ParserService.build(fileContent, logger);
     const parsedItems = parserService.parseDocument();
     return parsedItems;
@@ -207,6 +224,7 @@ export class PullRequestEventHandler {
     logger: DeprecatedLogger,
     appConfig: AppConfig
   ) {
+    logger.debug("Begin createDiscussion method...");
     const parsedItems = await this.getParsedMarkdownDiscussion(
       appGitHubService,
       filepath,

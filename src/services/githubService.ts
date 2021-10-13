@@ -58,14 +58,19 @@ export class GitHubService {
     owner: string;
     repo: string;
     path: string;
+    ref?: string;
   }): Promise<string> {
     this._logger.debug(`Getting file content... ${JSON.stringify(options)}`);
+
     const contentResponse = await this._octokit.repos.getContent(options);
+
     this._logger.trace(`content: ${JSON.stringify(contentResponse)}`);
     const content = contentResponse as unknown as Content;
+
     this._logger.debug(`Buffering and decoding base64 encoded data...`);
     const contentDataBuffer = Buffer.from(content.data.content, "base64");
     const contentData = contentDataBuffer.toString("utf-8");
+
     this._logger.info("Success.");
     this._logger.trace(`Data: ${contentData}`);
     return contentData;
@@ -138,7 +143,11 @@ export class GitHubService {
     repo: string;
     pull_number: number;
   }) {
+    this._logger.info(
+      `Getting pull request files...\n${JSON.stringify(options)}`
+    );
     const pullFiles = await this._octokit.pulls.listFiles(options);
+    this._logger.info("Done.");
     return pullFiles.data;
   }
 
@@ -148,11 +157,22 @@ export class GitHubService {
     pull_number: number;
     body: string;
     filepath: string;
+    commit_id: string;
+    start_line?: number;
+    end_line: number;
   }) {
-    this._octokit.pulls.createReviewComment({
-      ...options,
+    this._logger.info(`Commenting on the PR...\n${JSON.stringify(options)}`);
+    await this._octokit.pulls.createReviewComment({
+      owner: options.owner,
+      repo: options.repo,
+      pull_number: options.pull_number,
+      body: options.body,
       path: options.filepath,
+      commit_id: options.commit_id,
+      start_line: options.start_line,
+      line: options.end_line,
     });
+    this._logger.info(`Done.`);
   }
 
   public async addPullRequestReviewers(options: {
@@ -161,6 +181,7 @@ export class GitHubService {
     pull_number: number;
     reviewers: string[];
   }) {
+    this._logger.info(`Adding PR reviewers:\n${JSON.stringify(options)}`);
     await this._octokit.pulls.requestReviewers(options);
   }
 
@@ -169,10 +190,15 @@ export class GitHubService {
     repo: string;
     pull_number: number;
   }) {
+    this._logger.info(
+      `Getting pull request comments...\n${JSON.stringify(options)}`
+    );
     const comments = await this._octokit.pulls.listReviewComments({
       ...options,
       per_page: 100, // 100 is the GitHub limit
     });
+    this._logger.info("Done.");
+    this._logger.trace(JSON.stringify(comments.data));
     return comments.data;
   }
 
@@ -181,11 +207,15 @@ export class GitHubService {
     repo: string;
     comment_id: number;
   }) {
+    this._logger.info(
+      `Getting pull request comment reactions...\n${JSON.stringify(options)}`
+    );
     const commentReactions =
       await this._octokit.reactions.listForPullRequestReviewComment({
         ...options,
         per_page: 100,
       });
+    this._logger.info("Done.");
     return commentReactions.data;
   }
 

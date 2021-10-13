@@ -32,7 +32,8 @@ export = async (app: Probot, options: ApplicationFunctionOptions) => {
       );
       await pullRequestEventHandler.onOpened(context);
     });
-    app.on("pull_request.merged", async (context) => {
+    app.on("pull_request.closed", async (context) => {
+      if (!context.payload.pull_request.merged) return;
       const pullRequestEventHandler = await PullRequestEventHandler.build(
         context,
         tokenService
