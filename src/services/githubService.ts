@@ -3,10 +3,9 @@ import { PaginateInterface } from "@octokit/plugin-paginate-rest";
 import { RestEndpointMethods } from "@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types";
 import { Api } from "@octokit/plugin-rest-endpoint-methods/dist-types/types";
 import { API } from "@probot/octokit-plugin-config/dist-types/types";
-import { graphql as graphqlClient } from "@octokit/graphql/dist-types/types";
-import { graphql } from "@octokit/graphql";
 import { ProbotOctokit } from "probot";
 import { DeprecatedLogger } from "probot/lib/types";
+import { Content } from "../models/fileContent";
 
 export type OctokitPlus = Octokit &
   RestEndpointMethods &
@@ -16,16 +15,10 @@ export type OctokitPlus = Octokit &
 
 export class GitHubService {
   private _octokit: OctokitPlus;
-  private _graphqlClient?: graphqlClient;
   private _logger: DeprecatedLogger;
 
-  private constructor(
-    octokit: OctokitPlus,
-    logger: DeprecatedLogger,
-    graphqlClient?: graphqlClient
-  ) {
+  private constructor(octokit: OctokitPlus, logger: DeprecatedLogger) {
     this._octokit = octokit;
-    this._graphqlClient = graphqlClient;
     this._logger = logger;
   }
 
@@ -35,14 +28,9 @@ export class GitHubService {
   ): GitHubService {
     const octokit = new ProbotOctokit({
       auth: { token: token },
-      log: logger.child({ name: "my-octokit" }),
+      log: logger,
     }) as unknown as OctokitPlus;
-    const graphqlClient = graphql.defaults({
-      headers: {
-        authorization: `token ${token}`,
-      },
-    });
-    return new GitHubService(octokit, logger, graphqlClient);
+    return new GitHubService(octokit, logger);
   }
 
   public static buildForApp(octokit: OctokitPlus, logger: DeprecatedLogger) {
@@ -58,14 +46,23 @@ export class GitHubService {
     owner: string,
     repo: string,
     path: string
-  ): Promise<unknown> {
-    const content = await this._octokit.repos.getContent({
+  ): Promise<string> {
+    this._logger.debug(
+      `Getting file content... owner=${owner}, repo=${repo}, path=${path}`
+    );
+    const contentResponse = await this._octokit.repos.getContent({
       owner: owner,
       repo: repo,
       path: path,
     });
-    this._logger.info(JSON.stringify(content));
-    return content;
+    this._logger.trace(`content: ${JSON.stringify(contentResponse)}`);
+    const content = contentResponse as unknown as Content;
+    this._logger.debug(`Buffering and decoding base64 encoded data...`);
+    const contentDataBuffer = Buffer.from(content.data.content, "base64");
+    const contentData = contentDataBuffer.toString("utf-8");
+    this._logger.info("Success.");
+    this._logger.trace(`Data: ${contentData}`);
+    return contentData;
   }
 
   public async createOrgTeamDiscussion(
@@ -74,43 +71,81 @@ export class GitHubService {
     postTitle: string,
     postBody: string
   ) {
+    this._logger.info("Creating org team discussion...");
     await this._octokit.teams.createDiscussionInOrg({
       org: owner,
       team_slug: teamName,
       title: postTitle,
       body: postBody,
     });
+    this._logger.info("Successfully created the org team discussion.");
+  }
+
+  public async getRepoData(repoName: string, owner: string) {
+    const repoResponse = await this._octokit.repos.get({
+      owner: owner,
+      repo: repoName,
+    });
+    if (!repoResponse?.data)
+      throw new Error(
+        `Could not find repo named ${repoName} owned by ${owner}`
+      );
+    return repoResponse.data;
+  }
+
+  public async getRepoDiscussionCategories(repoName: string, owner: string) {
+    this._logger.info(`Getting discussion categories for ${owner}/${repoName}`);
+    const discussionCategoriesResponse: {
+      repository: {
+        discussionCategories: { nodes: { id: string; name: string }[] };
+      };
+    } = await this._octokit.graphql(
+      `query ($owner: String!, $name: String!) {
+          repository(owner: $owner, name: $name) {
+            discussionCategories(first: 10) {
+              # type: DiscussionCategoryConnection
+              nodes {
+                # type: DiscussionCategory
+                id
+                name
+              }
+            }
+          }
+        }`,
+      {
+        owner: owner,
+        name: repoName,
+      }
+    );
+    this._logger.trace(
+      `discussionCategories: ${JSON.stringify(discussionCategoriesResponse)}`
+    );
+    return discussionCategoriesResponse.repository.discussionCategories.nodes;
   }
 
   // https://docs.github.com/en/graphql/guides/using-the-graphql-api-for-discussions#creatediscussion
   public async createRepoDiscussion(
-    repoId: string,
-    categoryId: string,
+    repoNodeId: string,
+    categoryNodeId: string,
     body: string,
     title: string
   ) {
-    if (!this._graphqlClient)
-      throw new Error(
-        "Programmer error: make sure to use the GitHubService built for the user"
-      );
-    await this._graphqlClient(
-      `
-    mutation {
-        # input type: CreateDiscussionInput
-        createDiscussion(input: {$repositoryId: ID!, categoryId: ID!, body: String!, title: String!}) {
-      
-          # response type: CreateDiscussionPayload
+    this._logger.info("Creating repo discussion...");
+    await this._octokit.graphql(
+      `mutation ($repositoryId: ID!, $categoryId: ID!, $body: String!, $title: String!) {
+        createDiscussion(input: {repositoryId: $repositoryId, categoryId: $categoryId, body: $body, title: $title}) {
           discussion {
             id
           }
         }
       }`,
       {
-        repositoryId: repoId,
-        categoryId: categoryId,
+        repositoryId: repoNodeId,
+        categoryId: categoryNodeId,
         body: body,
         title: title,
       }
     );
+    this._logger.info("Successfully created the repo discussion.");
   }
 }

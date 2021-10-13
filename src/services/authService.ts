@@ -4,15 +4,22 @@ import {
 } from "@octokit/oauth-methods";
 import { AppConfig } from "../models/appConfig";
 import * as queryString from "query-string";
+import { DeprecatedLogger } from "probot/lib/types";
 
 export class AuthService {
   private _appConfig: AppConfig;
-  private constructor(appConfig: AppConfig) {
+  private _logger: DeprecatedLogger;
+
+  private constructor(appConfig: AppConfig, logger: DeprecatedLogger) {
     this._appConfig = appConfig;
+    this._logger = logger;
   }
 
-  public static build(appConfig: AppConfig): AuthService {
-    return new AuthService(appConfig);
+  public static build(
+    appConfig: AppConfig,
+    logger: DeprecatedLogger
+  ): AuthService {
+    return new AuthService(appConfig, logger);
   }
 
   public getGitHubOAuthUrl(req: any): string {
@@ -29,6 +36,9 @@ export class AuthService {
   }
 
   async authenticateUser(code: string) {
+    this._logger.info(
+      "Authenticating the user by exchanging OAuth code for a token"
+    );
     const tokenResponse = await exchangeWebFlowCode({
       clientType: "github-app",
       clientId: this._appConfig.github_client_id,
@@ -48,6 +58,8 @@ export class AuthService {
     if (!token) throw new Error("Bad token");
     if (!refreshToken) throw new Error("Bad refresh token");
     if (!refreshTokenExpiresAt) throw new Error("Bad refreshTokenExpiresAt");
+
+    this._logger.info("Received a valid token and refresh token");
 
     return { token, refreshToken, refreshTokenExpiresAt };
   }

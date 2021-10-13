@@ -46,6 +46,7 @@ export class RouterService {
   public addOAuthAuthorizeRoute(): this {
     this._router.get("/login/oauth/authorize", (req, res) => {
       const redirectUrl = this._authService.getGitHubOAuthUrl(req);
+      this._logger.info(`Redirecting user to ${redirectUrl}`);
       res.redirect(redirectUrl);
     });
     return this;
@@ -53,7 +54,10 @@ export class RouterService {
 
   public addOAuthCallbackRoute(): this {
     this._router.get(this._appConfig.github_callback_url, async (req, res) => {
+      
+      this._logger.info(`Received OAuth callback...`);
       const code = (req.query.code as string) || "Bad code";
+      this._logger.debug(`Code: ${code}`);
 
       const { token, refreshToken, refreshTokenExpiresAt } =
         await this._authService.authenticateUser(code);
