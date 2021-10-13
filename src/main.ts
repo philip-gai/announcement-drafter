@@ -1,17 +1,37 @@
-import { IssueCommentEventHandler } from "./issueCommentEventHandler";
-import { Probot } from "probot";
+import { ApplicationFunctionOptions, Probot } from "probot";
+import { ConfigService } from "./services/configService";
+import { TokenService } from "./services/tokenService";
+import { AuthService } from "./services/authService";
+import { RouterService } from "./services/routerService";
+import { PushEventHandler } from "./eventHandlers/pushEventHandler";
 
-export = async (app: Probot) => {
+export = async (app: Probot, options: ApplicationFunctionOptions) => {
+  const logger = app.log;
   try {
-    app.log.info("Running Probot app...");
+    logger.info("Running Probot app...");
 
-    app.log.debug("Initializaing event handlers...");
-    const issueCommentEventHandler = new IssueCommentEventHandler();
-    app.log.debug("Done.");
+    logger.debug("Initializaing services...");
+    const configService = await ConfigService.build(logger);
+    const tokenService = TokenService.build(configService.appConfig, logger);
+    const authService = AuthService.build(configService.appConfig, logger);
+    RouterService.build(
+      logger,
+      options,
+      configService.appConfig,
+      tokenService,
+      authService
+    )
+      .addOAuthAuthorizeRoute()
+      .addOAuthCallbackRoute();
+    logger.debug("Done.");
 
-    app.on("issue_comment.created", (context) =>
-      issueCommentEventHandler.onCreated(context)
-    );
+    app.on("push", async (context) => {
+      const pushEventHandler = await PushEventHandler.build(
+        context,
+        tokenService
+      );
+      await pushEventHandler.onPush(context);
+    });
   } catch (error: unknown) {
     let errorMessage = "An unknown error has occurred";
     if (error instanceof Error) {
@@ -19,6 +39,7 @@ export = async (app: Probot) => {
     } else if (typeof error === "string") {
       errorMessage = error;
     }
-    app.log.error(errorMessage);
+    logger.error(errorMessage);
+    throw error;
   }
 };

@@ -1,5 +1,11 @@
+import { AppSettings } from "./appSettings";
+
 export interface AppConfig {
-  exampleApiClientId: string;
-  exampleApiClientSecret: string;
-  github_token: string;
+  cosmos_database_id: string;
+  cosmos_uri: string;
+  cosmos_primary_key: string;
+  github_client_id: string;
+  github_callback_url: string;
+  github_client_secret: string;
+  appSettings: AppSettings;
 }
