@@ -5,6 +5,7 @@ import { Api } from "@octokit/plugin-rest-endpoint-methods/dist-types/types";
 import { API } from "@probot/octokit-plugin-config/dist-types/types";
 import { ProbotOctokit } from "probot";
 import { DeprecatedLogger } from "probot/lib/types";
+import { AppConfig } from "../models/appConfig";
 import { Content } from "../models/fileContent";
 
 export type OctokitPlus = Octokit &
@@ -16,25 +17,36 @@ export type OctokitPlus = Octokit &
 export class GitHubService {
   private _octokit: OctokitPlus;
   private _logger: DeprecatedLogger;
+  private _appConfig: AppConfig;
 
-  private constructor(octokit: OctokitPlus, logger: DeprecatedLogger) {
+  private constructor(
+    octokit: OctokitPlus,
+    logger: DeprecatedLogger,
+    appConfig: AppConfig
+  ) {
     this._octokit = octokit;
     this._logger = logger;
+    this._appConfig = appConfig;
   }
 
   public static buildForUser(
     token: string,
-    logger: DeprecatedLogger
+    logger: DeprecatedLogger,
+    appConfig: AppConfig
   ): GitHubService {
     const octokit = new ProbotOctokit({
       auth: { token: token },
       log: logger,
     }) as unknown as OctokitPlus;
-    return new GitHubService(octokit, logger);
+    return new GitHubService(octokit, logger, appConfig);
   }
 
-  public static buildForApp(octokit: OctokitPlus, logger: DeprecatedLogger) {
-    return new GitHubService(octokit, logger);
+  public static buildForApp(
+    octokit: OctokitPlus,
+    logger: DeprecatedLogger,
+    appConfig: AppConfig
+  ) {
+    return new GitHubService(octokit, logger, appConfig);
   }
 
   public async getUser(): Promise<unknown> {
@@ -72,6 +84,10 @@ export class GitHubService {
     postBody: string
   ) {
     this._logger.info("Creating org team discussion...");
+    if (this._appConfig.dry_run) {
+      this._logger.info("Dry run, not creating.");
+      return;
+    }
     await this._octokit.teams.createDiscussionInOrg({
       org: owner,
       team_slug: teamName,
@@ -131,6 +147,10 @@ export class GitHubService {
     title: string
   ) {
     this._logger.info("Creating repo discussion...");
+    if (this._appConfig.dry_run) {
+      this._logger.info("Dry run, not creating.");
+      return;
+    }
     await this._octokit.graphql(
       `mutation ($repositoryId: ID!, $categoryId: ID!, $body: String!, $title: String!) {
         createDiscussion(input: {repositoryId: $repositoryId, categoryId: $categoryId, body: $body, title: $title}) {

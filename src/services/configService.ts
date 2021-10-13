@@ -45,10 +45,10 @@ export class ConfigService {
           logger.debug(
             "No repost-app.y[a]ml file found in the repo, using defaults..."
           );
-
-        logger.debug(
-          `Loaded repo app settings: ${JSON.stringify(appRepoSettings)}`
-        );
+        else
+          logger.debug(
+            `Loaded repo app settings: ${JSON.stringify(appRepoSettings)}`
+          );
 
         config.appSettings = appRepoSettings || this.getDefaultSettings();
       }
@@ -78,6 +78,7 @@ export class ConfigService {
       github_client_id: process.env["GITHUB_CLIENT_ID"] || "",
       github_client_secret: process.env["GITHUB_CLIENT_SECRET"] || "",
       appSettings: this.getDefaultSettings(),
+      dry_run: process.env["DRY_RUN"] === "true",
     };
   }
 

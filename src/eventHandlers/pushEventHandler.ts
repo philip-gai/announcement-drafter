@@ -8,11 +8,14 @@ import { TokenService } from "../services/tokenService";
 
 export class PushEventHandler {
   private _tokenService: TokenService;
-  private _appSettings: AppSettings;
+  private _configService: ConfigService;
 
-  private constructor(tokenService: TokenService, appSettings: AppSettings) {
+  private constructor(
+    tokenService: TokenService,
+    configService: ConfigService
+  ) {
     this._tokenService = tokenService;
-    this._appSettings = appSettings;
+    this._configService = configService;
   }
 
   public static async build(
@@ -25,13 +28,15 @@ export class PushEventHandler {
       throw new Error(
         "Make sure to build the config service with the webhook context"
       );
-    return new PushEventHandler(tokenService, appSettings);
+    return new PushEventHandler(tokenService, configService);
   }
 
   public onPush = async (
     context: Context<EventPayloads.WebhookPayloadPush>
   ): Promise<void> => {
     const logger = context.log;
+    const appConfig = this._configService.appConfig;
+
     logger.info("Executing onPush handler...");
     const isDefaultBranch =
       context.payload.ref ===
@@ -48,10 +53,10 @@ export class PushEventHandler {
 
     // Example filepath: "docs/team-posts/hello-world.md"
     const filesToPost = filesAdded.filter((file) => {
-      const matchingWatchFolders = this._appSettings.watch_folders.filter(
+      const matchingWatchFolders = appConfig.appSettings.watch_folders.filter(
         (folder) => file.startsWith(folder)
       );
-      const matchingIgnoreFolders = this._appSettings.ignore_folders.filter(
+      const matchingIgnoreFolders = appConfig.appSettings.ignore_folders.filter(
         (folder) => file.startsWith(folder)
       );
       return (
@@ -69,7 +74,8 @@ export class PushEventHandler {
     if (isDefaultBranch && filesToPost.length > 0) {
       const appGitHubService = GitHubService.buildForApp(
         context.octokit as unknown as OctokitPlus,
-        logger
+        logger,
+        appConfig
       );
 
       for (const index in filesToPost) {
@@ -85,9 +91,12 @@ export class PushEventHandler {
         logger.debug(`Author Login: ${authorLogin}`);
 
         const token = await this._tokenService.refreshUserToken(authorLogin);
-        // TODO - if unable to refresh, create an issue and assign to author
-        // Once author clicks the link, comment back that it was successful
-        const userGithubService = GitHubService.buildForUser(token, logger);
+
+        const userGithubService = GitHubService.buildForUser(
+          token,
+          logger,
+          appConfig
+        );
 
         const parsedItems = parserService.getParsedDocument();
 
