@@ -1,4 +1,4 @@
-import { Container, CosmosClient, Database } from "@azure/cosmos";
+import { Container, CosmosClient } from "@azure/cosmos";
 import { refreshToken } from "@octokit/oauth-methods";
 import { ProbotOctokit } from "probot";
 import { DeprecatedLogger } from "probot/lib/types";

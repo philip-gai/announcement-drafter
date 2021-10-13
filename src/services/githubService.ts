@@ -54,19 +54,13 @@ export class GitHubService {
     return user;
   }
 
-  public async getFileContent(
-    owner: string,
-    repo: string,
-    path: string
-  ): Promise<string> {
-    this._logger.debug(
-      `Getting file content... owner=${owner}, repo=${repo}, path=${path}`
-    );
-    const contentResponse = await this._octokit.repos.getContent({
-      owner: owner,
-      repo: repo,
-      path: path,
-    });
+  public async getFileContent(options: {
+    owner: string;
+    repo: string;
+    path: string;
+  }): Promise<string> {
+    this._logger.debug(`Getting file content... ${JSON.stringify(options)}`);
+    const contentResponse = await this._octokit.repos.getContent(options);
     this._logger.trace(`content: ${JSON.stringify(contentResponse)}`);
     const content = contentResponse as unknown as Content;
     this._logger.debug(`Buffering and decoding base64 encoded data...`);
@@ -77,47 +71,50 @@ export class GitHubService {
     return contentData;
   }
 
-  public async createOrgTeamDiscussion(
-    owner: string,
-    teamName: string,
-    postTitle: string,
-    postBody: string
-  ) {
+  public async createOrgTeamDiscussion(options: {
+    owner: string;
+    team: string;
+    postTitle: string;
+    postBody: string;
+  }) {
     this._logger.info("Creating org team discussion...");
     if (this._appConfig.dry_run) {
       this._logger.info("Dry run, not creating.");
       return;
     }
     await this._octokit.teams.createDiscussionInOrg({
-      org: owner,
-      team_slug: teamName,
-      title: postTitle,
-      body: postBody,
+      org: options.owner,
+      team_slug: options.team,
+      title: options.postTitle,
+      body: options.postBody,
     });
     this._logger.info("Successfully created the org team discussion.");
   }
 
-  public async getRepoData(repoName: string, owner: string) {
+  public async getRepoData(options: { repoName: string; owner: string }) {
     const repoResponse = await this._octokit.repos.get({
-      owner: owner,
-      repo: repoName,
+      ...options,
+      repo: options.repoName,
     });
     if (!repoResponse?.data)
-      throw new Error(
-        `Could not find repo named ${repoName} owned by ${owner}`
-      );
+      throw new Error(`Could not find repo: ${JSON.stringify(options)}`);
     return repoResponse.data;
   }
 
-  public async getRepoDiscussionCategories(repoName: string, owner: string) {
-    this._logger.info(`Getting discussion categories for ${owner}/${repoName}`);
+  public async getRepoDiscussionCategories(options: {
+    repo: string;
+    owner: string;
+  }) {
+    this._logger.info(
+      `Getting discussion categories: ${JSON.stringify(options)}`
+    );
     const discussionCategoriesResponse: {
       repository: {
         discussionCategories: { nodes: { id: string; name: string }[] };
       };
     } = await this._octokit.graphql(
-      `query ($owner: String!, $name: String!) {
-          repository(owner: $owner, name: $name) {
+      `query ($owner: String!, $repo: String!) {
+          repository(owner: $owner, name: $repo) {
             discussionCategories(first: 10) {
               # type: DiscussionCategoryConnection
               nodes {
@@ -128,10 +125,7 @@ export class GitHubService {
             }
           }
         }`,
-      {
-        owner: owner,
-        name: repoName,
-      }
+      options
     );
     this._logger.trace(
       `discussionCategories: ${JSON.stringify(discussionCategoriesResponse)}`
@@ -139,32 +133,83 @@ export class GitHubService {
     return discussionCategoriesResponse.repository.discussionCategories.nodes;
   }
 
+  public async getPullRequestFiles(options: {
+    owner: string;
+    repo: string;
+    pull_number: number;
+  }) {
+    const pullFiles = await this._octokit.pulls.listFiles(options);
+    return pullFiles.data;
+  }
+
+  public async commentOnPullRequest(options: {
+    owner: string;
+    repo: string;
+    pull_number: number;
+    body: string;
+    filepath: string;
+  }) {
+    this._octokit.pulls.createReviewComment({
+      ...options,
+      path: options.filepath,
+    });
+  }
+
+  public async addPullRequestReviewers(options: {
+    owner: string;
+    repo: string;
+    pull_number: number;
+    reviewers: string[];
+  }) {
+    await this._octokit.pulls.requestReviewers(options);
+  }
+
+  public async getPullRequestComments(options: {
+    owner: string;
+    repo: string;
+    pull_number: number;
+  }) {
+    const comments = await this._octokit.pulls.listReviewComments({
+      ...options,
+      per_page: 100, // 100 is the GitHub limit
+    });
+    return comments.data;
+  }
+
+  public async getPullRequestCommentReaction(options: {
+    owner: string;
+    repo: string;
+    comment_id: number;
+  }) {
+    const commentReactions =
+      await this._octokit.reactions.listForPullRequestReviewComment({
+        ...options,
+        per_page: 100,
+      });
+    return commentReactions.data;
+  }
+
   // https://docs.github.com/en/graphql/guides/using-the-graphql-api-for-discussions#creatediscussion
-  public async createRepoDiscussion(
-    repoNodeId: string,
-    categoryNodeId: string,
-    body: string,
-    title: string
-  ) {
+  public async createRepoDiscussion(options: {
+    repoNodeId: string;
+    categoryNodeId: string;
+    postBody: string;
+    postTitle: string;
+  }) {
     this._logger.info("Creating repo discussion...");
     if (this._appConfig.dry_run) {
       this._logger.info("Dry run, not creating.");
       return;
     }
     await this._octokit.graphql(
-      `mutation ($repositoryId: ID!, $categoryId: ID!, $body: String!, $title: String!) {
-        createDiscussion(input: {repositoryId: $repositoryId, categoryId: $categoryId, body: $body, title: $title}) {
+      `mutation ($repoNodeId: ID!, $categoryNodeId: ID!, $postBody: String!, $postTitle: String!) {
+        createDiscussion(input: {repositoryId: $repoNodeId, categoryId: $categoryNodeId, body: $postBody, title: $postTitle}) {
           discussion {
             id
           }
         }
       }`,
-      {
-        repositoryId: repoNodeId,
-        categoryId: categoryNodeId,
-        body: body,
-        title: title,
-      }
+      options
     );
     this._logger.info("Successfully created the repo discussion.");
   }

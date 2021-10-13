@@ -3,7 +3,7 @@ import { ConfigService } from "./services/configService";
 import { TokenService } from "./services/tokenService";
 import { AuthService } from "./services/authService";
 import { RouterService } from "./services/routerService";
-import { PushEventHandler } from "./eventHandlers/pushEventHandler";
+import { PullRequestEventHandler } from "./eventHandlers/pullRequestEventHandler";
 
 export = async (app: Probot, options: ApplicationFunctionOptions) => {
   const logger = app.log;
@@ -25,12 +25,19 @@ export = async (app: Probot, options: ApplicationFunctionOptions) => {
       .addOAuthCallbackRoute();
     logger.debug("Done.");
 
-    app.on("push", async (context) => {
-      const pushEventHandler = await PushEventHandler.build(
+    app.on("pull_request.opened", async (context) => {
+      const pullRequestEventHandler = await PullRequestEventHandler.build(
         context,
         tokenService
       );
-      await pushEventHandler.onPush(context);
+      await pullRequestEventHandler.onOpened(context);
+    });
+    app.on("pull_request.merged", async (context) => {
+      const pullRequestEventHandler = await PullRequestEventHandler.build(
+        context,
+        tokenService
+      );
+      await pullRequestEventHandler.onMerged(context);
     });
   } catch (error: unknown) {
     let errorMessage = "An unknown error has occurred";

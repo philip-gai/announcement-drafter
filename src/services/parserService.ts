@@ -1,6 +1,17 @@
 import { DeprecatedLogger } from "probot/lib/types";
 import YAML from "yaml";
 
+export interface ParsedMarkdownDiscussion {
+  repo: string | undefined;
+  repoOwner: string | undefined;
+  team: string | undefined;
+  teamOwner: string | undefined;
+  discussionCategoryName: string;
+  postBody: string;
+  postTitle: string;
+  author: string;
+}
+
 export class ParserService {
   private _content: string;
   private _yamlHeader: any;
@@ -31,13 +42,6 @@ export class ParserService {
     return this._yamlHeader.author?.replace("@", "") as string;
   }
 
-  public getTargetRepoName(): string {
-    const repoUrl = this.getTargetRepoUrl();
-    const repoName = repoUrl?.split("/").pop();
-    if (!repoName) throw new Error("Unable to get repo name");
-    return repoName;
-  }
-
   private getTargetRepoUrl(): string | undefined {
     return (
       (this._yamlHeader.repo as string) ||
@@ -47,30 +51,43 @@ export class ParserService {
 
   public getTargetRepoOwner(): string | undefined {
     const repoUrl = this.getTargetRepoUrl();
-    const owner = repoUrl?.split("/")[3];
+    if (!repoUrl) return;
+    const owner = repoUrl.split("/")[3];
+    if (!owner) throw new Error("Unable to get repo owner");
     return owner;
   }
 
-  public getTargetTeamOwner(): string | undefined {
-    const teamUrl = this.getTargetTeamUrl();
-    const owner = teamUrl?.split("/")[4];
-    return owner;
-  }
-
-  public getTargetTeamName(): string | undefined {
-    const teamUrl = this.getTargetTeamUrl();
-    const teamName = teamUrl?.split("/").pop();
-    if (!teamName) throw new Error("Unable to get team name");
-    return teamName;
+  public getTargetRepoName(): string | undefined {
+    const repoUrl = this.getTargetRepoUrl();
+    if (!repoUrl) return;
+    const repoName = repoUrl.split("/").pop();
+    if (!repoName) throw new Error("Unable to get repo name");
+    return repoName;
   }
 
   private getTargetTeamUrl(): string | undefined {
     return this._yamlHeader.team as string;
   }
 
+  public getTargetTeamOwner(): string | undefined {
+    const teamUrl = this.getTargetTeamUrl();
+    if (!teamUrl) return;
+    const owner = teamUrl.split("/")[4];
+    if (!owner) throw new Error("Unable to get team owner");
+    return owner;
+  }
+
+  public getTargetTeamName(): string | undefined {
+    const teamUrl = this.getTargetTeamUrl();
+    if (!teamUrl) return;
+    const teamName = teamUrl.split("/").pop();
+    if (!teamName) throw new Error("Unable to get team name");
+    return teamName;
+  }
+
   public getDiscussionCategoryName(): string {
     const rawCat = this._yamlHeader.category as string;
-    const categoryName = rawCat.split("/").pop()?.trim();
+    const categoryName = rawCat?.split("/").pop()?.trim();
     if (!categoryName) throw new Error("Unable to get discussion category");
     return categoryName;
   }
@@ -91,13 +108,16 @@ export class ParserService {
     return postBody;
   }
 
-  public getParsedDocument() {
+  public parseDocument(): ParsedMarkdownDiscussion {
     return {
-      targetRepoName: this.getTargetRepoName(),
-      targetTeamName: this.getTargetTeamName(),
+      repo: this.getTargetRepoName(),
+      repoOwner: this.getTargetRepoOwner(),
+      team: this.getTargetTeamName(),
+      teamOwner: this.getTargetTeamOwner(),
       discussionCategoryName: this.getDiscussionCategoryName(),
       postBody: this.getPostBody(),
       postTitle: this.getPostTitle(),
+      author: this.getPostAuthor(),
     };
   }
 }

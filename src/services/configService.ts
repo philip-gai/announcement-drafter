@@ -7,11 +7,9 @@ export class ConfigService {
   static defaultConfig: AppConfig = this.getDefaultConfig();
 
   readonly appConfig: AppConfig;
-  private _logger: DeprecatedLogger;
 
-  private constructor(appConfig: AppConfig, logger: DeprecatedLogger) {
+  private constructor(appConfig: AppConfig) {
     this.appConfig = appConfig;
-    this._logger = logger;
   }
 
   static async build(
@@ -26,7 +24,7 @@ export class ConfigService {
       logger.error(errorStr);
       throw new Error(errorStr);
     }
-    return new ConfigService(config, logger);
+    return new ConfigService(config);
   }
 
   /** Loads the config values from environment variables and input parameters */
