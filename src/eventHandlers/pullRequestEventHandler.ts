@@ -136,6 +136,16 @@ export class PullRequestEventHandler {
     };
     if (!pullInfo.owner) throw new Error("Missing repository owner (org) data");
 
+    const isDefaultBranch =
+      payload.pull_request.base.ref === payload.repository.default_branch;
+
+    if (!isDefaultBranch) {
+      logger.info(
+        "The PR is not targeting the default branch, will not post anything"
+      );
+      return;
+    }
+
     // 1. (Shortcut) Look for comments made by (repo)st and which files they were made on
     const authenticatedApp = await context.octokit.users.getAuthenticated();
     const appLogin = authenticatedApp.data.login;
