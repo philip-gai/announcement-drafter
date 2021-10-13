@@ -128,7 +128,7 @@ export class PullRequestEventHandler {
 
     const payload = context.payload;
     const pullInfo: PullInfo = {
-      owner: payload.repository.owner.login,,
+      owner: payload.repository.owner.login,
       repo: payload.repository.name,
       repoName: payload.repository.name,
       pull_number: payload.pull_request.number,
