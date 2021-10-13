@@ -88,12 +88,12 @@ export class TokenService {
     });
     if (!userRefreshToken)
       throw new Error(
-        "TODO: Please authenticate - write this to an issue in the repo"
+        "User is not authenticated - write this to an issue in the repo"
       );
 
     this._logger.info("Checking that the refresh token is not expired...");
     if (Date.now() > Date.parse(userRefreshToken.refreshTokenExpiresAt))
-      throw new Error("TODO: Please re-authenticate");
+      throw new Error("User needs to re-authenticate");
 
     this._logger.info("Getting a new token from the refresh token...");
     const refreshTokenResponse = await refreshToken({
