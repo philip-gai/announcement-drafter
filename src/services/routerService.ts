@@ -54,7 +54,6 @@ export class RouterService {
 
   public addOAuthCallbackRoute(): this {
     this._router.get(this._appConfig.github_callback_url, async (req, res) => {
-      
       this._logger.info(`Received OAuth callback...`);
       const code = (req.query.code as string) || "Bad code";
       this._logger.debug(`Code: ${code}`);
