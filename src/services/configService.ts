@@ -38,19 +38,21 @@ export class ConfigService {
       let config = this.defaultConfig;
 
       if (context) {
-        const appRepoSettings =
-          (await context.config<AppSettings>("repost-app.yml")) ||
-          (await context.config<AppSettings>("repost-app.yaml"));
+        const defaultSettings = this.getDefaultSettings();
+        const appRepoSettings = await context.config<AppSettings>(
+          "repost-app.yml",
+          defaultSettings
+        );
         if (!appRepoSettings)
           logger.debug(
-            "No repost-app.y[a]ml file found in the repo, using defaults..."
+            "No repost-app.yml file found in the repo, using defaults..."
           );
         else
           logger.debug(
             `Loaded repo app settings: ${JSON.stringify(appRepoSettings)}`
           );
 
-        config.appSettings = appRepoSettings || this.getDefaultSettings();
+        config.appSettings = appRepoSettings || defaultSettings;
       }
 
       return config;
