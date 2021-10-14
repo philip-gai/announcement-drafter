@@ -272,12 +272,17 @@ Please fix the issues and recreate a new PR:
         // 3. Create the discussions based off of the file
         const filepath = fileToPostComment.path;
         const userToken = userTokenCache[authorLogin];
-        await this.createDiscussion(appGitHubService, logger, appConfig, {
-          filepath: filepath,
-          pullInfo: pullInfo,
-          userToken: userToken,
-          dryRun: false,
-        });
+        try {
+          await this.createDiscussion(appGitHubService, logger, appConfig, {
+            filepath: filepath,
+            pullInfo: pullInfo,
+            userToken: userToken,
+            dryRun: false,
+          });
+        } catch (err) {
+          const errorMessage = HelperService.getErrorMessage(err);
+          logger.error(errorMessage);
+        }
       }
     }
     logger.info("Exiting pull_request.closed handler");
@@ -385,7 +390,10 @@ Please fix the issues and recreate a new PR:
       dryRun: boolean;
     }
   ) {
-    const repoData = await appGitHubService.getRepoData(options.pullInfo);
+    const repoData = await appGitHubService.getRepoData({
+      repoName: options.parsedItems.repo!,
+      owner: options.parsedItems.repoOwner!,
+    });
     logger.trace(`repoData: ${JSON.stringify(repoData)}`);
     const discussionCategoryMatch = await this.getDiscussionCategory(
       appGitHubService,
@@ -414,12 +422,13 @@ Please fix the issues and recreate a new PR:
         `Discussions are not enabled on ${parsedItems.repoOwner}/${parsedItems.repo}`
       );
     }
-    const discussionCategoryMatch = repoDiscussionCategories.find((node) =>
-      node.name
-        .trim()
-        .localeCompare(parsedItems.discussionCategoryName, undefined, {
-          sensitivity: "accent",
-        })
+    const discussionCategoryMatch = repoDiscussionCategories.find(
+      (node) =>
+        node.name
+          .trim()
+          .localeCompare(parsedItems.discussionCategoryName, undefined, {
+            sensitivity: "accent",
+          }) === 0
     );
     if (!discussionCategoryMatch) {
       throw new Error(

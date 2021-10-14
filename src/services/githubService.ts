@@ -131,7 +131,10 @@ export class GitHubService {
             }
           }
         }`,
-      options
+      {
+        owner: options.owner,
+        repo: options.repo,
+      }
     );
     this._logger.trace(
       `discussionCategories: ${JSON.stringify(discussionCategoriesResponse)}`
@@ -249,7 +252,12 @@ export class GitHubService {
           }
         }
       }`,
-      options
+      {
+        repoNodeId: options.repoNodeId,
+        categoryNodeId: options.categoryNodeId,
+        postBody: options.postBody,
+        postTitle: options.postTitle,
+      }
     );
     this._logger.info("Successfully created the repo discussion.");
   }
