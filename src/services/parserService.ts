@@ -29,13 +29,17 @@ export class ParserService {
 
   // https://www.npmjs.com/package/yaml
   private parseYamlHeader(content: string): any {
-    this._logger.info("Parsing YAML from the markdown comment header...");
-    const startIndex = content.indexOf("<!--") + "<!--".length;
-    const endIndex = content.indexOf("-->");
-    const yamlStr = content.substring(startIndex, endIndex);
-    this._logger.debug(yamlStr);
-    const yaml = YAML.parse(yamlStr);
-    return yaml;
+    try {
+      this._logger.info("Parsing YAML from the markdown comment header...");
+      const startIndex = content.indexOf("<!--") + "<!--".length;
+      const endIndex = content.indexOf("-->");
+      const yamlStr = content.substring(startIndex, endIndex);
+      this._logger.debug(yamlStr);
+      const yaml = YAML.parse(yamlStr);
+      return yaml;
+    } catch (err) {
+      throw new Error("The YAML provided was invalid.");
+    }
   }
 
   public getPostAuthor(): string {

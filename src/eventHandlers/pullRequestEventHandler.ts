@@ -5,6 +5,7 @@ import { AppConfig } from "../models/appConfig";
 import { AppSettings } from "../models/appSettings";
 import { ConfigService } from "../services/configService";
 import { GitHubService, OctokitPlus } from "../services/githubService";
+import { HelperService } from "../services/helperService";
 import {
   ParsedMarkdownDiscussion,
   ParserService,
@@ -19,6 +20,13 @@ interface PullInfo {
 }
 
 export class PullRequestEventHandler {
+  private readonly errorIcon = "⛔️";
+  private readonly approverPrefix = "To approve, @";
+  private readonly approvalReaction = {
+    icon: "🚀",
+    label: "rocket",
+  };
+
   private _tokenService: TokenService;
   private _configService: ConfigService;
 
@@ -36,10 +44,16 @@ export class PullRequestEventHandler {
   ) {
     const configService = await ConfigService.build(context.log, context);
     const appSettings = configService.appConfig.appSettings;
-    if (!appSettings)
+    if (!appSettings) {
       throw new Error(
         "Make sure to build the config service with the webhook context"
       );
+    }
+    if (!configService.appConfig.base_url) {
+      throw new Error(
+        "Base URL is not set. Make sure router middleware was added"
+      );
+    }
     return new PullRequestEventHandler(tokenService, configService);
   }
 
@@ -82,7 +96,13 @@ export class PullRequestEventHandler {
     );
 
     logger.debug(`Number of files added in push: ${filesAdded.length}`);
-    logger.debug(`Files: ${filesAdded.join(", ")}`);
+
+    const app = await this.getAuthenticatedApp(logger, context);
+    const { appLogin, appPublicPage } = {
+      appLogin: `${app.name}[bot]`,
+      appPublicPage: app.html_url,
+    };
+    const appLinkMarkdown = `[@${appLogin}](${appPublicPage})`;
 
     // Example filepath: "docs/team-posts/hello-world.md"
     filesAdded.forEach(async (file) => {
@@ -92,37 +112,87 @@ export class PullRequestEventHandler {
         filepath
       );
       if (shouldCreateDiscussionForFile) {
-        // Parse the markdown to get the discussion metadata and details
-        const parsedMarkdown = await this.getParsedMarkdownDiscussion(
-          appGitHubService,
-          filepath,
-          pullInfo,
-          logger,
-          payload.pull_request.head.ref
-        );
+        try {
+          // Parse the markdown to get the discussion metadata and details
+          const parsedMarkdown = await this.getParsedMarkdownDiscussion(
+            appGitHubService,
+            logger,
+            {
+              filepath: filepath,
+              pullInfo: pullInfo,
+              fileref: payload.pull_request.head.ref,
+            }
+          );
 
-        if (parsedMarkdown.author !== payload.pull_request.user.login)
-          await appGitHubService.addPullRequestReviewers({
-            ...pullInfo,
-            reviewers: [parsedMarkdown.author],
+          const authorLogin = parsedMarkdown.author;
+
+          if (authorLogin !== payload.pull_request.user.login) {
+            await appGitHubService.addPullRequestReviewers({
+              ...pullInfo,
+              reviewers: [authorLogin],
+            });
+          }
+
+          if (!parsedMarkdown.repo && !parsedMarkdown.team) {
+            throw new Error(
+              "Markdown is missing a repo or team to post the discussion to"
+            );
+          }
+
+          let commentBody = `⚠️⚠️ ${appLinkMarkdown} will create a discussion using this file once this PR is merged ⚠️⚠️\n
+${this.approverPrefix}${authorLogin} must react to this comment with a ${this.approvalReaction.icon}
+`;
+
+          const userRefreshToken = await this._tokenService.getRefreshToken({
+            userLogin: authorLogin,
           });
-        await appGitHubService.commentOnPullRequest({
-          ...pullInfo,
-          commit_id: payload.pull_request.head.sha,
-          start_line: 1,
-          end_line: 6,
-          body: `⚠️⚠️ A discussion will be created using this file once this PR is merged ⚠️⚠️\n\nTo approve, @${parsedMarkdown.author} **must** react to this comment with a 🚀`,
-          filepath: filepath,
-        });
+          if (!userRefreshToken) {
+            const fullAuthUrl = `${appConfig.base_url}${appConfig.auth_url}`;
+            commentBody += `\n\n**IMPORTANT**: @${authorLogin} must [authenticate](${fullAuthUrl}) before merging this PR`;
+          }
+
+          await appGitHubService.commentOnPullRequest({
+            ...pullInfo,
+            commit_id: payload.pull_request.head.sha,
+            start_line: 1,
+            end_line: 6,
+            body: commentBody,
+            filepath: filepath,
+          });
+
+          // Dry run createDiscussion to ensure it will work
+          await this.createDiscussion(appGitHubService, logger, appConfig, {
+            filepath: filepath,
+            pullInfo: pullInfo,
+            userToken: "dry_run",
+            dryRun: true,
+          });
+        } catch (error) {
+          const exceptionMessage = HelperService.getErrorMessage(error);
+          logger.warn(exceptionMessage);
+          const errorMessage = `${this.errorIcon}${this.errorIcon} ${appLinkMarkdown} will not be able to create a discussion for this file. ${this.errorIcon}${this.errorIcon}\n
+Please fix the issues and recreate a new PR:
+> ${exceptionMessage}
+`;
+          await appGitHubService.commentOnPullRequest({
+            ...pullInfo,
+            commit_id: payload.pull_request.head.sha,
+            start_line: 1,
+            end_line: 6,
+            body: errorMessage,
+            filepath: filepath,
+          });
+        }
       }
     });
+    logger.info("Exiting pull_request.opened handler");
   };
 
   public onMerged = async (
     context: Context<EventPayloads.WebhookPayloadPullRequest>
   ): Promise<void> => {
     const logger = context.log;
-    logger.info("Handling pull_request.opened event...");
+    logger.info("Handling pull_request.closed and merged event...");
 
     const appConfig = this._configService.appConfig;
     const appGitHubService = GitHubService.buildForApp(
@@ -150,10 +220,8 @@ export class PullRequestEventHandler {
     }
 
     // 1. (Shortcut) Look for comments made by (repo)st and which files they were made on
-    logger.info(`Getting authenticated app name...`);
-    const authenticatedApp = await context.octokit.apps.getAuthenticated();
-    const appLogin = `${authenticatedApp.data.name}[bot]`;
-    logger.info(`App Login: ${appLogin}`);
+    const app = await this.getAuthenticatedApp(logger, context);
+    const appLogin = `${app.name}[bot]`;
 
     const pullRequestComments = await appGitHubService.getPullRequestComments({
       ...pullInfo,
@@ -164,54 +232,77 @@ export class PullRequestEventHandler {
       (comment) =>
         comment.user.login === appLogin &&
         !comment.in_reply_to_id &&
-        comment.path
+        comment.path &&
+        !comment.body.includes(this.errorIcon)
     );
 
     if (repostComments.length == 0) {
-      logger.info("No repost-app[bot] comments found on this PR");
+      logger.info(`No ${appLogin} comments found on this PR`);
       return;
     }
 
-    // 2. Check for the reaction of "🚀" made by the author
+    const userTokenCache: { [login: string]: string } = {};
+
+    // 2. Check for the approval reaction made by the author
     repostComments.forEach(async (fileToPostComment) => {
-      const authorLogin = fileToPostComment.body.split("@")[1].split(" ")[0];
+      const authorLogin = fileToPostComment.body
+        .split(this.approverPrefix)[1]
+        .split(" ")[0];
       const reactions = await appGitHubService.getPullRequestCommentReaction({
         ...pullInfo,
         comment_id: fileToPostComment.id,
       });
       const authorApprovalReaction = reactions.find(
         (reaction) =>
-          reaction.content === "rocket" && reaction.user?.login === authorLogin
+          reaction.content === this.approvalReaction.label &&
+          reaction.user?.login === authorLogin
       );
       if (authorApprovalReaction) {
         logger.info("Found an approval!");
-        logger.info("Found an approval!");
         // 3. Create the discussions based off of the file
         const filepath = fileToPostComment.path;
-        await this.createDiscussion(
-          appGitHubService,
-          filepath,
-          pullInfo,
-          logger,
-          appConfig
-        );
+
+        let token = userTokenCache[authorLogin];
+        if (!token) {
+          token = await this._tokenService.refreshUserToken(authorLogin);
+          userTokenCache[authorLogin] = token;
+        }
+
+        await this.createDiscussion(appGitHubService, logger, appConfig, {
+          filepath: filepath,
+          pullInfo: pullInfo,
+          userToken: userTokenCache[authorLogin],
+          dryRun: false,
+        });
       }
     });
+    logger.info(`Exiting the pull_request.closed handler`);
   };
+
+  private async getAuthenticatedApp(
+    logger: DeprecatedLogger,
+    context: Context<EventPayloads.WebhookPayloadPullRequest>
+  ) {
+    logger.info(`Getting authenticated app...`);
+    const authenticatedApp = await context.octokit.apps.getAuthenticated();
+    return authenticatedApp.data;
+  }
 
   private async getParsedMarkdownDiscussion(
     appGitHubService: GitHubService,
-    filepath: string,
-    pullInfo: PullInfo,
     logger: DeprecatedLogger,
-    fileref?: string
+    options: {
+      filepath: string;
+      pullInfo: PullInfo;
+      fileref?: string;
+    }
   ): Promise<ParsedMarkdownDiscussion> {
     const fileContent = await appGitHubService.getFileContent({
-      path: filepath,
-      ref: fileref,
-      ...pullInfo,
+      path: options.filepath,
+      ref: options.fileref,
+      ...options.pullInfo,
     });
-    logger.info("Parsing the markdown information...");
+    logger.info(`Parsing the markdown information for ${options.filepath}...`);
     const parserService = ParserService.build(fileContent, logger);
     const parsedItems = parserService.parseDocument();
     return parsedItems;
@@ -219,32 +310,28 @@ export class PullRequestEventHandler {
 
   private async createDiscussion(
     appGitHubService: GitHubService,
-    filepath: string,
-    pullInfo: PullInfo,
     logger: DeprecatedLogger,
-    appConfig: AppConfig
+    appConfig: AppConfig,
+    options: {
+      filepath: string;
+      pullInfo: PullInfo;
+      userToken: string;
+      dryRun: boolean;
+    }
   ) {
     logger.debug("Begin createDiscussion method...");
     const parsedItems = await this.getParsedMarkdownDiscussion(
       appGitHubService,
-      filepath,
-      pullInfo,
-      logger
+      logger,
+      options
     );
     logger.debug(`Parsed Document Items: ${JSON.stringify(parsedItems)}`);
 
-    const token = await this._tokenService.refreshUserToken(parsedItems.author);
-
     const userGithubService = GitHubService.buildForUser(
-      token,
+      options.userToken || "dry_run",
       logger,
       appConfig
     );
-
-    if (!parsedItems.repo && !parsedItems.team)
-      throw new Error(
-        "Markdown is missing a repo or team to post the discussion to"
-      );
 
     // Check for repo to post to
     if (parsedItems.repo) {
@@ -254,10 +341,12 @@ export class PullRequestEventHandler {
         );
       await this.createRepoDiscussion(
         appGitHubService,
-        pullInfo,
+        userGithubService,
         logger,
-        parsedItems,
-        userGithubService
+        {
+          ...options,
+          parsedItems,
+        }
       );
     }
 
@@ -268,6 +357,7 @@ export class PullRequestEventHandler {
           "The url to the team is not valid - it must include the team owner (org)"
         );
       await userGithubService.createOrgTeamDiscussion({
+        ...options,
         ...parsedItems,
         team: parsedItems.team,
         owner: parsedItems.teamOwner,
@@ -277,18 +367,43 @@ export class PullRequestEventHandler {
 
   private async createRepoDiscussion(
     appGitHubService: GitHubService,
-    pullInfo: PullInfo,
+    userGithubService: GitHubService,
     logger: DeprecatedLogger,
-    parsedItems: ParsedMarkdownDiscussion,
-    userGithubService: GitHubService
+    options: {
+      pullInfo: PullInfo;
+      parsedItems: ParsedMarkdownDiscussion;
+      dryRun: boolean;
+    }
   ) {
-    const repoData = await appGitHubService.getRepoData(pullInfo);
+    const repoData = await appGitHubService.getRepoData(options.pullInfo);
     logger.trace(`repoData: ${JSON.stringify(repoData)}`);
+    const discussionCategoryMatch = await this.getDiscussionCategory(
+      appGitHubService,
+      options.parsedItems
+    );
+
+    await userGithubService.createRepoDiscussion({
+      ...options,
+      ...options.parsedItems,
+      repoNodeId: repoData.node_id,
+      categoryNodeId: discussionCategoryMatch.id,
+    });
+  }
+
+  private async getDiscussionCategory(
+    appGitHubService: GitHubService,
+    parsedItems: ParsedMarkdownDiscussion
+  ) {
     const repoDiscussionCategories =
       await appGitHubService.getRepoDiscussionCategories({
-        repo: parsedItems.repo || "", // '' is not possible
-        owner: parsedItems.repoOwner || "", // '' is not possible
+        repo: parsedItems.repo!,
+        owner: parsedItems.repoOwner!,
       });
+    if (repoDiscussionCategories.length === 0) {
+      throw new Error(
+        `Discussions are not enabled on ${parsedItems.repoOwner}/${parsedItems.repo}`
+      );
+    }
     const discussionCategoryMatch = repoDiscussionCategories.find((node) =>
       node.name
         .trim()
@@ -296,14 +411,12 @@ export class PullRequestEventHandler {
           sensitivity: "accent",
         })
     );
-    if (!discussionCategoryMatch)
-      throw new Error("Could not find discussion category node");
-
-    await userGithubService.createRepoDiscussion({
-      repoNodeId: repoData.node_id,
-      categoryNodeId: discussionCategoryMatch.id,
-      ...parsedItems,
-    });
+    if (!discussionCategoryMatch) {
+      throw new Error(
+        `Could not find discussion category "${parsedItems.discussionCategoryName} in ${parsedItems.repoOwner}/${parsedItems.repo}".`
+      );
+    }
+    return discussionCategoryMatch;
   }
 
   private shouldCreateDiscussionForFile(
@@ -316,8 +429,11 @@ export class PullRequestEventHandler {
     const matchingIgnoreFolders = appSettings.ignore_folders.filter((folder) =>
       filepath.startsWith(folder)
     );
+    const isMarkdown = filepath.endsWith(".md");
     const willPostOnMerge =
-      matchingWatchFolders.length > 0 && matchingIgnoreFolders.length === 0;
+      matchingWatchFolders.length > 0 &&
+      matchingIgnoreFolders.length === 0 &&
+      isMarkdown;
     return willPostOnMerge;
   }
 }

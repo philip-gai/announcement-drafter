@@ -10,4 +10,6 @@ export interface AppConfig {
   appSettings: AppSettings;
   dry_run_posts: boolean;
   dry_run_comments: boolean;
+  base_url: string;
+  auth_url: string;
 }

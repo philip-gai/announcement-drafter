@@ -4,6 +4,7 @@ import { TokenService } from "./services/tokenService";
 import { AuthService } from "./services/authService";
 import { RouterService } from "./services/routerService";
 import { PullRequestEventHandler } from "./eventHandlers/pullRequestEventHandler";
+import { HelperService } from "./services/helperService";
 
 export = async (app: Probot, options: ApplicationFunctionOptions) => {
   const logger = app.log;
@@ -41,12 +42,7 @@ export = async (app: Probot, options: ApplicationFunctionOptions) => {
       await pullRequestEventHandler.onMerged(context);
     });
   } catch (error: unknown) {
-    let errorMessage = "An unknown error has occurred";
-    if (error instanceof Error) {
-      errorMessage = error.message;
-    } else if (typeof error === "string") {
-      errorMessage = error;
-    }
+    const errorMessage = HelperService.getErrorMessage(error);
     logger.error(errorMessage);
     throw error;
   }

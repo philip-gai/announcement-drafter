@@ -80,6 +80,8 @@ export class ConfigService {
       appSettings: this.getDefaultSettings(),
       dry_run_comments: process.env["DRY_RUN_COMMENTS"] === "true",
       dry_run_posts: process.env["DRY_RUN_POSTS"] === "true",
+      base_url: process.env["WEBHOOK_PROXY_URL"] || "",
+      auth_url: process.env["AUTH_URL"] || "",
     };
   }
 
@@ -95,6 +97,9 @@ export class ConfigService {
       errorMessages.push("Missing github_client_id");
     if (!config.github_client_secret)
       errorMessages.push("Missing github_client_secret");
+    if (!config.base_url)
+      errorMessages.push("Missing base_url (WEBHOOK_PROXY_URL)");
+    if (!config.auth_url) errorMessages.push("Missing auth_url (AUTH_URL)");
     return errorMessages;
   }
 }

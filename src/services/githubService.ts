@@ -81,9 +81,10 @@ export class GitHubService {
     team: string;
     postTitle: string;
     postBody: string;
+    dryRun: boolean;
   }) {
     this._logger.info("Creating org team discussion...");
-    if (this._appConfig.dry_run_posts) {
+    if (this._appConfig.dry_run_posts || options.dryRun) {
       this._logger.info("Dry run, not creating.");
       return;
     }
@@ -233,9 +234,10 @@ export class GitHubService {
     categoryNodeId: string;
     postBody: string;
     postTitle: string;
+    dryRun: boolean;
   }) {
     this._logger.info("Creating repo discussion...");
-    if (this._appConfig.dry_run_posts) {
+    if (this._appConfig.dry_run_posts || options.dryRun) {
       this._logger.info("Dry run, not creating.");
       return;
     }

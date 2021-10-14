@@ -11,6 +11,7 @@ export interface GetRefreshTokenOptions {
 export interface TokenItem {
   id: string;
   refreshToken: string;
+  refreshTokenCreatedAt: string;
   refreshTokenExpiresAt: string;
 }
 
@@ -48,6 +49,8 @@ export class TokenService {
     if (!token) this._logger.info("No token found for the user");
     else this._logger.trace(JSON.stringify(token));
 
+    if (!this.refreshTokenIsValid(token)) return undefined;
+
     return token;
   }
 
@@ -55,7 +58,8 @@ export class TokenService {
     token: string,
     refreshToken: string,
     refreshTokenExpiresAt: string,
-    userLogin?: string
+    userLogin?: string,
+    refreshTokenCreatedAt: string = new Date(Date.now()).toISOString()
   ) {
     this._logger.info(`Begin upsert refresh token method...`);
     let login = userLogin;
@@ -77,8 +81,21 @@ export class TokenService {
       id: login,
       refreshToken: refreshToken,
       refreshTokenExpiresAt: refreshTokenExpiresAt,
+      refreshTokenCreatedAt: refreshTokenCreatedAt,
     });
     this._logger.info("Upsert complete");
+  }
+
+  public refreshTokenIsValid(refreshToken: TokenItem | undefined) {
+    if (!refreshToken) {
+      this._logger.warn("No refresh token found for the user");
+      return false;
+    }
+    if (Date.now() > Date.parse(refreshToken.refreshTokenExpiresAt)) {
+      this._logger.warn("The refresh token is expired");
+      return false;
+    }
+    return true;
   }
 
   async refreshUserToken(userLogin: string) {
@@ -86,21 +103,17 @@ export class TokenService {
     const userRefreshToken = await this.getRefreshToken({
       userLogin: userLogin,
     });
-    if (!userRefreshToken)
-      throw new Error(
-        "User is not authenticated - write this to an issue in the repo"
-      );
 
-    this._logger.info("Checking that the refresh token is not expired...");
-    if (Date.now() > Date.parse(userRefreshToken.refreshTokenExpiresAt))
+    if (!this.refreshTokenIsValid(userRefreshToken)) {
       throw new Error("User needs to re-authenticate");
+    }
 
     this._logger.info("Getting a new token from the refresh token...");
     const refreshTokenResponse = await refreshToken({
       clientType: "github-app",
       clientId: this._appConfig.github_client_id,
       clientSecret: this._appConfig.github_client_secret,
-      refreshToken: userRefreshToken.refreshToken,
+      refreshToken: userRefreshToken!.refreshToken,
     });
 
     const { activeToken, updatedRefreshToken, updatedRefreshTokenExpiresAt } = {
