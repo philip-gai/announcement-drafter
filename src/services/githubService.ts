@@ -1,5 +1,5 @@
 import { Octokit } from "@octokit/core";
-import { Discussion, Repository } from "@octokit/graphql-schema";
+import { CreateDiscussionPayload, Repository } from "@octokit/graphql-schema";
 import { PaginateInterface } from "@octokit/plugin-paginate-rest";
 import { RestEndpointMethods } from "@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types";
 import { Api } from "@octokit/plugin-rest-endpoint-methods/dist-types/types";
@@ -270,12 +270,13 @@ export class GitHubService {
       return;
     }
     const graphqlResponse = await this._octokit.graphql<{
-      discussion: Discussion;
+      createDiscussion: CreateDiscussionPayload;
     }>(
       `mutation ($repoNodeId: ID!, $categoryNodeId: ID!, $postBody: String!, $postTitle: String!) {
         createDiscussion(input: {repositoryId: $repoNodeId, categoryId: $categoryNodeId, body: $postBody, title: $postTitle}) {
           discussion {
-            id
+            title
+            url
           }
         }
       }`,
@@ -288,6 +289,7 @@ export class GitHubService {
     );
 
     this._logger.info("Successfully created the repo discussion.");
-    return graphqlResponse.discussion;
+    this._logger.trace(`graphqlResponse: ${JSON.stringify(graphqlResponse)}`);
+    return graphqlResponse.createDiscussion.discussion;
   }
 }

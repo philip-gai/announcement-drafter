@@ -140,7 +140,7 @@ export class PullRequestEventHandler {
             );
           }
 
-          let commentBody = `⚠️⚠️ ${appLinkMarkdown} will create a discussion using this file once this PR is merged ⚠️⚠️\n
+          let commentBody = `⚠️ ${appLinkMarkdown} will create a discussion using this file once this PR is merged ⚠️\n
 ${this.approverPrefix}${authorLogin} must react to this comment with a ${this.approvalReaction.icon}
 `;
 
@@ -172,7 +172,7 @@ ${this.approverPrefix}${authorLogin} must react to this comment with a ${this.ap
         } catch (error) {
           const exceptionMessage = HelperService.getErrorMessage(error);
           logger.warn(exceptionMessage);
-          const errorMessage = `${this.errorIcon}${this.errorIcon} ${appLinkMarkdown} will not be able to create a discussion for this file. ${this.errorIcon}${this.errorIcon}\n
+          const errorMessage = `${this.errorIcon} ${appLinkMarkdown} will not be able to create a discussion for this file. ${this.errorIcon}\n
 Please fix the issues and recreate a new PR:
 > ${exceptionMessage}
 `;
@@ -409,7 +409,8 @@ Please fix the issues and recreate a new PR:
         logger,
         options,
         newDiscussion.title,
-        newDiscussion.url
+        newDiscussion.html_url,
+        "team"
       );
     }
   }
@@ -448,7 +449,8 @@ Please fix the issues and recreate a new PR:
         logger,
         options,
         newDiscussion.title,
-        newDiscussion.url
+        newDiscussion.url,
+        "repository"
       );
     }
   }
@@ -462,7 +464,8 @@ Please fix the issues and recreate a new PR:
       pullRequestCommentId?: number | undefined;
     },
     discussionTitle: string,
-    discussionUrl: string
+    discussionUrl: string,
+    discussionType: "team" | "repository"
   ) {
     logger.info("Creating success comment reply on original PR comment...");
     if (!options.pullRequestCommentId) {
@@ -474,7 +477,7 @@ Please fix the issues and recreate a new PR:
     await appGitHubService.createPullRequestCommentReply({
       ...options.pullInfo,
       comment_id: options.pullRequestCommentId!,
-      body: `🎉 Discussion has been posted! 🎉\n[${discussionTitle}](${discussionUrl})`,
+      body: `🎉 This ${discussionType} discussion has been posted! 🎉\n> View it here: [${discussionTitle}](${discussionUrl})`,
     });
     logger.info("Done.");
   }
