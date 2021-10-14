@@ -83,7 +83,7 @@ export class GitHubService {
     postBody: string;
   }) {
     this._logger.info("Creating org team discussion...");
-    if (this._appConfig.dry_run) {
+    if (this._appConfig.dry_run_posts) {
       this._logger.info("Dry run, not creating.");
       return;
     }
@@ -162,6 +162,10 @@ export class GitHubService {
     end_line: number;
   }) {
     this._logger.info(`Commenting on the PR...\n${JSON.stringify(options)}`);
+    if (this._appConfig.dry_run_comments) {
+      this._logger.info("Dry run, not creating comments.");
+      return;
+    }
     await this._octokit.pulls.createReviewComment({
       owner: options.owner,
       repo: options.repo,
@@ -182,6 +186,10 @@ export class GitHubService {
     reviewers: string[];
   }) {
     this._logger.info(`Adding PR reviewers:\n${JSON.stringify(options)}`);
+    if (this._appConfig.dry_run_comments) {
+      this._logger.info("Dry run, not adding reviewers.");
+      return;
+    }
     await this._octokit.pulls.requestReviewers(options);
   }
 
@@ -227,7 +235,7 @@ export class GitHubService {
     postTitle: string;
   }) {
     this._logger.info("Creating repo discussion...");
-    if (this._appConfig.dry_run) {
+    if (this._appConfig.dry_run_posts) {
       this._logger.info("Dry run, not creating.");
       return;
     }

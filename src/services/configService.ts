@@ -78,7 +78,8 @@ export class ConfigService {
       github_client_id: process.env["GITHUB_CLIENT_ID"] || "",
       github_client_secret: process.env["GITHUB_CLIENT_SECRET"] || "",
       appSettings: this.getDefaultSettings(),
-      dry_run: process.env["DRY_RUN"] === "true",
+      dry_run_comments: process.env["DRY_RUN_COMMENTS"] === "true",
+      dry_run_posts: process.env["DRY_RUN_POSTS"] === "true",
     };
   }
 

@@ -8,5 +8,6 @@ export interface AppConfig {
   github_callback_url: string;
   github_client_secret: string;
   appSettings: AppSettings;
-  dry_run: boolean;
+  dry_run_posts: boolean;
+  dry_run_comments: boolean;
 }
