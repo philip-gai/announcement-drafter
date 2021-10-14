@@ -170,6 +170,8 @@ export class GitHubService {
       this._logger.info("Dry run, not creating comments.");
       return;
     }
+
+    // There is a bug where you can't pass unwanted keys
     await this._octokit.pulls.createReviewComment({
       owner: options.owner,
       repo: options.repo,
@@ -193,7 +195,16 @@ export class GitHubService {
     this._logger.info(
       `Creating a reply to a review comment...\n${JSON.stringify(options)}`
     );
-    await this._octokit.pulls.createReplyForReviewComment(options);
+
+    // There is a bug where you can't pass unwanted keys
+    await this._octokit.pulls.createReplyForReviewComment({
+      owner: options.owner,
+      repo: options.repo,
+      pull_number: options.pull_number,
+      comment_id: options.comment_id,
+      body: options.body,
+    });
+
     this._logger.info("Done");
   }
 
