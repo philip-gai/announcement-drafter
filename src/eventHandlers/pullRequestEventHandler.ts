@@ -105,7 +105,7 @@ export class PullRequestEventHandler {
     const appLinkMarkdown = `[@${appLogin}](${appPublicPage})`;
 
     // Example filepath: "docs/team-posts/hello-world.md"
-    filesAdded.forEach(async (file) => {
+    for (const file of filesAdded) {
       const filepath = file.filename;
       const shouldCreateDiscussionForFile = this.shouldCreateDiscussionForFile(
         appConfig.appSettings,
@@ -113,6 +113,7 @@ export class PullRequestEventHandler {
       );
       if (shouldCreateDiscussionForFile) {
         try {
+          const fileref = payload.pull_request.head.ref;
           // Parse the markdown to get the discussion metadata and details
           const parsedMarkdown = await this.getParsedMarkdownDiscussion(
             appGitHubService,
@@ -120,7 +121,7 @@ export class PullRequestEventHandler {
             {
               filepath: filepath,
               pullInfo: pullInfo,
-              fileref: payload.pull_request.head.ref,
+              fileref: fileref,
             }
           );
 
@@ -166,6 +167,7 @@ ${this.approverPrefix}${authorLogin} must react to this comment with a ${this.ap
             pullInfo: pullInfo,
             userToken: "dry_run",
             dryRun: true,
+            fileref: fileref,
           });
         } catch (error) {
           const exceptionMessage = HelperService.getErrorMessage(error);
@@ -184,7 +186,7 @@ Please fix the issues and recreate a new PR:
           });
         }
       }
-    });
+    }
     logger.info("Exiting pull_request.opened handler");
   };
 
@@ -247,15 +249,14 @@ Please fix the issues and recreate a new PR:
       this.getAuthorLogin(comment.body)
     );
     const usersDistinct = Array.from(new Set(users));
-    usersDistinct.forEach(
-      async (userLogin) =>
-        (userTokenCache[userLogin] = await this._tokenService.refreshUserToken(
-          userLogin
-        ))
-    );
+    for (const userLogin of usersDistinct) {
+      userTokenCache[userLogin] = await this._tokenService.refreshUserToken(
+        userLogin
+      );
+    }
 
     // 2. Check for the approval reaction made by the author
-    repostComments.forEach(async (fileToPostComment) => {
+    for (const fileToPostComment of repostComments) {
       const authorLogin = this.getAuthorLogin(fileToPostComment.body);
       const reactions = await appGitHubService.getPullRequestCommentReaction({
         ...pullInfo,
@@ -278,8 +279,8 @@ Please fix the issues and recreate a new PR:
           dryRun: false,
         });
       }
-    });
-    logger.info(`Exiting the pull_request.closed handler`);
+    }
+    logger.info("Exiting pull_request.closed handler");
   };
 
   private getAuthorLogin(commentBody: string) {
@@ -292,6 +293,7 @@ Please fix the issues and recreate a new PR:
   ) {
     logger.info(`Getting authenticated app...`);
     const authenticatedApp = await context.octokit.apps.getAuthenticated();
+    logger.info(`Done.`);
     return authenticatedApp.data;
   }
 
@@ -324,6 +326,7 @@ Please fix the issues and recreate a new PR:
       pullInfo: PullInfo;
       userToken: string;
       dryRun: boolean;
+      fileref?: string;
     }
   ) {
     logger.debug("Begin createDiscussion method...");
