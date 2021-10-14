@@ -241,13 +241,22 @@ Please fix the issues and recreate a new PR:
       return;
     }
 
+    // Get new tokens for all the users only once using their refresh tokens
     const userTokenCache: { [login: string]: string } = {};
+    const users = repostComments.map((comment) =>
+      this.getAuthorLogin(comment.body)
+    );
+    const usersDistinct = Array.from(new Set(users));
+    usersDistinct.forEach(
+      async (userLogin) =>
+        (userTokenCache[userLogin] = await this._tokenService.refreshUserToken(
+          userLogin
+        ))
+    );
 
     // 2. Check for the approval reaction made by the author
     repostComments.forEach(async (fileToPostComment) => {
-      const authorLogin = fileToPostComment.body
-        .split(this.approverPrefix)[1]
-        .split(" ")[0];
+      const authorLogin = this.getAuthorLogin(fileToPostComment.body);
       const reactions = await appGitHubService.getPullRequestCommentReaction({
         ...pullInfo,
         comment_id: fileToPostComment.id,
@@ -261,23 +270,21 @@ Please fix the issues and recreate a new PR:
         logger.info("Found an approval!");
         // 3. Create the discussions based off of the file
         const filepath = fileToPostComment.path;
-
-        let token = userTokenCache[authorLogin];
-        if (!token) {
-          token = await this._tokenService.refreshUserToken(authorLogin);
-          userTokenCache[authorLogin] = token;
-        }
-
+        const userToken = userTokenCache[authorLogin];
         await this.createDiscussion(appGitHubService, logger, appConfig, {
           filepath: filepath,
           pullInfo: pullInfo,
-          userToken: userTokenCache[authorLogin],
+          userToken: userToken,
           dryRun: false,
         });
       }
     });
     logger.info(`Exiting the pull_request.closed handler`);
   };
+
+  private getAuthorLogin(commentBody: string) {
+    return commentBody.split(this.approverPrefix)[1].split(" ")[0];
+  }
 
   private async getAuthenticatedApp(
     logger: DeprecatedLogger,
