@@ -152,7 +152,7 @@ ${this.approverPrefix}${authorLogin} must react to this comment with a ${this.ap
             commentBody += `\n\n**IMPORTANT**: @${authorLogin} must [authenticate](${fullAuthUrl}) before merging this PR`;
           }
 
-          await appGitHubService.commentOnPullRequest({
+          await appGitHubService.createPullRequestComment({
             ...pullInfo,
             commit_id: payload.pull_request.head.sha,
             start_line: 1,
@@ -176,7 +176,7 @@ ${this.approverPrefix}${authorLogin} must react to this comment with a ${this.ap
 Please fix the issues and recreate a new PR:
 > ${exceptionMessage}
 `;
-          await appGitHubService.commentOnPullRequest({
+          await appGitHubService.createPullRequestComment({
             ...pullInfo,
             commit_id: payload.pull_request.head.sha,
             start_line: 1,
@@ -278,6 +278,7 @@ Please fix the issues and recreate a new PR:
             pullInfo: pullInfo,
             userToken: userToken,
             dryRun: false,
+            pullRequestCommentId: fileToPostComment.id,
           });
         } catch (err) {
           const errorMessage = HelperService.getErrorMessage(err);
@@ -332,6 +333,7 @@ Please fix the issues and recreate a new PR:
       userToken: string;
       dryRun: boolean;
       fileref?: string;
+      pullRequestCommentId?: number;
     }
   ) {
     logger.debug("Begin createDiscussion method...");
@@ -371,12 +373,44 @@ Please fix the issues and recreate a new PR:
         throw new Error(
           "The url to the team is not valid - it must include the team owner (org)"
         );
-      await userGithubService.createOrgTeamDiscussion({
-        ...options,
-        ...parsedItems,
-        team: parsedItems.team,
-        owner: parsedItems.teamOwner,
-      });
+      await this.createOrgTeamDiscussion(
+        userGithubService,
+        appGitHubService,
+        logger,
+        options,
+        parsedItems
+      );
+    }
+  }
+
+  private async createOrgTeamDiscussion(
+    userGithubService: GitHubService,
+    appGithubService: GitHubService,
+    logger: DeprecatedLogger,
+    options: {
+      filepath: string;
+      pullInfo: PullInfo;
+      userToken: string;
+      dryRun: boolean;
+      fileref?: string | undefined;
+      pullRequestCommentId?: number | undefined;
+    },
+    parsedItems: ParsedMarkdownDiscussion
+  ) {
+    const newDiscussion = await userGithubService.createOrgTeamDiscussion({
+      ...options,
+      ...parsedItems,
+      team: parsedItems.team!,
+      owner: parsedItems.teamOwner!,
+    });
+    if (newDiscussion) {
+      await this.createPrSuccessComment(
+        appGithubService,
+        logger,
+        options,
+        newDiscussion.title,
+        newDiscussion.url
+      );
     }
   }
 
@@ -388,6 +422,7 @@ Please fix the issues and recreate a new PR:
       pullInfo: PullInfo;
       parsedItems: ParsedMarkdownDiscussion;
       dryRun: boolean;
+      pullRequestCommentId?: number;
     }
   ) {
     const repoData = await appGitHubService.getRepoData({
@@ -400,12 +435,48 @@ Please fix the issues and recreate a new PR:
       options.parsedItems
     );
 
-    await userGithubService.createRepoDiscussion({
+    const newDiscussion = await userGithubService.createRepoDiscussion({
       ...options,
       ...options.parsedItems,
       repoNodeId: repoData.node_id,
       categoryNodeId: discussionCategoryMatch.id,
     });
+
+    if (newDiscussion) {
+      await this.createPrSuccessComment(
+        appGitHubService,
+        logger,
+        options,
+        newDiscussion.title,
+        newDiscussion.url
+      );
+    }
+  }
+
+  private async createPrSuccessComment(
+    appGitHubService: GitHubService,
+    logger: DeprecatedLogger,
+    options: {
+      pullInfo: PullInfo;
+      dryRun: boolean;
+      pullRequestCommentId?: number | undefined;
+    },
+    discussionTitle: string,
+    discussionUrl: string
+  ) {
+    logger.info("Creating success comment reply on original PR comment...");
+    if (!options.pullRequestCommentId) {
+      logger.info(
+        "Skipping creating PR success comment reply. No PR Comment ID was provided."
+      );
+      return;
+    }
+    await appGitHubService.createPullRequestCommentReply({
+      ...options.pullInfo,
+      comment_id: options.pullRequestCommentId!,
+      body: `🎉 Discussion has been posted! 🎉\n[${discussionTitle}](${discussionUrl})`,
+    });
+    logger.info("Done.");
   }
 
   private async getDiscussionCategory(
@@ -417,14 +488,14 @@ Please fix the issues and recreate a new PR:
         repo: parsedItems.repo!,
         owner: parsedItems.repoOwner!,
       });
-    if (repoDiscussionCategories.length === 0) {
+    if (!repoDiscussionCategories || repoDiscussionCategories.length === 0) {
       throw new Error(
         `Discussions are not enabled on ${parsedItems.repoOwner}/${parsedItems.repo}`
       );
     }
     const discussionCategoryMatch = repoDiscussionCategories.find(
       (node) =>
-        node.name
+        node?.name
           .trim()
           .localeCompare(parsedItems.discussionCategoryName, undefined, {
             sensitivity: "accent",

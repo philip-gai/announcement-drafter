@@ -1,4 +1,5 @@
 import { Octokit } from "@octokit/core";
+import { Discussion, Repository } from "@octokit/graphql-schema";
 import { PaginateInterface } from "@octokit/plugin-paginate-rest";
 import { RestEndpointMethods } from "@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types";
 import { Api } from "@octokit/plugin-rest-endpoint-methods/dist-types/types";
@@ -88,13 +89,14 @@ export class GitHubService {
       this._logger.info("Dry run, not creating.");
       return;
     }
-    await this._octokit.teams.createDiscussionInOrg({
+    const discussion = await this._octokit.teams.createDiscussionInOrg({
       org: options.owner,
       team_slug: options.team,
       title: options.postTitle,
       body: options.postBody,
     });
     this._logger.info("Successfully created the org team discussion.");
+    return discussion.data;
   }
 
   public async getRepoData(options: { repoName: string; owner: string }) {
@@ -114,11 +116,9 @@ export class GitHubService {
     this._logger.info(
       `Getting discussion categories: ${JSON.stringify(options)}`
     );
-    const discussionCategoriesResponse: {
-      repository: {
-        discussionCategories: { nodes: { id: string; name: string }[] };
-      };
-    } = await this._octokit.graphql(
+    const discussionCategoriesResponse = await this._octokit.graphql<{
+      repository: Repository;
+    }>(
       `query ($owner: String!, $repo: String!) {
           repository(owner: $owner, name: $repo) {
             discussionCategories(first: 10) {
@@ -155,7 +155,7 @@ export class GitHubService {
     return pullFiles.data;
   }
 
-  public async commentOnPullRequest(options: {
+  public async createPullRequestComment(options: {
     owner: string;
     repo: string;
     pull_number: number;
@@ -181,6 +181,20 @@ export class GitHubService {
       line: options.end_line,
     });
     this._logger.info(`Done.`);
+  }
+
+  public async createPullRequestCommentReply(options: {
+    owner: string;
+    repo: string;
+    pull_number: number;
+    comment_id: number;
+    body: string;
+  }) {
+    this._logger.info(
+      `Creating a reply to a review comment...\n${JSON.stringify(options)}`
+    );
+    await this._octokit.pulls.createReplyForReviewComment(options);
+    this._logger.info("Done");
   }
 
   public async addPullRequestReviewers(options: {
@@ -244,7 +258,9 @@ export class GitHubService {
       this._logger.info("Dry run, not creating.");
       return;
     }
-    await this._octokit.graphql(
+    const graphqlResponse = await this._octokit.graphql<{
+      discussion: Discussion;
+    }>(
       `mutation ($repoNodeId: ID!, $categoryNodeId: ID!, $postBody: String!, $postTitle: String!) {
         createDiscussion(input: {repositoryId: $repoNodeId, categoryId: $categoryNodeId, body: $postBody, title: $postTitle}) {
           discussion {
@@ -259,6 +275,8 @@ export class GitHubService {
         postTitle: options.postTitle,
       }
     );
+
     this._logger.info("Successfully created the repo discussion.");
+    return graphqlResponse.discussion;
   }
 }
