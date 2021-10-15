@@ -89,7 +89,7 @@ For more, check out the [Contributing Guide](CONTRIBUTING.md).
 
 ## License
 
-[ISC](LICENSE) © 2021 Philip Gai <philipmgai@github.com>
+[ISC](LICENSE) © 2021 Philip Gai <philipmgai@gmail.com>
 
 [Repost demo]: https://github.com/philip-gai/repost-demo
 [Repost demo config]: https://github.com/philip-gai/repost-demo/blob/main/.github/repost-app.yml
