@@ -14,6 +14,10 @@ jobs:
     environment:
       name: "production"
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    env:
+      publish_profile: 'deploy/repost.PublishSettings'
+      slot_name: 'Production'
+      app_name: 'repost'
 
     steps:
       - uses: actions/checkout@v2
@@ -21,7 +25,7 @@ jobs:
       - name: Set up Node.js version
         uses: actions/setup-node@v1
         with:
-          node-version: "12.x"
+          node-version: "14.x"
 
       - name: npm install, lint, build (and skip tests)
         run: |
@@ -30,11 +34,18 @@ jobs:
           npm run build
           # npm run test
 
+      - name: Replace tokens
+        uses: cschleiden/replace-tokens@v1.1
+        with:
+          files: '["deploy/*"]'
+        env:
+          azure_appservice_userpwd: ${{ secrets.azure_appservice_userpwd }}
+
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'repost'
-          slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_214E132ABFF440F4BE6E433A2B8FBBEA }}
+          app-name: ${{ env.app_name }}
+          slot-name: ${{ env.slot_name }}
+          publish-profile: ${{ env.publish_profile }}
           package: .
