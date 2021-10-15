@@ -69,6 +69,7 @@ export class PullRequestEventHandler {
       logger,
       appConfig
     );
+
     const payload = context.payload;
     const pullInfo: PullInfo = {
       owner: payload.repository.owner.login,
@@ -343,6 +344,7 @@ Please fix the issues and recreate a new PR:
       options
     );
     logger.debug(`Parsed Document Items: ${JSON.stringify(parsedItems)}`);
+    const { repo, repoOwner, team, teamOwner } = parsedItems;
 
     const userGithubService = GitHubService.buildForUser(
       options.userToken || "dry_run",
@@ -351,11 +353,22 @@ Please fix the issues and recreate a new PR:
     );
 
     // Check for repo to post to
-    if (parsedItems.repo) {
-      if (!parsedItems.repoOwner)
+    if (repo) {
+      if (!repoOwner) {
         throw new Error(
-          "Missing target repo owner - repo url should include the owner (org)"
+          "Missing target repo owner - repo url should include the owner (organization)"
         );
+      }
+
+      if (
+        !(await appGitHubService.appIsInstalled({
+          owner: repoOwner,
+        }))
+      ) {
+        throw new Error(
+          `The app is not installed on the organization or user \"${repoOwner}\"`
+        );
+      }
       await this.createRepoDiscussion(
         appGitHubService,
         userGithubService,
@@ -368,11 +381,21 @@ Please fix the issues and recreate a new PR:
     }
 
     // Check for team to post to
-    if (parsedItems.team) {
-      if (!parsedItems.teamOwner)
+    if (team) {
+      if (!teamOwner) {
         throw new Error(
-          "The url to the team is not valid - it must include the team owner (org)"
+          "The url to the team is not valid - it must include the team owner (organization)"
         );
+      }
+      if (
+        !(await appGitHubService.appIsInstalled({
+          owner: teamOwner,
+        }))
+      ) {
+        throw new Error(
+          `The app is not installed for the organization or user \"${teamOwner}\"`
+        );
+      }
       await this.createOrgTeamDiscussion(
         userGithubService,
         appGitHubService,
@@ -385,7 +408,7 @@ Please fix the issues and recreate a new PR:
 
   private async createOrgTeamDiscussion(
     userGithubService: GitHubService,
-    appGithubService: GitHubService,
+    appGitHubService: GitHubService,
     logger: DeprecatedLogger,
     options: {
       filepath: string;
@@ -403,16 +426,31 @@ Please fix the issues and recreate a new PR:
       team: parsedItems.team!,
       owner: parsedItems.teamOwner!,
     });
-    if (newDiscussion) {
-      await this.createPrSuccessComment(
-        appGithubService,
-        logger,
-        options,
-        newDiscussion.title,
-        newDiscussion.html_url,
-        "team"
-      );
+    if (!options.dryRun) {
+      if (newDiscussion) {
+        await this.createPrSuccessComment(
+          appGitHubService,
+          logger,
+          options,
+          newDiscussion.title,
+          newDiscussion.html_url,
+          "team"
+        );
+      } else {
+        await this.createPrErrorComment(appGitHubService, options);
+      }
     }
+  }
+
+  private async createPrErrorComment(
+    appGitHubService: GitHubService,
+    options: { pullInfo: PullInfo; pullRequestCommentId?: number | undefined }
+  ) {
+    await appGitHubService.createPullRequestCommentReply({
+      ...options.pullInfo,
+      comment_id: options.pullRequestCommentId!,
+      body: `⛔️ Something went wrong. Make sure that you have installed and authorized the app on any repository or team that you would like to post to. Then recreate this PR 👍🏼`,
+    });
   }
 
   private async createRepoDiscussion(
@@ -443,15 +481,19 @@ Please fix the issues and recreate a new PR:
       categoryNodeId: discussionCategoryMatch.id,
     });
 
-    if (newDiscussion) {
-      await this.createPrSuccessComment(
-        appGitHubService,
-        logger,
-        options,
-        newDiscussion.title,
-        newDiscussion.url,
-        "repository"
-      );
+    if (!options.dryRun) {
+      if (newDiscussion) {
+        await this.createPrSuccessComment(
+          appGitHubService,
+          logger,
+          options,
+          newDiscussion.title,
+          newDiscussion.url,
+          "repository"
+        );
+      } else {
+        await this.createPrErrorComment(appGitHubService, options);
+      }
     }
   }
 

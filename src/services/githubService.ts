@@ -292,4 +292,20 @@ export class GitHubService {
     this._logger.trace(`graphqlResponse: ${JSON.stringify(graphqlResponse)}`);
     return graphqlResponse.createDiscussion.discussion;
   }
+
+  public async appIsInstalled(options: { owner: string }): Promise<boolean> {
+    this._logger.debug(`Getting app installations...`);
+    const appInstallations = await this._octokit.apps.listInstallations({
+      per_page: 100,
+    });
+    this._logger.trace(
+      `App Installations:\n${JSON.stringify(appInstallations.data)}`
+    );
+    const match = appInstallations.data.find(
+      (installation) => installation.account?.login === options.owner
+    );
+    const hasAccess = !!match;
+    this._logger.debug(`HasAccess: ${hasAccess}`);
+    return hasAccess;
+  }
 }
