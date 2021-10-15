@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: "Deploy - repost"
+name: "Deploy main - repost"
 
 on:
   push:
@@ -30,11 +30,11 @@ jobs:
           npm run build
           # npm run test
 
-      # - name: "Deploy to Azure Web App"
-      #   id: deploy-to-webapp
-      #   uses: azure/webapps-deploy@v2
-      #   with:
-      #     app-name: "github-ado-chatops-web"
-      #     slot-name: "production"
-      #     publish-profile: ${{ secrets.AzureAppService_PublishProfile_ef30b67375f04dd49e9e51dee507546a }}
-      #     package: .
+      - name: 'Deploy to Azure Web App'
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'repost'
+          slot-name: 'Production'
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_214E132ABFF440F4BE6E433A2B8FBBEA }}
+          package: .
