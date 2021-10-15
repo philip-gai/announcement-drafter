@@ -1,6 +1,9 @@
 # (repo)st
 
-(repo)st - A 🤖 (bot) for posting new GitHub discussions using your existing repository's pull request workflows 📬
+(repo)st - A 🤖 for posting new GitHub discussions using your existing repository's pull request workflows 📬
+
+1️⃣ Create a pull request to get feedback from your teammates on your discussion post\
+2️⃣ Merge the pull request and the discussion automatically gets created in whatever repository or team you want it to!
 
 ## Quickstart Guide
 
@@ -24,6 +27,7 @@
 
 1. Follow the [Quickstart guide](#quickstart-guide) for information on getting started
 2. If there is no `.github/repost-app.yml` file in your repository, (repo)st will not do anything
+3. To use images, videos, gifs etc., do not use relative links to a file in your repo. Instead drag/drop or paste the file into the markdown. The link generated should be to `https://user-images.githubusercontent.com`
 
 ### App Configuration Options
 
