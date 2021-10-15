@@ -64,7 +64,7 @@ export class ConfigService {
 
   private static getDefaultSettings(): AppSettings {
     return {
-      watch_folders: ["docs/"],
+      watch_folders: [],
       ignore_folders: [],
     };
   }
