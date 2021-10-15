@@ -7,11 +7,9 @@ export class ConfigService {
   static defaultConfig: AppConfig = this.getDefaultConfig();
 
   readonly appConfig: AppConfig;
-  private _logger: DeprecatedLogger;
 
-  private constructor(appConfig: AppConfig, logger: DeprecatedLogger) {
+  private constructor(appConfig: AppConfig) {
     this.appConfig = appConfig;
-    this._logger = logger;
   }
 
   static async build(
@@ -26,7 +24,7 @@ export class ConfigService {
       logger.error(errorStr);
       throw new Error(errorStr);
     }
-    return new ConfigService(config, logger);
+    return new ConfigService(config);
   }
 
   /** Loads the config values from environment variables and input parameters */
@@ -38,19 +36,21 @@ export class ConfigService {
       let config = this.defaultConfig;
 
       if (context) {
-        const appRepoSettings =
-          (await context.config<AppSettings>("repost-app.yml")) ||
-          (await context.config<AppSettings>("repost-app.yaml"));
+        const defaultSettings = this.getDefaultSettings();
+        const appRepoSettings = await context.config<AppSettings>(
+          "repost-app.yml",
+          defaultSettings
+        );
         if (!appRepoSettings)
           logger.debug(
-            "No repost-app.y[a]ml file found in the repo, using defaults..."
+            "No repost-app.yml file found in the repo, using defaults..."
+          );
+        else
+          logger.debug(
+            `Loaded repo app settings: ${JSON.stringify(appRepoSettings)}`
           );
 
-        logger.debug(
-          `Loaded repo app settings: ${JSON.stringify(appRepoSettings)}`
-        );
-
-        config.appSettings = appRepoSettings || this.getDefaultSettings();
+        config.appSettings = appRepoSettings || defaultSettings;
       }
 
       return config;
@@ -78,6 +78,10 @@ export class ConfigService {
       github_client_id: process.env["GITHUB_CLIENT_ID"] || "",
       github_client_secret: process.env["GITHUB_CLIENT_SECRET"] || "",
       appSettings: this.getDefaultSettings(),
+      dry_run_comments: process.env["DRY_RUN_COMMENTS"] === "true",
+      dry_run_posts: process.env["DRY_RUN_POSTS"] === "true",
+      base_url: process.env["WEBHOOK_PROXY_URL"] || "",
+      auth_url: process.env["AUTH_URL"] || "",
     };
   }
 
@@ -93,6 +97,9 @@ export class ConfigService {
       errorMessages.push("Missing github_client_id");
     if (!config.github_client_secret)
       errorMessages.push("Missing github_client_secret");
+    if (!config.base_url)
+      errorMessages.push("Missing base_url (WEBHOOK_PROXY_URL)");
+    if (!config.auth_url) errorMessages.push("Missing auth_url (AUTH_URL)");
     return errorMessages;
   }
 }
