@@ -16,10 +16,9 @@ jobs:
       name: "production"
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     env:
-      publish_profile: 'deploy/repost.PublishSettings'
       slot_name: 'Production'
       app_name: 'repost'
-
+    concurrency: ${{ format('{0}/{1}', env.app_name, env.slot_name) }}
     steps:
       - uses: actions/checkout@v2
 
