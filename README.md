@@ -72,13 +72,14 @@ Hello beautiful world! 🌎
 2. Create a pull request
 3. (repo)st will comment on the discussion markdown file asking for approval from the author to post the discussions. It will also notify you of any validation erros.
    1. An approval requires the author to react (not reply) to the comment with a 🚀
-   2. If there are errors, fix them and recreate a new pull request so (repo)st can re-validate (Will add this in the future. See [issue](https://github.com/philip-gai/repost/issues/36))
+   2. If there are errors, fix them and recreate a new pull request so (repo)st can revalidate (Will fix this - see issue [#36](https://github.com/philip-gai/repost/issues/36))
 4. Receive feedback from your teammates
-5. Make updates (these will not be revalidated unless you recreate the pull request. See [issue](https://github.com/philip-gai/repost/issues/36))
-6. Approve all the discussions you would like posted by reacting with a 🚀
+5. Make updates
+   1. These will not be revalidated by the bot unless you recreate the pull request. See [#36](https://github.com/philip-gai/repost/issues/36)
+6. Approve all the discussions you would like posted by reacting (not replying) with a 🚀
 7. If (repo)st bot asks, make sure to authenticate so it can post as the author and not as itself
 8. Merge the pull request
-9. (repo)st will create the discussions and reply to its comments with a link
+9. (repo)st will create the discussion and reply to the comment with a link to the newly creating discussion
    1.  If there were issues it will include them in the reply
 
 ## Contributing
