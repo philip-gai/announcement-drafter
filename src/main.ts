@@ -23,7 +23,8 @@ export = async (app: Probot, options: ApplicationFunctionOptions) => {
       authService
     )
       .addOAuthAuthorizeRoute()
-      .addOAuthCallbackRoute();
+      .addOAuthCallbackRoute()
+      .addHealthCheckRoute();
     logger.debug("Done.");
 
     app.on("pull_request.opened", async (context) => {

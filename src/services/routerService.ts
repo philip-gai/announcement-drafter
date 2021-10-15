@@ -71,4 +71,11 @@ export class RouterService {
     });
     return this;
   }
+
+  public addHealthCheckRoute(): this {
+    this._router.get("/health", (_req, res) => {
+      res.status(200).send("Success");
+    });
+    return this;
+  }
 }
