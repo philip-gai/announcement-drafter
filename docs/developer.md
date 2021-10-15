@@ -12,6 +12,22 @@ npm install
 npm start
 ```
 
+## Docker (Optional)
+
+```sh
+# 1. Build container
+docker build -t repost .
+
+# 2. Start container
+docker run --env-file .env repost
+
+
+# Build/Deploy for Azure
+docker login githubadochatops.azurecr.io --username githubadochatops
+docker build -t githubadochatops.azurecr.io/repost:latest .
+docker push githubadochatops.azurecr.io/repost:latest
+```
+
 ## Usage
 
 `/create-branch-ado` or `/cb-ado` without any argument will create a branch with the naming scheme `users/<github handle>/<issue number>-<issue title>` off of the default branch set in your ADO Repo.
