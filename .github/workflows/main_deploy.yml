@@ -32,14 +32,6 @@ jobs:
           npm install
           npm run lint
           npm run build
-          # npm run test
-
-      - name: Replace tokens
-        uses: cschleiden/replace-tokens@v1.1
-        with:
-          files: '["deploy/*"]'
-        env:
-          azure_appservice_userpwd: ${{ secrets.azure_appservice_userpwd }}
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
@@ -47,5 +39,5 @@ jobs:
         with:
           app-name: ${{ env.app_name }}
           slot-name: ${{ env.slot_name }}
-          publish-profile: ${{ env.publish_profile }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
           package: .
