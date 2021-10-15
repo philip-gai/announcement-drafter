@@ -99,11 +99,11 @@ export class PullRequestEventHandler {
     logger.debug(`Number of files added in push: ${filesAdded.length}`);
 
     const app = await this.getAuthenticatedApp(logger, context);
-    const { appLogin, appPublicPage } = {
-      appLogin: `${app.name}[bot]`,
+    const { appName, appPublicPage } = {
+      appName: app.name,
       appPublicPage: app.html_url,
     };
-    const appLinkMarkdown = `[@${appLogin}](${appPublicPage})`;
+    const appLinkMarkdown = `[@${appName}](${appPublicPage})`;
 
     // Example filepath: "docs/team-posts/hello-world.md"
     for (const file of filesAdded) {
