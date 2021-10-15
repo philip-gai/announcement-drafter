@@ -18,7 +18,7 @@ jobs:
     env:
       slot_name: 'Production'
       app_name: 'repost'
-    concurrency: ${{ format('{0}/{1}', env.app_name, env.slot_name) }}
+    concurrency: ${{ github.workflow }}
     steps:
       - uses: actions/checkout@v2
 
