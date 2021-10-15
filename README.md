@@ -10,9 +10,9 @@
 
     ```yml
     watch_folders:
-    - docs/
+        - docs/
     ignore_folders:
-    - docs/demo/ignore
+        - docs/demo/ignore
     ```
 
 3. Now whenever you create a pull request with discussion markdown in those watch folders, (repo)st will ask for approvals to create discussions, and when the pull request is merged, it will create the discussions and post as the author!
