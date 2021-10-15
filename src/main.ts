@@ -3,8 +3,8 @@ import { ConfigService } from "./services/configService";
 import { TokenService } from "./services/tokenService";
 import { AuthService } from "./services/authService";
 import { RouterService } from "./services/routerService";
-import { PullRequestEventHandler } from "./eventHandlers/pullRequestEventHandler";
 import { HelperService } from "./services/helperService";
+import { PullRequestEventHandler } from "./eventHandlers/pullRequestEventHandler";
 
 export = async (app: Probot, options: ApplicationFunctionOptions) => {
   const logger = app.log;
