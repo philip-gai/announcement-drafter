@@ -36,6 +36,8 @@ jobs:
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
+        env:
+          SCM_DO_BUILD_DURING_DEPLOYMENT: true
         with:
           app-name: ${{ env.app_name }}
           slot-name: ${{ env.slot_name }}
