@@ -40,7 +40,7 @@ These options should go in your repository's `.github/repost-app.yml` file.
 
 #### Example
 
-([Source in (repo)st demo repository](https://github.com/philip-gai/repost-demo/blob/main/docs/demo/hello-world.md))
+Example from [demo repository](https://github.com/philip-gai/repost-demo/blob/main/docs/demo/hello-world.md?plain=1):
 
 ```markdown
 <!-- 
