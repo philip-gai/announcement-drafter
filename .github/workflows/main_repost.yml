@@ -12,13 +12,17 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
     environment:
       name: "production"
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
     env:
       slot_name: 'Production'
       app_name: 'repost'
+
     concurrency: ${{ github.workflow }}
+
     steps:
       - uses: actions/checkout@v2
 
@@ -34,6 +38,8 @@ jobs:
           npm run build
 
       - name: Prepare dist
+        env:
+          NODE_ENV: 'production'
         run: ./scripts/make_dist.sh
 
       - name: 'Deploy to Azure Web App'
