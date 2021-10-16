@@ -44,4 +44,3 @@ jobs:
           slot-name: ${{ env.slot_name }}
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
           package: dist
-          startup-command: npm run start
