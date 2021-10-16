@@ -33,6 +33,9 @@ jobs:
           npm run lint
           npm run build
 
+      - name: Prepare dist
+        run: ./scripts/make_dist.sh
+
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
@@ -40,4 +43,5 @@ jobs:
           app-name: ${{ env.app_name }}
           slot-name: ${{ env.slot_name }}
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
-          package: lib
+          package: dist
+          startup-command: npm run start
