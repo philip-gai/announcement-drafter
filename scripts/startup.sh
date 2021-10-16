@@ -6,6 +6,7 @@ echo "pwd:" $(pwd)
 echo "ls:" $(ls)
 echo "npm config get production:" $(npm config get production)
 
+# https://stackoverflow.com/questions/65891396/npm-install-error-on-an-azure-app-web-service-eperm-operation-not-permitte
 echo "npm cache clean --force..."
 npm cache clean --force
 
