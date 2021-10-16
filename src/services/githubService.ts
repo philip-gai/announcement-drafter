@@ -235,7 +235,7 @@ export class GitHubService {
       per_page: 100, // 100 is the GitHub limit
     });
     this._logger.info("Done.");
-    this._logger.trace(JSON.stringify(comments.data));
+    this._logger.trace(`Comments:\n${JSON.stringify(comments.data)}`);
     return comments.data;
   }
 
