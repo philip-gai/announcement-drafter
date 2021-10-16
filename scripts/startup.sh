@@ -5,7 +5,10 @@ echo "Starting probot app..."
 echo "pwd:" $(pwd)
 echo "ls:" $(ls)
 echo "npm config get production:" $(npm config get production)
+
+# https://github.com/projectkudu/kudu/issues/2946#issuecomment-773546205
 echo "npm rebuild..."
 npm rebuild
+
 echo "npm run start..."
 npm run start
