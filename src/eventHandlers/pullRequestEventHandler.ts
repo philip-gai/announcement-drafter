@@ -300,6 +300,7 @@ Please fix the issues and recreate a new PR:
   ) {
     logger.info(`Getting authenticated app...`);
     const authenticatedApp = await context.octokit.apps.getAuthenticated();
+    logger.trace(`authenticatedApp:\n${JSON.stringify(authenticatedApp)}`);
     logger.info(`Done.`);
     return authenticatedApp.data;
   }
