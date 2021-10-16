@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Prequesites to running this script:
+# Prequisites:
 # npm install and npm build have already been run with NODE_ENV not set to production
 
 rm -r dist
