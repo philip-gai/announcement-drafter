@@ -224,7 +224,7 @@ Please fix the issues and recreate a new PR:
 
     // 1. (Shortcut) Look for comments made by (repo)st and which files they were made on
     const app = await this.getAuthenticatedApp(logger, context);
-    const appLogin = `${app.name}[bot]`;
+    const appLogin = `${app.slug}[bot]`;
 
     const pullRequestComments = await appGitHubService.getPullRequestComments({
       ...pullInfo,
