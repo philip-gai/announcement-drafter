@@ -40,4 +40,4 @@ jobs:
           app-name: ${{ env.app_name }}
           slot-name: ${{ env.slot_name }}
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
-          package: .
+          package: lib
