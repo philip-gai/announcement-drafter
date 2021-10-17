@@ -2,8 +2,8 @@
 
 `(repo)st`: A 🤖 for posting new GitHub discussions using your existing repository's pull request workflows 📬
 
-1️⃣ Create a pull request to get feedback from your teammates on your discussion post\
-2️⃣ Merge the pull request and the discussion automatically gets created in whatever repository or team `(repo)st` has access to!
+1️⃣ &nbsp;Create a pull request to get feedback from your teammates on your discussion post\
+2️⃣ &nbsp;Merge the pull request and the discussion automatically gets created in whatever repository or team `(repo)st` has access to!
 
 ## Quickstart Guide
 
