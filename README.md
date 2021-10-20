@@ -5,6 +5,8 @@
 1️⃣ &nbsp;Create a pull request to get feedback from your teammates on your discussion post\
 2️⃣ &nbsp;Merge the pull request and the discussion automatically gets created in whatever repository or team you want!
 
+![Demo](docs/assets/repost-demo.gif)
+
 ## Quickstart Guide
 
 1. [Install the GitHub App](https://github.com/apps/repo-st) and authorize for any repositories or teams you would like it to be able to post to or watch for markdown posts.
