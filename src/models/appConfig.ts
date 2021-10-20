@@ -1,4 +1,4 @@
-import { AppSettings } from "./appSettings";
+import { AppSettings } from './appSettings';
 
 export interface AppConfig {
   cosmos_database_id: string;
