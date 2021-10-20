@@ -42,15 +42,28 @@ jobs:
       app_name: 'repost'
     environment:
       name: "production"
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+      url: ${{ steps.azure-webapps-deploy.outputs.webapp-url }}
     steps:
       - name: Download a single artifact
         uses: actions/download-artifact@v2
         with:
           name: repost-dist
           path: dist
+      - name: 'Tar dist directory'
+        run: tar -cvf repost-dist.tar dist
+      - name: Bump version and push tag
+        id: github-tag-action
+        uses: anothrNick/github-tag-action@1.36.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: true
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: repost-dist.tar
+          tag_name: ${{ steps.github-tag-action.outputs.tag }}
       - name: 'Deploy to Azure Web App'
-        id: deploy-to-webapp
+        id: azure-webapps-deploy
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ env.app_name }}
