@@ -10,38 +10,45 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
-
-    environment:
-      name: "production"
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-
-    env:
-      slot_name: 'Production'
-      app_name: 'repost'
-
-    concurrency: ${{ github.workflow }}
-
     steps:
       - uses: actions/checkout@v2
-
       - name: Set up Node.js version
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: "14.x"
-
+          cache: 'npm'
       - name: npm install, lint, build (and skip tests)
         run: |
           npm install
           npm run lint
           npm run build
-
       - name: Prepare dist
         env:
           NODE_ENV: 'production'
         run: ./scripts/make_dist.sh
-
+      - name: 'Upload Artifact'
+        uses: actions/upload-artifact@v2
+        with:
+          name: repost-dist
+          path: dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    concurrency: production
+    env:
+      slot_name: 'Production'
+      app_name: 'repost'
+    environment:
+      name: "production"
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    steps:
+      - name: Download a single artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: repost-dist
+          path: dist
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
