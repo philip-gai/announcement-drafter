@@ -5,31 +5,31 @@ export interface Content {
   data: Data;
 }
 export interface Headers {
-  "access-control-allow-origin": string;
-  "access-control-expose-headers": string;
-  "cache-control": string;
+  'access-control-allow-origin': string;
+  'access-control-expose-headers': string;
+  'cache-control': string;
   connection: string;
-  "content-encoding": string;
-  "content-security-policy": string;
-  "content-type": string;
+  'content-encoding': string;
+  'content-security-policy': string;
+  'content-type': string;
   date: string;
   etag: string;
-  "last-modified": string;
-  "referrer-policy": string;
+  'last-modified': string;
+  'referrer-policy': string;
   server: string;
-  "strict-transport-security": string;
-  "transfer-encoding": string;
+  'strict-transport-security': string;
+  'transfer-encoding': string;
   vary: string;
-  "x-content-type-options": string;
-  "x-frame-options": string;
-  "x-github-media-type": string;
-  "x-github-request-id": string;
-  "x-ratelimit-limit": string;
-  "x-ratelimit-remaining": string;
-  "x-ratelimit-reset": string;
-  "x-ratelimit-resource": string;
-  "x-ratelimit-used": string;
-  "x-xss-protection": string;
+  'x-content-type-options': string;
+  'x-frame-options': string;
+  'x-github-media-type': string;
+  'x-github-request-id': string;
+  'x-ratelimit-limit': string;
+  'x-ratelimit-remaining': string;
+  'x-ratelimit-reset': string;
+  'x-ratelimit-resource': string;
+  'x-ratelimit-used': string;
+  'x-xss-protection': string;
 }
 export interface Data {
   name: string;

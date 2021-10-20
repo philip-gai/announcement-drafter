@@ -1,8 +1,8 @@
-import { Container, CosmosClient } from "@azure/cosmos";
-import { refreshToken } from "@octokit/oauth-methods";
-import { ProbotOctokit } from "probot";
-import { DeprecatedLogger } from "probot/lib/types";
-import { AppConfig } from "../models/appConfig";
+import { Container, CosmosClient } from '@azure/cosmos';
+import { refreshToken } from '@octokit/oauth-methods';
+import { ProbotOctokit } from 'probot';
+import { DeprecatedLogger } from 'probot/lib/types';
+import { AppConfig } from '../models/appConfig';
 
 export interface GetRefreshTokenOptions {
   userLogin: string;
@@ -23,10 +23,10 @@ export class TokenService {
   private constructor(appConfig: AppConfig, logger: DeprecatedLogger) {
     const client = new CosmosClient({
       endpoint: appConfig.cosmos_uri,
-      key: appConfig.cosmos_primary_key,
+      key: appConfig.cosmos_primary_key
     });
     const database = client.database(appConfig.cosmos_database_id);
-    this._container = database.container("Tokens");
+    this._container = database.container('Tokens');
     this._appConfig = appConfig;
     this._logger = logger;
   }
@@ -35,18 +35,14 @@ export class TokenService {
     return new TokenService(appConfig, logger);
   }
 
-  async getRefreshToken(
-    options: GetRefreshTokenOptions
-  ): Promise<TokenItem | undefined> {
+  async getRefreshToken(options: GetRefreshTokenOptions): Promise<TokenItem | undefined> {
     this._logger.info(`Getting refresh token...`);
     this._logger.debug(`Options: ${JSON.stringify(options)}`);
-    const itemResponse = await this._container
-      .item(options.userLogin, options.userLogin)
-      .read<TokenItem>();
+    const itemResponse = await this._container.item(options.userLogin, options.userLogin).read<TokenItem>();
 
     const token = itemResponse.resource;
 
-    if (!token) this._logger.info("No token found for the user");
+    if (!token) this._logger.info('No token found for the user');
     else this._logger.trace(JSON.stringify(token));
 
     if (!this.refreshTokenIsValid(token)) return undefined;
@@ -68,7 +64,7 @@ export class TokenService {
       this._logger.info(`Creating octokit from user token...`);
       const myOctokit = new ProbotOctokit({
         auth: { token: token },
-        log: this._logger,
+        log: this._logger
       });
 
       this._logger.info(`Getting the authenticated user...`);
@@ -81,18 +77,18 @@ export class TokenService {
       id: login,
       refreshToken: refreshToken,
       refreshTokenExpiresAt: refreshTokenExpiresAt,
-      refreshTokenCreatedAt: refreshTokenCreatedAt,
+      refreshTokenCreatedAt: refreshTokenCreatedAt
     });
-    this._logger.info("Upsert complete");
+    this._logger.info('Upsert complete');
   }
 
   public refreshTokenIsValid(refreshToken: TokenItem | undefined) {
     if (!refreshToken) {
-      this._logger.warn("No refresh token found for the user");
+      this._logger.warn('No refresh token found for the user');
       return false;
     }
     if (Date.now() > Date.parse(refreshToken.refreshTokenExpiresAt)) {
-      this._logger.warn("The refresh token is expired");
+      this._logger.warn('The refresh token is expired');
       return false;
     }
     return true;
@@ -101,35 +97,29 @@ export class TokenService {
   async refreshUserToken(userLogin: string) {
     this._logger.info(`Refreshing user token for ${userLogin}`);
     const userRefreshToken = await this.getRefreshToken({
-      userLogin: userLogin,
+      userLogin: userLogin
     });
 
     if (!this.refreshTokenIsValid(userRefreshToken)) {
-      throw new Error("User needs to re-authenticate");
+      throw new Error('User needs to re-authenticate');
     }
 
-    this._logger.info("Getting a new token from the refresh token...");
+    this._logger.info('Getting a new token from the refresh token...');
     const refreshTokenResponse = await refreshToken({
-      clientType: "github-app",
+      clientType: 'github-app',
       clientId: this._appConfig.github_client_id,
       clientSecret: this._appConfig.github_client_secret,
-      refreshToken: userRefreshToken!.refreshToken,
+      refreshToken: userRefreshToken!.refreshToken
     });
 
     const { activeToken, updatedRefreshToken, updatedRefreshTokenExpiresAt } = {
       activeToken: refreshTokenResponse.authentication.token,
       updatedRefreshToken: refreshTokenResponse.authentication.refreshToken,
-      updatedRefreshTokenExpiresAt:
-        refreshTokenResponse.authentication.refreshTokenExpiresAt,
+      updatedRefreshTokenExpiresAt: refreshTokenResponse.authentication.refreshTokenExpiresAt
     };
 
-    this._logger.info("Upserting the newest refresh token...");
-    await this.upsertRefreshToken(
-      activeToken,
-      updatedRefreshToken,
-      updatedRefreshTokenExpiresAt,
-      userLogin
-    );
+    this._logger.info('Upserting the newest refresh token...');
+    await this.upsertRefreshToken(activeToken, updatedRefreshToken, updatedRefreshTokenExpiresAt, userLogin);
 
     return activeToken;
   }

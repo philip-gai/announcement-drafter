@@ -1,5 +1,5 @@
-import { DeprecatedLogger } from "probot/lib/types";
-import YAML from "yaml";
+import { DeprecatedLogger } from 'probot/lib/types';
+import YAML from 'yaml';
 
 export interface ParsedMarkdownDiscussion {
   repo: string | undefined;
@@ -30,42 +30,39 @@ export class ParserService {
   // https://www.npmjs.com/package/yaml
   private parseYamlHeader(content: string): any {
     try {
-      this._logger.info("Parsing YAML from the markdown comment header...");
-      const startIndex = content.indexOf("<!--") + "<!--".length;
-      const endIndex = content.indexOf("-->");
+      this._logger.info('Parsing YAML from the markdown comment header...');
+      const startIndex = content.indexOf('<!--') + '<!--'.length;
+      const endIndex = content.indexOf('-->');
       const yamlStr = content.substring(startIndex, endIndex);
       this._logger.debug(yamlStr);
       const yaml = YAML.parse(yamlStr);
       return yaml;
     } catch (err) {
-      throw new Error("The YAML provided was invalid.");
+      throw new Error('The YAML provided was invalid.');
     }
   }
 
   public getPostAuthor(): string {
-    return this._yamlHeader.author?.replace("@", "") as string;
+    return this._yamlHeader.author?.replace('@', '') as string;
   }
 
   private getTargetRepoUrl(): string | undefined {
-    return (
-      (this._yamlHeader.repo as string) ||
-      (this._yamlHeader.repository as string)
-    );
+    return (this._yamlHeader.repo as string) || (this._yamlHeader.repository as string);
   }
 
   public getTargetRepoOwner(): string | undefined {
     const repoUrl = this.getTargetRepoUrl();
     if (!repoUrl) return;
-    const owner = repoUrl.split("/")[3];
-    if (!owner) throw new Error("Unable to get repo owner");
+    const owner = repoUrl.split('/')[3];
+    if (!owner) throw new Error('Unable to get repo owner');
     return owner;
   }
 
   public getTargetRepoName(): string | undefined {
     const repoUrl = this.getTargetRepoUrl();
     if (!repoUrl) return;
-    const repoName = repoUrl.split("/").pop();
-    if (!repoName) throw new Error("Unable to get repo name");
+    const repoName = repoUrl.split('/').pop();
+    if (!repoName) throw new Error('Unable to get repo name');
     return repoName;
   }
 
@@ -76,32 +73,29 @@ export class ParserService {
   public getTargetTeamOwner(): string | undefined {
     const teamUrl = this.getTargetTeamUrl();
     if (!teamUrl) return;
-    const owner = teamUrl.split("/")[4];
-    if (!owner) throw new Error("Unable to get team owner");
+    const owner = teamUrl.split('/')[4];
+    if (!owner) throw new Error('Unable to get team owner');
     return owner;
   }
 
   public getTargetTeamName(): string | undefined {
     const teamUrl = this.getTargetTeamUrl();
     if (!teamUrl) return;
-    const teamName = teamUrl.split("/").pop();
-    if (!teamName) throw new Error("Unable to get team name");
+    const teamName = teamUrl.split('/').pop();
+    if (!teamName) throw new Error('Unable to get team name');
     return teamName;
   }
 
   public getDiscussionCategoryName(): string {
     const rawCat = this._yamlHeader.category as string;
-    const categoryName = rawCat?.split("/").pop()?.trim();
-    if (!categoryName) throw new Error("Unable to get discussion category");
+    const categoryName = rawCat?.split('/').pop()?.trim();
+    if (!categoryName) throw new Error('Unable to get discussion category');
     return categoryName;
   }
 
   public getPostTitle(): string {
-    if (!this._content.includes("# "))
-      throw new Error(
-        "You must include a top level header # in your markdown that has the post title"
-      );
-    const postTitle = this._content.split("# ")[1].split("\n")[0].trim();
+    if (!this._content.includes('# ')) throw new Error('You must include a top level header # in your markdown that has the post title');
+    const postTitle = this._content.split('# ')[1].split('\n')[0].trim();
     return postTitle;
   }
 
@@ -121,7 +115,7 @@ export class ParserService {
       discussionCategoryName: this.getDiscussionCategoryName(),
       postBody: this.getPostBody(),
       postTitle: this.getPostTitle(),
-      author: this.getPostAuthor(),
+      author: this.getPostAuthor()
     };
   }
 }
