@@ -1,0 +1,23 @@
+name: "Azure App Settings Deployment"
+description: "Runs az webapp config appsettings set"
+
+inputs:
+  resource_group_name:
+    required: true
+    default: "repost-app"
+  app_name:
+    description: "Name of the web app. If left unspecified, a name will be randomly generated"
+    required: true
+    default: "repost"
+  settings:
+    description: "Space-separated appsettings in KEY=VALUE format. Use @{file} to load from a file."
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: App Service Resource Group Deploy
+      run: |
+        az webapp config appsettings set \
+          --resource-group ${{ inputs.resource_group_name }} \
+          --name ${{ inputs.app_name }} \
+          --settings ${{ inputs.settings }}
