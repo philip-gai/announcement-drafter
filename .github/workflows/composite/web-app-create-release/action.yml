@@ -1,0 +1,32 @@
+name: "Web App Release"
+description: "Creates a release and uploads release files"
+
+inputs:
+  working-directory:
+    required: true
+    default: "./web-app"
+  dist-directory:
+    required: true
+    default: "dist"
+outputs:
+  release-url:
+    description: "New Release"
+    value: ${{ steps.release-step.outputs.url }}
+runs:
+  using: "composite"
+  steps:
+    - name: "Tar directory"
+      working-directory: ${{ inputs.working-directory }}
+      run: tar -cvf release.tar ${{ inputs.dist-directory }}
+    - name: Bump version and push tag
+      id: github-tag-action
+      uses: anothrNick/github-tag-action@1.36.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        WITH_V: true
+    - name: Release
+      id: release-step
+      uses: softprops/action-gh-release@v1
+      with:
+        files: "${{ inputs.working-directory }}/release.tar"
+        tag_name: ${{ steps.github-tag-action.outputs.tag }}
