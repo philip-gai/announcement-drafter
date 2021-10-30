@@ -1,15 +1,16 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: "CI - repost"
+name: "Web App CI"
 
 on:
   pull_request:
-    paths: [src/**]
-  workflow_dispatch:
+    branches: [main, develop]
+    paths: [web-app/src/**]
   push:
     branches: [main, develop]
-    paths: [src/**]
+    paths: [web-app/src/**]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -23,8 +24,9 @@ jobs:
         with:
           node-version: "14.x"
 
-      - name: npm install, lint, build (and skip tests)
+      - name: npm install, lint, build
         run: |
+          cd web-app
           npm install
           npm run lint
           npm run build
