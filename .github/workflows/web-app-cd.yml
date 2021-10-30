@@ -1,12 +1,12 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: "Deploy main - repost"
+name: "Web App CD"
 
 on:
   push:
     branches: [main]
-    paths: [src/**]
+    paths: [web-app/src/**]
   workflow_dispatch:
 
 jobs:
@@ -26,7 +26,8 @@ jobs:
         with:
           node-version: "14.x"
           cache: 'npm'
-      - name: npm install, lint, build (and skip tests)
+      - name: npm install, lint, build
+        working-directory: ./web-app
         run: |
           npm install
           npm run lint
@@ -34,8 +35,10 @@ jobs:
       - name: Prepare dist
         env:
           NODE_ENV: 'production'
+        working-directory: ./web-app
         run: ./scripts/make_dist.sh
       - name: 'Tar dist directory'
+        working-directory: ./web-app
         run: tar -cvf repost-dist.tar dist
       - name: Bump version and push tag
         id: github-tag-action
@@ -46,7 +49,7 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          files: repost-dist.tar
+          files: ./web-app/repost-dist.tar
           tag_name: ${{ steps.github-tag-action.outputs.tag }}
       - name: 'Deploy to Azure Web App'
         id: azure-webapps-deploy
@@ -55,4 +58,4 @@ jobs:
           app-name: ${{ env.app_name }}
           slot-name: ${{ env.slot_name }}
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
-          package: dist
+          package: ./web-app/dist
