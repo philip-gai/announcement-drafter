@@ -1,0 +1,25 @@
+name: "Web App Build/Test"
+description: "Sets up node and runs npm install, lint and build"
+
+inputs:
+  node-version:
+    required: true
+    default: "14.x"
+  working-directory:
+    required: true
+    default: "./web-app"
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Node.js version
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ inputs.node_version }}
+        cache: "npm"
+        cache-dependency-path: ${{ inputs.working-directory }}
+    - name: npm install, lint, build
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        npm install
+        npm run lint
+        npm run build

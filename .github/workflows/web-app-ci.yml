@@ -11,20 +11,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
-      - name: Set up Node.js version
-        uses: actions/setup-node@v2
-        with:
-          node-version: "14.x"
-          cache: 'npm'
-          cache-dependency-path: ./web-app
-
-      - name: npm install, lint, build
-        working-directory: ./web-app
-        run: |
-          npm install
-          npm run lint
-          npm run build
+      - name: Build and test
+        uses: ./.github/workflows/composite/web-app-build-test

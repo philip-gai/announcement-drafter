@@ -14,46 +14,22 @@ jobs:
     runs-on: ubuntu-latest
     concurrency: production
     env:
-      slot_name: 'Production'
-      app_name: 'repost'
+      slot_name: "Production"
+      app_name: "repost"
     environment:
       name: "production"
       url: ${{ steps.azure-webapps-deploy.outputs.webapp-url }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
-      - name: Set up Node.js version
-        uses: actions/setup-node@v2
-        with:
-          node-version: "14.x"
-          cache: 'npm'
-          cache-dependency-path: ./web-app
-      - name: npm install, lint, build
-        working-directory: ./web-app
-        run: |
-          npm install
-          npm run lint
-          npm run build
+      - name: Build and test
+        uses: ./.github/workflows/composite/web-app-build-test
       - name: Prepare dist
         env:
-          NODE_ENV: 'production'
+          NODE_ENV: "production"
         working-directory: ./web-app
         run: ./scripts/make_dist.sh
-      - name: 'Tar dist directory'
-        working-directory: ./web-app
-        run: tar -cvf repost-dist.tar dist
-      - name: Bump version and push tag
-        id: github-tag-action
-        uses: anothrNick/github-tag-action@1.36.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          WITH_V: true
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: ./web-app/repost-dist.tar
-          tag_name: ${{ steps.github-tag-action.outputs.tag }}
-      - name: 'Deploy to Azure Web App'
+      - name: "Deploy to Azure Web App"
         id: azure-webapps-deploy
         uses: azure/webapps-deploy@v2
         with:
@@ -61,3 +37,7 @@ jobs:
           slot-name: ${{ env.slot_name }}
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
           package: ./web-app/dist
+      - name: Create Release
+        id: create-releaes
+        uses: ./.github/workflows/composite/web-app-create-release
+      - run: echo "::set-output name=release-url::${{ steps.create-releaes.outputs.new-release-url }}"
