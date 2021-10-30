@@ -60,6 +60,15 @@ runs:
           resource_group_name: ${{ inputs.resource_group_name }}
           template_file: ${{ inputs.app_service_template }}
           what_if: ${{ inputs.what_if }}
+      - name: Replace Tokens
+        uses: cschleiden/replace-tokens@v1
+        with:
+          files: '["infrastructure/repost-app/appSettings.json"]'
+        env:
+          COSMOS_PRIMARY_KEY: ${{ secrets.COSMOS_PRIMARY_KEY }}
+          GITHUB_CLIENT_SECRET: ${{ secrets.GITHUBAPP_CLIENT_SECRET }}
+          PRIVATE_SSH_KEY: ${{ secrets.PRIVATE_SSH_KEY }}
+          WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
       - name: Update App Settings
         if: ${{ inputs.what_if == 'false' }}
         uses: ./.github/workflows/composite/azure-appsettings-deployment
