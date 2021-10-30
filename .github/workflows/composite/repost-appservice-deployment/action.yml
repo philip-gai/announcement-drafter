@@ -1,0 +1,67 @@
+name: "Repost App Service Deployment"
+
+inputs:
+  service_principal_id:
+    description: "The service principal to use for the deployment"
+    required: true
+    default: "a815ac51-ea5e-4b31-aa3c-eefb9c87403b"
+  service_principal_secret:
+    description: "The password for the service principal"
+    required: true
+    default: ${{ secrets.SERVICE_PRINCIPAL_SECRET }}
+  subcription_id:
+    description: "The subscription for the deployment"
+    required: true
+    default: "59b7bd22-db8a-4752-840e-6b4507317ff0"
+  tenant_id:
+    description: "The tenant for the deployment"
+    required: true
+    default: "87e276c0-7d18-4d86-948a-ba5eea990211"
+  location:
+    description: "The location for the deployment resources"
+    required: true
+    default: "centralus"
+  resource_group_name:
+    description: "The resource group name for the app service"
+    required: true
+    default: "repost-app"
+  resource_group_template:
+    description: "The template describing the resource group"
+    required: true
+    default: "infrastructure/repost-app/resource-group.bicep"
+  app_service_template:
+    description: "The template describing the app service"
+    required: true
+    default: "infrastructure/repost-app/app-service.bicep"
+  what_if:
+    description: "Run a what-if (dry run)"
+    required: true
+    default: "true"
+
+runs:
+  using: "composite"
+  steps:
+     - name: Azure Login
+        uses: ./.github/workflows/composite/azure-login
+        with:
+          service_principal_id: ${{ inputs.service_principal_id }}
+          service_principal_secret: ${{ inputs.service_principal_secret }}
+          subcription_id: ${{ inputs.subcription_id }}
+          tenant_id: ${{ inputs.tenant_id }}
+      - name: Update Resource Group What-If=${{ inputs.what_if }}
+        uses: ./.github/workflows/composite/azure-subscription-deployment
+        with:
+          location: ${{ inputs.location }}
+          template_file: ${{ inputs.resource_group_template }}
+          what_if: ${{ inputs.what_if }}
+      - name: Update App Service What-If=${{ inputs.what_if }}
+        uses: ./.github/workflows/composite/azure-resourcegroup-deployment
+        with:
+          resource_group_name: ${{ inputs.resource_group_name }}
+          template_file: ${{ inputs.app_service_template }}
+          what_if: ${{ inputs.what_if }}
+      - name: Update App Settings
+        if: ${{ inputs.what_if == 'false' }}
+        uses: ./.github/workflows/composite/azure-appsettings-deployment
+        with:
+          settings: "@infrastructure/repost-app/appsettings.json"
