@@ -1,0 +1,17 @@
+name: "App Service CI"
+
+on:
+  pull_request:
+    paths: [infrastructure/repost-app/**]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: App Service What-If Deployment
+        uses: ./.github/workflows/composite/repost-appservice-deployment
+        with:
+          what_if: true

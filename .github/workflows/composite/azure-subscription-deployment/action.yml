@@ -1,0 +1,26 @@
+name: "Azure Subscription Deployment"
+description: "Runs New-AzSubscriptionDeployment"
+
+inputs:
+  location:
+    required: true
+    default: "centralus"
+  template_file:
+    required: true
+  parameter_file:
+    required: false
+  what_if:
+    required: true
+    default: "true"
+runs:
+  using: "composite"
+  steps:
+    - name: App Service Resource Group Deploy
+      shell: pwsh
+      run: |
+        $whatIf = "false" -ne ${{ inputs.what_if }}
+        New-AzSubscriptionDeployment `
+          -Location ${{ inputs.location }} `
+          -TemplateFile ${{ inputs.template_file }} `
+          -TemplateParameterFile ${{ inputs.parameter_file }} `
+          -WhatIf:$whatIf
