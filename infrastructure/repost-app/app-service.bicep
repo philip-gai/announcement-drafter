@@ -2,17 +2,6 @@ param site_name string = 'repost'
 param serverfarms_repost_appserviceplan_name string = 'repost-appserviceplan'
 param location string = 'Central US'
 
-resource resource_group 'Microsoft.Resources/resourceGroups@2021-04-01' = {
-  name: 'repost-app'
-  location: location
-  tags: {
-    tagName1: 'tagValue1'
-    tagName2: 'tagValue2'
-  }
-  managedBy: 'string'
-  properties: {}
-}
-
 resource serverfarms_repost_appserviceplan_name_resource 'Microsoft.Web/serverfarms@2021-01-15' = {
   name: serverfarms_repost_appserviceplan_name
   location: location
