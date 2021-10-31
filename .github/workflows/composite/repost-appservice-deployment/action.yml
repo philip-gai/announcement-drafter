@@ -1,4 +1,4 @@
-name: "Repost App Service Deployment"
+name: "Deploy Repost App Service"
 
 inputs:
   service_principal_id:
@@ -48,13 +48,13 @@ runs:
           service_principal_secret: ${{ inputs.service_principal_secret }}
           subcription_id: ${{ inputs.subcription_id }}
           tenant_id: ${{ inputs.tenant_id }}
-      - name: Update Resource Group What-If=${{ inputs.what_if }}
+      - name: Deploy Resource Group What-If=${{ inputs.what_if }}
         uses: ./.github/workflows/composite/azure-subscription-deployment
         with:
           location: ${{ inputs.location }}
           template_file: ${{ inputs.resource_group_template }}
           what_if: ${{ inputs.what_if }}
-      - name: Update App Service What-If=${{ inputs.what_if }}
+      - name: Deploy App Service What-If=${{ inputs.what_if }}
         uses: ./.github/workflows/composite/azure-resourcegroup-deployment
         with:
           resource_group_name: ${{ inputs.resource_group_name }}
@@ -69,7 +69,7 @@ runs:
           GITHUB_CLIENT_SECRET: ${{ secrets.GITHUBAPP_CLIENT_SECRET }}
           PRIVATE_SSH_KEY: ${{ secrets.PRIVATE_SSH_KEY }}
           WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
-      - name: Update App Settings
+      - name: Deploy App Settings
         if: ${{ inputs.what_if == 'false' }}
         uses: ./.github/workflows/composite/azure-appsettings-deployment
         with:
