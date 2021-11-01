@@ -21,4 +21,5 @@ runs:
         az webapp config appsettings set \
           --resource-group "${{ inputs.resource_group_name }}" \
           --name "${{ inputs.app_name }}" \
-          --settings "${{ inputs.settings }}"
+          --settings "${{ inputs.settings }}" \
+          --output none # No output other than errors and warnings
