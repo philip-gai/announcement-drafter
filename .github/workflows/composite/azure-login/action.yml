@@ -14,14 +14,13 @@ inputs:
     required: true
     default: "87e276c0-7d18-4d86-948a-ba5eea990211"
 
-env:
-  azure_creds: '{"clientId":"${{ inputs.service_principal_id }}","clientSecret":"${{ inputs.service_principal_secret }}","subscriptionId":"${{ inputs.subcription_id }}","tenantId":"${{ inputs.tenant_id }}"}'
-
 runs:
   using: "composite"
   steps:
     - name: Azure Login
       uses: azure/login@v1
+      env:
+        azure_creds: '{"clientId":"${{ inputs.service_principal_id }}","clientSecret":"${{ inputs.service_principal_secret }}","subscriptionId":"${{ inputs.subcription_id }}","tenantId":"${{ inputs.tenant_id }}"}'
       with:
         creds: ${{ env.azure_creds }}
         enable-AzPSSession: true
