@@ -16,11 +16,14 @@ runs:
   using: "composite"
   steps:
     - name: App Service Resource Group Deploy
-      shell: pwsh
-      run: |
+      uses: azure/powershell@v1
+      with:
+        inlineScript: |
         $whatIf = "false" -ne "${{ inputs.what_if }}"
         New-AzSubscriptionDeployment `
           -Location "${{ inputs.location }}" `
           -TemplateFile "${{ inputs.template_file }}" `
           -TemplateParameterFile "${{ inputs.parameter_file }}" `
           -WhatIf:$whatIf
+        azPSVersion: "latest"
+        failOnStandardError: "true"
