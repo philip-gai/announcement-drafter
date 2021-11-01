@@ -42,6 +42,7 @@ jobs:
         env:
           NODE_ENV: "production"
         working-directory: ./web-app
+        shell: bash
         run: ./scripts/make_dist.sh
       - name: "Deploy to Azure Web App"
         id: azure-webapps-deploy
