@@ -23,8 +23,9 @@ runs:
             WhatIf = "false" -ne "${{ inputs.what_if }}"
             Location = "${{ inputs.location }}"
             TemplateFile = "${{ inputs.template_file }}"
-            TemplateParameterFile = "${{ inputs.parameter_file }}"
           }
+          $templateParameterFile = "${{ inputs.parameter_file }}"
+          If ($templateParameterFile) { $params['TemplateParameterFile'] = $templateParameterFile }
           Write-Host "Running New-AzSubscriptionDeployment... $($params | Out-String)"
           New-AzSubscriptionDeployment @params
         azPSVersion: "latest"
