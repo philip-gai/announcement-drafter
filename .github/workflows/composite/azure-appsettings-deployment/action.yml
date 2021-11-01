@@ -16,6 +16,7 @@ runs:
   using: "composite"
   steps:
     - name: App Service Resource Group Deploy
+      shell: bash
       run: |
         az webapp config appsettings set \
           --resource-group "${{ inputs.resource_group_name }}" \
