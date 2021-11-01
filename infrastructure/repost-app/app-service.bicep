@@ -1,7 +1,7 @@
 param site_name string = 'repost'
 param serverfarms_repost_appserviceplan_name string = 'repost-appserviceplan'
 param rgLocation string = 'centralus'
-param basicPublishingCredentialsPoliciesLocation = 'Central US'
+param basicPublishingCredentialsPoliciesLocation string = 'Central US'
 
 resource serverfarms_repost_appserviceplan_name_resource 'Microsoft.Web/serverfarms@2021-01-15' = {
   name: serverfarms_repost_appserviceplan_name
