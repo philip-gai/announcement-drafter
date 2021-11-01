@@ -18,6 +18,6 @@ runs:
     - name: App Service Resource Group Deploy
       run: |
         az webapp config appsettings set \
-          --resource-group ${{ inputs.resource_group_name }} \
-          --name ${{ inputs.app_name }} \
-          --settings ${{ inputs.settings }}
+          --resource-group "${{ inputs.resource_group_name }}" \
+          --name "${{ inputs.app_name }}" \
+          --settings "${{ inputs.settings }}"

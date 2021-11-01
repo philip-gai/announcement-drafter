@@ -18,9 +18,9 @@ runs:
     - name: App Service Resource Group Deploy
       shell: pwsh
       run: |
-        $whatIf = "false" -ne ${{ inputs.what_if }}
+        $whatIf = "false" -ne "${{ inputs.what_if }}"
         New-AzResourceGroupDeployment `
-          -ResourceGroupName ${{ inputs.resource_group_name }} `
-          -TemplateFile ${{ inputs.template_file }} `
-          -TemplateParameterFile ${{ inputs.parameter_file }} `
+          -ResourceGroupName "${{ inputs.resource_group_name }}" `
+          -TemplateFile "${{ inputs.template_file }}" `
+          -TemplateParameterFile "${{ inputs.parameter_file }}" `
           -WhatIf:$whatIf

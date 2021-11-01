@@ -16,8 +16,8 @@ runs:
   using: "composite"
   steps:
     - name: "Tar directory"
-      working-directory: ${{ inputs.working-directory }}
-      run: tar -cvf release.tar ${{ inputs.dist-directory }}
+      working-directory: "${{ inputs.working-directory }}"
+      run: tar -cvf release.tar "${{ inputs.dist-directory }}"
     - name: Bump version and push tag
       id: github-tag-action
       uses: anothrNick/github-tag-action@1.36.0

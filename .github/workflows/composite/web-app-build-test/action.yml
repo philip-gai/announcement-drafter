@@ -16,9 +16,9 @@ runs:
       with:
         node-version: ${{ inputs.node_version }}
         cache: "npm"
-        cache-dependency-path: ${{ inputs.working-directory }}
+        cache-dependency-path: "${{ inputs.working-directory }}"
     - name: npm install, lint, build
-      working-directory: ${{ inputs.working-directory }}
+      working-directory: "${{ inputs.working-directory }}"
       run: |
         npm install
         npm run lint
