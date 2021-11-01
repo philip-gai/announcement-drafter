@@ -16,12 +16,10 @@ runs:
   using: "composite"
   steps:
     - name: App Service Resource Group Deploy
-      uses: Azure/cli@1.0.4
-      with:
-        azcliversion: "latest"
-        inlineScript: |
-          az webapp config appsettings set \
-            --resource-group "${{ inputs.resource_group_name }}" \
-            --name "${{ inputs.app_name }}" \
-            --settings "${{ inputs.settings }}" \
-            --output none # No output other than errors and warnings
+      shell: bash
+      run: |
+        az webapp config appsettings set \
+          --resource-group "${{ inputs.resource_group_name }}" \
+          --name "${{ inputs.app_name }}" \
+          --settings "${{ inputs.settings }}" \
+          --output none # No output other than errors and warnings
