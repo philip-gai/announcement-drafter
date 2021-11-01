@@ -5,10 +5,6 @@ inputs:
     description: "The service principal to use for the deployment"
     required: true
     default: "a815ac51-ea5e-4b31-aa3c-eefb9c87403b"
-  service_principal_secret:
-    description: "The password for the service principal"
-    required: true
-    default: ${{ secrets.SERVICE_PRINCIPAL_SECRET }}
   subcription_id:
     description: "The subscription for the deployment"
     required: true
@@ -37,6 +33,22 @@ inputs:
     description: "Run a what-if (dry run)"
     required: true
     default: "true"
+  # Secrets
+  cosmos_primary_key_secret:
+    description: "The primary key to connect to the Cosmos database"
+    required: true
+  github_app_client_secret:
+    descripton: "The client secret for the GitHub App"
+    required: true
+  github_app_private_ssh_key:
+    description: "The ssh key for the GitHub App"
+    required: true
+  github_app_webhook_secret:
+    description: "The webhook secret for the GitHub App"
+    required: true
+  service_principal_secret:
+    description: "The password for the service principal"
+    required: true
 
 runs:
   using: "composite"
@@ -48,13 +60,13 @@ runs:
           service_principal_secret: ${{ inputs.service_principal_secret }}
           subcription_id: ${{ inputs.subcription_id }}
           tenant_id: ${{ inputs.tenant_id }}
-      - name: Deploy Resource Group What-If=${{ inputs.what_if }}
+      - name: Deploy Resource Group (What-If=${{ inputs.what_if }})
         uses: ./.github/workflows/composite/azure-subscription-deployment
         with:
           location: ${{ inputs.location }}
           template_file: ${{ inputs.resource_group_template }}
           what_if: ${{ inputs.what_if }}
-      - name: Deploy App Service What-If=${{ inputs.what_if }}
+      - name: Deploy App Service (What-If=${{ inputs.what_if }})
         uses: ./.github/workflows/composite/azure-resourcegroup-deployment
         with:
           resource_group_name: ${{ inputs.resource_group_name }}
@@ -65,10 +77,10 @@ runs:
         with:
           files: '["infrastructure/repost-app/appSettings.json"]'
         env:
-          COSMOS_PRIMARY_KEY: ${{ secrets.COSMOS_PRIMARY_KEY }}
-          GITHUB_CLIENT_SECRET: ${{ secrets.GITHUBAPP_CLIENT_SECRET }}
-          PRIVATE_SSH_KEY: ${{ secrets.PRIVATE_SSH_KEY }}
-          WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
+          COSMOS_PRIMARY_KEY: ${{ inputs.cosmos_primary_key_secret }}
+          GITHUB_CLIENT_SECRET: ${{ inputs.github_app_client_secret }}
+          PRIVATE_SSH_KEY: ${{ inputs.github_app_private_ssh_key }}
+          WEBHOOK_SECRET: ${{ inputs.github_app_webhook_secret }}
       - name: Deploy App Settings
         if: ${{ inputs.what_if == 'false' }}
         uses: ./.github/workflows/composite/azure-appsettings-deployment

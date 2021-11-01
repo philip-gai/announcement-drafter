@@ -5,13 +5,27 @@ on:
     paths: [infrastructure/repost-app/**]
   workflow_dispatch:
 
+env:
+  cosmos_primary_key_secret: ${{ secrets.COSMOS_PRIMARY_KEY }}
+  github_app_client_secret: ${{ secrets.GITHUBAPP_CLIENT_SECRET }}
+  github_app_private_ssh_key: ${{ secrets.PRIVATE_SSH_KEY }}
+  github_app_webhook_secret: ${{ secrets.WEBHOOK_SECRET }}
+  service_principal_secret: ${{ secrets.SERVICE_PRINCIPAL_SECRET }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment:
+      name: "production"
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
-      - name: App Service What-If Deployment
+      - name: What-If Deploy App Service
         uses: ./.github/workflows/composite/repost-appservice-deployment
         with:
+          cosmos_primary_key_secret: ${{ env.cosmos_primary_key_secret }}
+          github_app_client_secret: ${{ env.github_app_client_secret }}
+          github_app_private_ssh_key: ${{ env.github_app_private_ssh_key }}
+          github_app_webhook_secret: ${{ env.github_app_webhook_secret }}
+          service_principal_secret: ${{ env.service_principal_secret }}
           what_if: true
