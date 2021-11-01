@@ -6,11 +6,11 @@ resource serverfarms_repost_appserviceplan_name_resource 'Microsoft.Web/serverfa
   name: serverfarms_repost_appserviceplan_name
   location: location
   sku: {
-    name: 'P1v2'
-    tier: 'PremiumV2'
-    size: 'P1v2'
-    family: 'Pv2'
-    capacity: 1
+    name: 'B1'
+    tier: 'Basic'
+    size: 'B1'
+    family: 'B'
+    capacity: 2
   }
   kind: 'linux'
   properties: {
@@ -110,11 +110,11 @@ resource sites_repost_name_resource 'Microsoft.Web/sites@2021-01-15' = {
       logsDirectorySizeLimit: 100
       detailedErrorLoggingEnabled: false
       publishingUsername: '$repost'
-      scmType: 'GitHub'
+      scmType: 'None'
       use32BitWorkerProcess: true
       webSocketsEnabled: false
       alwaysOn: false
-      appCommandLine: 'npm run start'
+      appCommandLine: 'sh startup.sh'
       managedPipelineMode: 'Integrated'
       virtualApplications: [
         {
