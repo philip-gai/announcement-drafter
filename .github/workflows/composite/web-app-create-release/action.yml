@@ -22,7 +22,7 @@ runs:
       id: github-tag-action
       uses: anothrNick/github-tag-action@1.36.0
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ github.token }}
         WITH_V: true
     - name: Release
       id: release-step

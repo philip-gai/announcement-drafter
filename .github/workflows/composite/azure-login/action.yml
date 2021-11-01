@@ -7,7 +7,6 @@ inputs:
     default: "a815ac51-ea5e-4b31-aa3c-eefb9c87403b"
   service_principal_secret:
     required: true
-    default: ${{ secrets.SERVICE_PRINCIPAL_SECRET }}
   subcription_id:
     required: true
     default: "59b7bd22-db8a-4752-840e-6b4507317ff0"
