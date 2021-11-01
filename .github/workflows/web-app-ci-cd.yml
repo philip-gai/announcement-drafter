@@ -1,18 +1,35 @@
-name: "Web App CD"
+name: "Web App CI / CD"
 
 on:
+  pull_request:
+    paths: [web-app/src/**]
   push:
     branches: [main]
     paths: [web-app/src/**]
   workflow_dispatch:
-
+    inputs:
+      Deploy:
+        description: "Set to 'true' if you want to deploy. Otherwise this will just run a What-If"
+        required: false
+        default: "false"
 jobs:
+  build:
+    name: "Web App Build"
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Build and test
+        uses: ./.github/workflows/composite/web-app-build-test
   build-and-deploy:
+    name: "Web App Build & Deploy"
+    if: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'push' || ( github.event_name == 'workflow_dispatch' && inputs.Deploy == 'true' )) }}
     runs-on: ubuntu-latest
     environment:
       name: "production"
       url: ${{ steps.azure-webapps-deploy.outputs.webapp-url }}
-    concurrency: production
+    concurrency: web-app-deploy
     env:
       slot_name: "Production"
       app_name: "repost"
