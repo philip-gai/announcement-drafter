@@ -1,6 +1,8 @@
 param site_name string = 'repost'
 param serverfarms_repost_appserviceplan_name string = 'repost-appserviceplan'
-param rgLocation string = 'centralus'
+param rgLocation string = resourceGroup().location
+
+// Workaround for https://github.com/Azure/azure-quickstart-templates/issues/2828
 param basicPublishingCredentialsPoliciesLocation string = 'Central US'
 
 resource serverfarms_repost_appserviceplan_name_resource 'Microsoft.Web/serverfarms@2021-01-15' = {
