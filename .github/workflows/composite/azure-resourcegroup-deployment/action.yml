@@ -16,11 +16,17 @@ runs:
   using: "composite"
   steps:
     - name: App Service Resource Group Deploy
-      shell: pwsh
-      run: |
-        $whatIf = "false" -ne "${{ inputs.what_if }}"
-        New-AzResourceGroupDeployment `
-          -ResourceGroupName "${{ inputs.resource_group_name }}" `
-          -TemplateFile "${{ inputs.template_file }}" `
-          -TemplateParameterFile "${{ inputs.parameter_file }}" `
-          -WhatIf:$whatIf
+      uses: azure/powershell@v1
+      with:
+        inlineScript: |
+          $params = @{
+            ResourceGroupName = "${{ inputs.resource_group_name }}"
+            TemplateFile = "${{ inputs.template_file }}"
+            WhatIf = "false" -ne "${{ inputs.what_if }}"
+          }
+          $templateParameterFile = "${{ inputs.parameter_file }}"
+          If ($templateParameterFile) { $params['TemplateParameterFile'] = $templateParameterFile }
+          Write-Host "Running New-AzResourceGroupDeployment... $($params | Out-String)"
+          New-AzResourceGroupDeployment @params
+        azPSVersion: "latest"
+        failOnStandardError: "true"
