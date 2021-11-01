@@ -8,7 +8,7 @@ on:
     paths: [infrastructure/repost-app/**]
   workflow_dispatch:
     inputs:
-      deploy:
+      run_deploy:
         description: "Set to "true" if you want to deploy. Otherwise this will just run a What-If"
         required: false
         default: "false"
@@ -60,7 +60,7 @@ jobs:
           what_if: ${{ env.what_if }}
   deploy:
     name: "App Service Deploy"
-    if: ${{ github.ref == 'refs/heads/main' && (contains(fromJson('["push"]'), github.event_name) || ( github.event_name == 'workflow_dispatch' && inputs.deploy == 'true' ) }}
+    if: ${{ github.ref == 'refs/heads/main' && (contains(fromJson('["push"]'), github.event_name) || ( github.event_name == 'workflow_dispatch' && inputs.run_deploy == 'true' ) }}
     needs: [what-if-deploy]
     concurrency: app-service-deploy
     runs-on: ubuntu-latest
