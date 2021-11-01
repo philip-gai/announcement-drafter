@@ -1,10 +1,10 @@
 param site_name string = 'repost'
 param serverfarms_repost_appserviceplan_name string = 'repost-appserviceplan'
-param location string = 'centralus'
+param rgLocation string = resourceGroup().location
 
 resource serverfarms_repost_appserviceplan_name_resource 'Microsoft.Web/serverfarms@2021-01-15' = {
   name: serverfarms_repost_appserviceplan_name
-  location: location
+  location: rgLocation
   sku: {
     name: 'B1'
     tier: 'Basic'
@@ -28,7 +28,7 @@ resource serverfarms_repost_appserviceplan_name_resource 'Microsoft.Web/serverfa
 
 resource sites_repost_name_resource 'Microsoft.Web/sites@2021-01-15' = {
   name: site_name
-  location: location
+  location: rgLocation
   kind: 'app,linux'
   properties: {
     enabled: true
