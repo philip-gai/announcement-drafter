@@ -1,6 +1,7 @@
 param site_name string = 'repost'
 param serverfarms_repost_appserviceplan_name string = 'repost-appserviceplan'
-param rgLocation string = resourceGroup().location
+param rgLocation string = 'centralus'
+param basicPublishingCredentialsPoliciesLocation = 'Central US'
 
 resource serverfarms_repost_appserviceplan_name_resource 'Microsoft.Web/serverfarms@2021-01-15' = {
   name: serverfarms_repost_appserviceplan_name
@@ -73,6 +74,7 @@ resource sites_repost_name_resource 'Microsoft.Web/sites@2021-01-15' = {
 
   resource sites_repost_name_ftp 'basicPublishingCredentialsPolicies@2021-01-15' = {
     name: 'ftp'
+    location: basicPublishingCredentialsPoliciesLocation
     properties: {
       allow: true
     }
@@ -80,6 +82,7 @@ resource sites_repost_name_resource 'Microsoft.Web/sites@2021-01-15' = {
 
   resource sites_repost_name_scm 'basicPublishingCredentialsPolicies@2021-01-15' = {
     name: 'scm'
+    location: basicPublishingCredentialsPoliciesLocation
     properties: {
       allow: true
     }
