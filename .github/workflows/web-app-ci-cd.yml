@@ -15,7 +15,7 @@ on:
 jobs:
   build:
     name: "Web App Build"
-    if: github.event_name == 'pull_request' || ( github.event_name == 'workflow_dispatch' && inputs.What-If == 'true' )
+    if: github.event_name == 'pull_request' || ( github.event_name == 'workflow_dispatch' && github.event.inputs.What-If == 'true' )
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -24,7 +24,7 @@ jobs:
         uses: ./.github/workflows/composite/web-app-build-test
   build-and-deploy:
     name: "Web App Build & Deploy"
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || ( github.event_name == 'workflow_dispatch' && inputs.What-If == 'false' ))
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || ( github.event_name == 'workflow_dispatch' && github.event.inputs.What-If == 'false' ))
     runs-on: ubuntu-latest
     environment:
       name: "production"

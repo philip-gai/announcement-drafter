@@ -31,7 +31,7 @@ env:
 jobs:
   what-if-deploy:
     name: "What-If App Service Deploy"
-    if: github.event_name == 'pull_request' || ( github.event_name == 'workflow_dispatch' && inputs.What-If == 'true' )
+    if: github.event_name == 'pull_request' || ( github.event_name == 'workflow_dispatch' && github.event.inputs.What-If == 'true' )
     runs-on: ubuntu-latest
     environment:
       name: "production"
@@ -61,7 +61,7 @@ jobs:
           what_if: ${{ env.what_if }}
   deploy:
     name: "App Service Deploy"
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || ( github.event_name == 'workflow_dispatch' && inputs.What-If == 'false' ))
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || ( github.event_name == 'workflow_dispatch' && github.event.inputs.What-If == 'false' ))
     concurrency: app-service-deploy
     runs-on: ubuntu-latest
     environment:
