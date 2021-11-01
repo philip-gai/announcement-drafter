@@ -19,11 +19,13 @@ runs:
       uses: azure/powershell@v1
       with:
         inlineScript: |
-          $whatIf = "false" -ne "${{ inputs.what_if }}"
-          New-AzSubscriptionDeployment `
-            -Location "${{ inputs.location }}" `
-            -TemplateFile "${{ inputs.template_file }}" `
-            -TemplateParameterFile "${{ inputs.parameter_file }}" `
-            -WhatIf:$whatIf
+          $params = @{
+            WhatIf = "false" -ne "${{ inputs.what_if }}"
+            Location = "${{ inputs.location }}"
+            TemplateFile = "${{ inputs.template_file }}"
+            TemplateParameterFile = "${{ inputs.parameter_file }}"
+          }
+          Write-Host "Running New-AzSubscriptionDeployment... $($params | Out-String)"
+          New-AzSubscriptionDeployment @params
         azPSVersion: "latest"
         failOnStandardError: "true"
