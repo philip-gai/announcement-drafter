@@ -54,4 +54,3 @@ jobs:
       - name: Create Release
         id: create-releaes
         uses: ./.github/workflows/composite/web-app-create-release
-      - run: echo "::set-output name=release-url::${{ steps.create-releaes.outputs.new-release-url }}"
