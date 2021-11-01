@@ -8,6 +8,9 @@ inputs:
   dist-directory:
     required: true
     default: "dist"
+  github_token:
+    required: true
+    default: ${{ github.token }}
 outputs:
   release-url:
     description: "New Release"
@@ -22,7 +25,7 @@ runs:
       id: github-tag-action
       uses: anothrNick/github-tag-action@1.36.0
       env:
-        GITHUB_TOKEN: ${{ github.token }}
+        GITHUB_TOKEN: ${{ inputs.github_token }}
         WITH_V: true
     - name: Release
       id: release-step
