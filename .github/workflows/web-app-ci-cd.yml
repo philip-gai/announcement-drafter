@@ -12,6 +12,10 @@ on:
         description: "What-If: Set to 'false' if you want to deploy"
         required: true
         default: "true"
+
+env:
+  working_directory: ./web-app
+
 jobs:
   build:
     name: "Web App Build"
@@ -41,7 +45,7 @@ jobs:
       - name: Prepare dist
         env:
           NODE_ENV: "production"
-        working-directory: ./web-app
+        working-directory: ${{ env.working_directory }}
         shell: bash
         run: ./scripts/make_dist.sh
       - name: "Deploy to Azure Web App"
@@ -51,7 +55,7 @@ jobs:
           app-name: ${{ env.app_name }}
           slot-name: ${{ env.slot_name }}
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
-          package: ./web-app/dist
+          package: "${{ env.working_directory }}/dist"
       - name: Create Release
         id: create-releaes
         uses: ./.github/workflows/composite/web-app-create-release

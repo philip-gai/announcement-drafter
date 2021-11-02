@@ -22,13 +22,13 @@ on:
         default: "true"
 
 env:
-  service_principal_id: "a815ac51-ea5e-4b31-aa3c-eefb9c87403b"
-  subcription_id: "59b7bd22-db8a-4752-840e-6b4507317ff0"
-  tenant_id: "87e276c0-7d18-4d86-948a-ba5eea990211"
+  cosmos_template: "infrastructure/repost-cosmos/cosmos.bicep"
   location: "eastus"
   resource_group_name: "repost-cosmos"
   resource_group_template: "infrastructure/repost-cosmos/resource-group.bicep"
-  cosmos_template: "infrastructure/repost-cosmos/cosmos.bicep"
+  service_principal_id: "a815ac51-ea5e-4b31-aa3c-eefb9c87403b"
+  subcription_id: "59b7bd22-db8a-4752-840e-6b4507317ff0"
+  tenant_id: "87e276c0-7d18-4d86-948a-ba5eea990211"
 
 jobs:
   what-if-deploy:

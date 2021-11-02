@@ -22,19 +22,18 @@ on:
         default: "true"
 
 env:
-  service_principal_id: "a815ac51-ea5e-4b31-aa3c-eefb9c87403b"
-  subcription_id: "59b7bd22-db8a-4752-840e-6b4507317ff0"
-  tenant_id: "87e276c0-7d18-4d86-948a-ba5eea990211"
+  app_service_template: "infrastructure/repost-app/app-service.bicep"
+  cosmos_primary_key_secret: ${{ secrets.COSMOS_PRIMARY_KEY }}
+  github_app_client_secret: ${{ secrets.GITHUBAPP_CLIENT_SECRET }}
+  github_app_private_ssh_key_secret: ${{ secrets.PRIVATE_SSH_KEY }}
+  github_app_webhook_secret: ${{ secrets.WEBHOOK_SECRET }}
   location: "centralus"
   resource_group_name: "repost-app"
   resource_group_template: "infrastructure/repost-app/resource-group.bicep"
-  app_service_template: "infrastructure/repost-app/app-service.bicep"
-  # Secrets
-  cosmos_primary_key_secret: ${{ secrets.COSMOS_PRIMARY_KEY }}
-  github_app_client_secret: ${{ secrets.GITHUBAPP_CLIENT_SECRET }}
-  github_app_private_ssh_key: ${{ secrets.PRIVATE_SSH_KEY }}
-  github_app_webhook_secret: ${{ secrets.WEBHOOK_SECRET }}
+  service_principal_id: "a815ac51-ea5e-4b31-aa3c-eefb9c87403b"
   service_principal_secret: ${{ secrets.SERVICE_PRINCIPAL_SECRET }}
+  subcription_id: "59b7bd22-db8a-4752-840e-6b4507317ff0"
+  tenant_id: "87e276c0-7d18-4d86-948a-ba5eea990211"
 
 jobs:
   what-if-deploy:
@@ -105,7 +104,7 @@ jobs:
         env:
           COSMOS_PRIMARY_KEY: ${{ env.cosmos_primary_key_secret }}
           GITHUB_CLIENT_SECRET: ${{ env.github_app_client_secret }}
-          PRIVATE_SSH_KEY: ${{ env.github_app_private_ssh_key }}
+          PRIVATE_SSH_KEY: ${{ env.github_app_private_ssh_key_secret }}
           WEBHOOK_SECRET: ${{ env.github_app_webhook_secret }}
       - name: Deploy App Settings
         uses: ./.github/workflows/composite/azure-appsettings-deployment

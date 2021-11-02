@@ -2,15 +2,15 @@ name: "Web App Release"
 description: "Creates a release and uploads release files"
 
 inputs:
-  working-directory:
-    required: true
-    default: "./web-app"
   dist-directory:
     required: true
     default: "dist"
   github_token:
     required: true
     default: ${{ github.token }}
+  working-directory:
+    required: true
+    default: "./web-app"
 outputs:
   release-url:
     description: "New Release"
