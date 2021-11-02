@@ -23,7 +23,7 @@ on:
 
 env:
   cosmos_template: "infrastructure/repost-cosmos/cosmos.bicep"
-  location: "eastus"
+  location: "centralus"
   resource_group_name: "repost-cosmos"
   resource_group_template: "infrastructure/repost-cosmos/resource-group.bicep"
   service_principal_id: "a815ac51-ea5e-4b31-aa3c-eefb9c87403b"
