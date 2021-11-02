@@ -1,8 +1,8 @@
-param databaseAccounts_repost_cosmos_name string = 'repost-cosmos'
+param accountName string = 'repost-cosmos'
 param location string = 'East US'
 
-resource databaseAccounts_repost_cosmos_name_resource 'Microsoft.DocumentDB/databaseAccounts@2021-06-15' = {
-  name: databaseAccounts_repost_cosmos_name
+resource databaseAccount 'Microsoft.DocumentDB/databaseAccounts@2021-06-15' = {
+  name: accountName
   location: location
   tags: {
     defaultExperience: 'Core (SQL)'
@@ -56,7 +56,7 @@ resource databaseAccounts_repost_cosmos_name_resource 'Microsoft.DocumentDB/data
     }
     networkAclBypassResourceIds: []
   }
-  resource databaseAccounts_repost_cosmos_name_Repost 'sqlDatabases@2021-06-15' = {
+  resource repostDatabase 'sqlDatabases@2021-06-15' = {
     name: 'Repost'
     properties: {
       resource: {
@@ -64,7 +64,7 @@ resource databaseAccounts_repost_cosmos_name_resource 'Microsoft.DocumentDB/data
       }
     }
 
-    resource databaseAccounts_repost_cosmos_name_Repost_Tokens 'containers@2021-06-15' = {
+    resource tokenContainer 'containers@2021-06-15' = {
       name: 'Tokens'
       properties: {
         resource: {
@@ -98,19 +98,16 @@ resource databaseAccounts_repost_cosmos_name_resource 'Microsoft.DocumentDB/data
           }
         }
       }
-      dependsOn: [
-        databaseAccounts_repost_cosmos_name_resource
-      ]
     }
   }
 
-  resource databaseAccounts_repost_cosmos_name_00000000_0000_0000_0000_000000000001 'sqlRoleDefinitions@2021-06-15' = {
+  resource readerRoleDefinition 'sqlRoleDefinitions@2021-06-15' = {
     name: '00000000-0000-0000-0000-000000000001'
     properties: {
       roleName: 'Cosmos DB Built-in Data Reader'
       type: 'BuiltInRole'
       assignableScopes: [
-        databaseAccounts_repost_cosmos_name_resource.id
+        databaseAccount.id
       ]
       permissions: [
         {
@@ -126,13 +123,13 @@ resource databaseAccounts_repost_cosmos_name_resource 'Microsoft.DocumentDB/data
     }
   }
 
-  resource databaseAccounts_repost_cosmos_name_00000000_0000_0000_0000_000000000002 'sqlRoleDefinitions@2021-06-15' = {
+  resource contributorRoleDefinition 'sqlRoleDefinitions@2021-06-15' = {
     name: '00000000-0000-0000-0000-000000000002'
     properties: {
       roleName: 'Cosmos DB Built-in Data Contributor'
       type: 'BuiltInRole'
       assignableScopes: [
-        databaseAccounts_repost_cosmos_name_resource.id
+        databaseAccount.id
       ]
       permissions: [
         {
@@ -147,3 +144,6 @@ resource databaseAccounts_repost_cosmos_name_resource 'Microsoft.DocumentDB/data
     }
   }
 }
+
+var cosmosDatabasePrimaryKey = listKeys(databaseAccount::repostDatabase.id, databaseAccount::repostDatabase.apiVersion).primaryMasterKey
+output cosmosDatabasePrimaryKey string = cosmosDatabasePrimaryKey
