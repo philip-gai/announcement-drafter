@@ -31,11 +31,11 @@ runs:
           If ($templateParameterFile) { $params['TemplateParameterFile'] = $templateParameterFile }
 
           $deploymentNameInput = "${{ inputs.deployment_name }}"
-          $params['Name'] = If($deploymentNameInput) { $deploymentNameInput } Else { $(Get-Date).ToString("yyyy-MM-dd HH:ss") }
+          $params['Name'] = If($deploymentNameInput) { $deploymentNameInput } Else { $(Get-Date).ToString("yyyy-MM-dd HH.ss") }
 
           Write-Host "Running New-AzResourceGroupDeployment... $($params | Out-String)"
           $result = $(New-AzResourceGroupDeployment @params | ConvertTo-Json)
-          
+
           Write-Host $result
           echo "::set-output name=deployment::$($result)"
         azPSVersion: "latest"
