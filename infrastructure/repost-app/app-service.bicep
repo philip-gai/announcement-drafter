@@ -1,12 +1,15 @@
-param site_name string = 'repost'
-param serverfarms_repost_appserviceplan_name string = 'repost-appserviceplan'
+param siteName string = 'repost'
+param appServicePlan string = '${siteName}-appserviceplan'
 param rgLocation string = resourceGroup().location
 
 // Workaround for https://github.com/Azure/azure-quickstart-templates/issues/2828
 param basicPublishingCredentialsPoliciesLocation string = 'Central US'
 
-resource serverfarms_repost_appserviceplan_name_resource 'Microsoft.Web/serverfarms@2021-01-15' = {
-  name: serverfarms_repost_appserviceplan_name
+var linuxFxVersion = 'NODE|14-lts'
+var appStartupCommand = 'sh startup.sh'
+
+resource serverFarm 'Microsoft.Web/serverfarms@2021-01-15' = {
+  name: appServicePlan
   location: rgLocation
   sku: {
     name: 'B1'
@@ -29,31 +32,31 @@ resource serverfarms_repost_appserviceplan_name_resource 'Microsoft.Web/serverfa
   }
 }
 
-resource sites_repost_name_resource 'Microsoft.Web/sites@2021-01-15' = {
-  name: site_name
+resource website 'Microsoft.Web/sites@2021-01-15' = {
+  name: siteName
   location: rgLocation
   kind: 'app,linux'
   properties: {
     enabled: true
     hostNameSslStates: [
       {
-        name: '${site_name}.azurewebsites.net'
+        name: '${siteName}.azurewebsites.net'
         sslState: 'Disabled'
         hostType: 'Standard'
       }
       {
-        name: '${site_name}.scm.azurewebsites.net'
+        name: '${siteName}.scm.azurewebsites.net'
         sslState: 'Disabled'
         hostType: 'Repository'
       }
     ]
-    serverFarmId: serverfarms_repost_appserviceplan_name_resource.id
+    serverFarmId: serverFarm.id
     reserved: true
     isXenon: false
     hyperV: false
     siteConfig: {
       numberOfWorkers: 1
-      linuxFxVersion: 'NODE|14-lts'
+      linuxFxVersion: linuxFxVersion
       acrUseManagedIdentityCreds: false
       alwaysOn: false
       http20Enabled: false
@@ -65,7 +68,6 @@ resource sites_repost_name_resource 'Microsoft.Web/sites@2021-01-15' = {
     clientCertEnabled: false
     clientCertMode: 'Required'
     hostNamesDisabled: false
-    customDomainVerificationId: 'D0034A78215C3FF21847546674B2B7C07927C136C96E990873645B820300376E'
     containerSize: 0
     dailyMemoryTimeQuota: 0
     httpsOnly: true
@@ -74,7 +76,7 @@ resource sites_repost_name_resource 'Microsoft.Web/sites@2021-01-15' = {
     keyVaultReferenceIdentity: 'SystemAssigned'
   }
 
-  resource sites_repost_name_ftp 'basicPublishingCredentialsPolicies@2021-01-15' = {
+  resource ftpPublishingPolicies 'basicPublishingCredentialsPolicies@2021-01-15' = {
     name: 'ftp'
     location: basicPublishingCredentialsPoliciesLocation
     properties: {
@@ -82,7 +84,7 @@ resource sites_repost_name_resource 'Microsoft.Web/sites@2021-01-15' = {
     }
   }
 
-  resource sites_repost_name_scm 'basicPublishingCredentialsPolicies@2021-01-15' = {
+  resource scmPublishingPolicies 'basicPublishingCredentialsPolicies@2021-01-15' = {
     name: 'scm'
     location: basicPublishingCredentialsPoliciesLocation
     properties: {
@@ -90,7 +92,7 @@ resource sites_repost_name_resource 'Microsoft.Web/sites@2021-01-15' = {
     }
   }
 
-  resource sites_repost_name_web 'config@2021-01-15' = {
+  resource siteConfig 'config@2021-01-15' = {
     name: 'web'
     properties: {
       numberOfWorkers: 1
@@ -105,8 +107,7 @@ resource sites_repost_name_resource 'Microsoft.Web/sites@2021-01-15' = {
         'index.php'
         'hostingstart.html'
       ]
-      netFrameworkVersion: 'v4.0'
-      linuxFxVersion: 'NODE|14-lts'
+      linuxFxVersion: linuxFxVersion
       requestTracingEnabled: false
       remoteDebuggingEnabled: false
       remoteDebuggingVersion: 'VS2019'
@@ -114,12 +115,12 @@ resource sites_repost_name_resource 'Microsoft.Web/sites@2021-01-15' = {
       acrUseManagedIdentityCreds: false
       logsDirectorySizeLimit: 100
       detailedErrorLoggingEnabled: false
-      publishingUsername: '$repost'
+      publishingUsername: '$${siteName}'
       scmType: 'None'
       use32BitWorkerProcess: true
       webSocketsEnabled: false
       alwaysOn: false
-      appCommandLine: 'sh startup.sh'
+      appCommandLine: appStartupCommand
       managedPipelineMode: 'Integrated'
       virtualApplications: [
         {
@@ -135,7 +136,6 @@ resource sites_repost_name_resource 'Microsoft.Web/sites@2021-01-15' = {
       autoHealEnabled: false
       vnetRouteAllEnabled: false
       vnetPrivatePortsCount: 0
-      localMySqlEnabled: false
       ipSecurityRestrictions: [
         {
           ipAddress: 'Any'
@@ -168,10 +168,10 @@ resource sites_repost_name_resource 'Microsoft.Web/sites@2021-01-15' = {
     }
   }
 
-  resource sites_repost_name_sites_repost_name_azurewebsites_net 'hostNameBindings@2021-01-15' = {
-    name: '${site_name}.azurewebsites.net'
+  resource hostNameBindings 'hostNameBindings@2021-01-15' = {
+    name: '${siteName}.azurewebsites.net'
     properties: {
-      siteName: 'repost'
+      siteName: siteName
       hostNameType: 'Verified'
     }
   }
