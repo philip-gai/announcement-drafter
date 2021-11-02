@@ -2,13 +2,15 @@ name: "Azure Subscription Deployment"
 description: "Runs New-AzSubscriptionDeployment"
 
 inputs:
+  deployment_name:
+    required: false
   location:
     required: true
     default: "centralus"
-  template_file:
-    required: true
   parameter_file:
     required: false
+  template_file:
+    required: true
   what_if:
     required: true
     default: "true"
@@ -24,10 +26,16 @@ runs:
             TemplateFile = "${{ inputs.template_file }}"
             WhatIf = "false" -ne "${{ inputs.what_if }}"
           }
+
           $templateParameterFile = "${{ inputs.parameter_file }}"
           If ($templateParameterFile) { $params['TemplateParameterFile'] = $templateParameterFile }
+
+          $deploymentNameInput = "${{ inputs.deployment_name }}"
+          $params['Name'] = If($deploymentNameInput) { $deploymentNameInput } Else { $(Get-Date).ToString("yyyy-MM-dd HH:ss") }
+
           Write-Host "Running New-AzSubscriptionDeployment... $($params | Out-String)"
           $result = $(New-AzSubscriptionDeployment @params | ConvertTo-Json)
+
           Write-Host $result
           echo "::set-output name=deployment::$($result)"
         azPSVersion: "latest"
