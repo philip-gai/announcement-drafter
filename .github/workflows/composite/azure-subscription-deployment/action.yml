@@ -30,6 +30,9 @@ runs:
           $templateParameterFile = "${{ inputs.parameter_file }}"
           If ($templateParameterFile) { $params['TemplateParameterFile'] = $templateParameterFile }
 
+          $deploymentNameInput = "${{ inputs.deployment_name }}"
+          $params['Name'] = If($deploymentNameInput) { $deploymentNameInput } Else { $(Get-Date).ToString("yyyyMMddHHss") }
+
           Write-Host "Running New-AzSubscriptionDeployment... $($params | Out-String)"
           $result = $(New-AzSubscriptionDeployment @params | ConvertTo-Json)
 
