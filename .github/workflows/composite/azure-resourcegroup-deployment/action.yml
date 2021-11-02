@@ -32,7 +32,7 @@ runs:
           If ($templateParameterFile) { $params['TemplateParameterFile'] = $templateParameterFile }
 
           $deploymentNameInput = "${{ inputs.deployment_name }}"
-          $params['Name'] = If($deploymentNameInput) { $deploymentNameInput } Else { $(Get-Date).ToString("yyyyMMddHHss") }
+          $params['Name'] = If($deploymentNameInput) { $deploymentNameInput } Else { "$($params['ResourceGroupName'])-$($(Get-Date).ToString("yyyyMMddHHss"))" }
 
           Write-Host "Running New-AzResourceGroupDeployment... $($params | Out-String)"
           $result = $(New-AzResourceGroupDeployment @params | ConvertTo-Json)
