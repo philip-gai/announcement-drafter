@@ -23,10 +23,13 @@ runs:
             Location = "${{ inputs.location }}"
             TemplateFile = "${{ inputs.template_file }}"
             WhatIf = "false" -ne "${{ inputs.what_if }}"
+            RollbackToLastDeployment = $true
           }
           $templateParameterFile = "${{ inputs.parameter_file }}"
           If ($templateParameterFile) { $params['TemplateParameterFile'] = $templateParameterFile }
           Write-Host "Running New-AzSubscriptionDeployment... $($params | Out-String)"
-          New-AzSubscriptionDeployment @params
+          $result = $(New-AzSubscriptionDeployment @params | ConvertTo-Json)
+          Write-Host $result
+          echo "::set-output name=deployment::$($result)"
         azPSVersion: "latest"
         failOnStandardError: "true"
