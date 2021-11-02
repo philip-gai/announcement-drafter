@@ -23,7 +23,6 @@ runs:
             ResourceGroupName = "${{ inputs.resource_group_name }}"
             TemplateFile = "${{ inputs.template_file }}"
             WhatIf = "false" -ne "${{ inputs.what_if }}"
-            RollbackToLastDeployment = $true
           }
           $templateParameterFile = "${{ inputs.parameter_file }}"
           If ($templateParameterFile) { $params['TemplateParameterFile'] = $templateParameterFile }
