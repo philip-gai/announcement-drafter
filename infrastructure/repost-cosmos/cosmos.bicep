@@ -100,49 +100,6 @@ resource databaseAccount 'Microsoft.DocumentDB/databaseAccounts@2021-06-15' = {
       }
     }
   }
-
-  resource readerRoleDefinition 'sqlRoleDefinitions@2021-06-15' = {
-    name: '00000000-0000-0000-0000-000000000001'
-    properties: {
-      roleName: 'Cosmos DB Built-in Data Reader'
-      type: 'BuiltInRole'
-      assignableScopes: [
-        databaseAccount.id
-      ]
-      permissions: [
-        {
-          dataActions: [
-            'Microsoft.DocumentDB/databaseAccounts/readMetadata'
-            'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/executeQuery'
-            'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/readChangeFeed'
-            'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/read'
-          ]
-          notDataActions: []
-        }
-      ]
-    }
-  }
-
-  resource contributorRoleDefinition 'sqlRoleDefinitions@2021-06-15' = {
-    name: '00000000-0000-0000-0000-000000000002'
-    properties: {
-      roleName: 'Cosmos DB Built-in Data Contributor'
-      type: 'BuiltInRole'
-      assignableScopes: [
-        databaseAccount.id
-      ]
-      permissions: [
-        {
-          dataActions: [
-            'Microsoft.DocumentDB/databaseAccounts/readMetadata'
-            'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/*'
-            'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*'
-          ]
-          notDataActions: []
-        }
-      ]
-    }
-  }
 }
 
 var cosmosDatabasePrimaryKey = listKeys(databaseAccount::repostDatabase.id, databaseAccount::repostDatabase.apiVersion).primaryMasterKey
