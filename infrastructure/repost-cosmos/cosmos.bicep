@@ -101,6 +101,3 @@ resource databaseAccount 'Microsoft.DocumentDB/databaseAccounts@2021-06-15' = {
     }
   }
 }
-
-var cosmosDatabasePrimaryKey = listKeys(databaseAccount::repostDatabase.id, databaseAccount::repostDatabase.apiVersion).primaryMasterKey
-output cosmosDatabasePrimaryKey string = cosmosDatabasePrimaryKey
