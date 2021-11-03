@@ -36,7 +36,6 @@ runs:
           Write-Host "Running New-AzSubscriptionDeployment... $($params | Out-String)"
           $result = $(New-AzSubscriptionDeployment @params | ConvertTo-Json)
 
-          Write-Host $result
           echo "::set-output name=deployment::$($result)"
         azPSVersion: "latest"
         failOnStandardError: "true"

@@ -37,7 +37,6 @@ runs:
           Write-Host "Running New-AzResourceGroupDeployment... $($params | Out-String)"
           $result = $(New-AzResourceGroupDeployment @params | ConvertTo-Json)
 
-          Write-Host $result
           echo "::set-output name=deployment::$($result)"
         azPSVersion: "latest"
         failOnStandardError: "true"
