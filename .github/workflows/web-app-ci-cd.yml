@@ -59,3 +59,5 @@ jobs:
       - name: Create Release
         id: create-releaes
         uses: ./.github/workflows/composite/web-app-create-release
+        with:
+          github_token: "${{ secrets.ACTIONS_RELEASE_PAT }}"

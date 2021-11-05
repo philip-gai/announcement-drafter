@@ -34,3 +34,4 @@ runs:
       with:
         files: "${{ inputs.working-directory }}/release.tar"
         tag_name: ${{ steps.github-tag-action.outputs.tag }}
+        token: ${{ inputs.github_token }}
