@@ -18,6 +18,9 @@ param appSettings array
 // Workaround for https://github.com/Azure/azure-quickstart-templates/issues/2828
 param regionName string = 'Central US'
 
+param cosmosDeploymentName string = utcNow()
+param appServiceDeploymentName string = utcNow()
+
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2020-06-01' = {
   name: rgName
   location: rgLocation
@@ -26,7 +29,7 @@ resource resourceGroup 'Microsoft.Resources/resourceGroups@2020-06-01' = {
 
 module cosmosModule 'modules/cosmos-module.bicep' = {
   scope: resourceGroup
-  name: 'cosmos'
+  name: cosmosDeploymentName
   params: {
     accountName: cosmosAccountName
     location: regionName
@@ -35,7 +38,7 @@ module cosmosModule 'modules/cosmos-module.bicep' = {
 
 module appServiceModule 'modules/appservice-module.bicep' = {
   scope: resourceGroup
-  name: 'app-service'
+  name: appServiceDeploymentName
   params: {
     appSettings: appSettings
     basicPublishingCredentialsPoliciesLocation: regionName
