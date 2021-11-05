@@ -1,12 +1,55 @@
-param siteName string = 'repost'
+param appSettings array
+param basicPublishingCredentialsPoliciesLocation string
+param cosmosAccountName string
+param siteName string
+
 param appServicePlan string = '${siteName}-appserviceplan'
 param rgLocation string = resourceGroup().location
 
-// Workaround for https://github.com/Azure/azure-quickstart-templates/issues/2828
-param basicPublishingCredentialsPoliciesLocation string = 'Central US'
+resource cosmosDatabaseAccount 'Microsoft.DocumentDB/databaseAccounts@2021-06-15' existing = {
+  name: cosmosAccountName
+}
 
-var linuxFxVersion = 'NODE|14-lts'
 var appStartupCommand = 'sh startup.sh'
+var cosmosEndpoint = cosmosDatabaseAccount.properties.documentEndpoint
+var cosmosPrimaryKey = cosmosDatabaseAccount.listKeys().primaryMasterKey
+var linuxFxVersion = 'NODE|14-lts'
+var siteUrl = '${siteName}.azurewebsites.net'
+
+var finalAppSettings = concat(appSettings, [
+  {
+    'name': 'AUTH_URL'
+    'value': '/login/oauth/authorize'
+  }
+  {
+    'name': 'CALLBACK_URL'
+    'value': '/login/oauth/authorize/complete'
+  }
+  {
+    'name': 'COSMOS_URI'
+    'value': cosmosEndpoint
+  }
+  {
+    'name': 'COSMOS_PRIMARY_KEY'
+    'value': cosmosPrimaryKey
+  }
+  {
+    'name': 'NODE_ENV'
+    'value': 'production'
+  }
+  {
+    'name': 'SCM_DO_BUILD_DURING_DEPLOYMENT'
+    'value': 'false'
+  }
+  {
+    'name': 'WEBHOOK_PROXY_URL'
+    'value': 'https://${siteUrl}'
+  }
+  {
+    'name': 'WEBSITE_WEBDEPLOY_USE_SCM'
+    'value': 'true'
+  }
+])
 
 resource serverFarm 'Microsoft.Web/serverfarms@2021-01-15' = {
   name: appServicePlan
@@ -40,7 +83,7 @@ resource website 'Microsoft.Web/sites@2021-01-15' = {
     enabled: true
     hostNameSslStates: [
       {
-        name: '${siteName}.azurewebsites.net'
+        name: siteUrl
         sslState: 'Disabled'
         hostType: 'Standard'
       }
@@ -62,6 +105,7 @@ resource website 'Microsoft.Web/sites@2021-01-15' = {
       http20Enabled: false
       functionAppScaleLimit: 0
       minimumElasticInstanceCount: 1
+      appSettings: finalAppSettings
     }
     scmSiteAlsoStopped: false
     clientAffinityEnabled: true
@@ -169,7 +213,7 @@ resource website 'Microsoft.Web/sites@2021-01-15' = {
   }
 
   resource hostNameBindings 'hostNameBindings@2021-01-15' = {
-    name: '${siteName}.azurewebsites.net'
+    name: siteUrl
     properties: {
       siteName: siteName
       hostNameType: 'Verified'
