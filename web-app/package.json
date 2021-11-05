@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "start": "probot run ./lib/main.js",
+    "start": "probot run ./lib/index.js",
     "test": "jest",
     "lint": "tsc --noEmit -p ."
   },
