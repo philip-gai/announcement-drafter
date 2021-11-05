@@ -4,13 +4,13 @@ description: "Runs New-AzResourceGroupDeployment"
 inputs:
   deployment_name:
     required: false
-  parameter_file:
-    required: false
   resource_group_name:
     required: true
     default: "centralus"
   template_file:
     required: true
+  template_parameter_file:
+    required: false
   what_if:
     required: true
     default: "true"
@@ -32,7 +32,7 @@ runs:
             WhatIf = "false" -ne "${{ inputs.what_if }}"
           }
 
-          $templateParameterFile = "${{ inputs.parameter_file }}"
+          $templateParameterFile = "${{ inputs.template_parameter_file }}"
           If ($templateParameterFile) { $params['TemplateParameterFile'] = $templateParameterFile }
 
           $deploymentNameInput = "${{ inputs.deployment_name }}"
