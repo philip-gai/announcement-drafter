@@ -53,6 +53,9 @@ jobs:
           service_principal_secret: ${{ env.service_principal_secret }}
           subcription_id: ${{ env.subcription_id }}
           tenant_id: ${{ env.tenant_id }}
+      - name: az bicep build --file "${{ env.template_file }}"
+        shell: bash
+        run: az bicep build --file "${{ env.template_file }}"
       - name: Replace Tokens
         uses: cschleiden/replace-tokens@v1
         with:
