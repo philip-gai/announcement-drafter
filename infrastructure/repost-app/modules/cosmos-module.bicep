@@ -1,5 +1,5 @@
-param accountName string = 'repost-cosmos'
-param location string = 'East US'
+param accountName string
+param location string
 
 resource databaseAccount 'Microsoft.DocumentDB/databaseAccounts@2021-06-15' = {
   name: accountName

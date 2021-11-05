@@ -1,0 +1,51 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "rgName": {
+      "value": "repost-app"
+    },
+    "siteName": {
+      "value": "repost"
+    },
+    "cosmosAccountName": {
+      "value": "repost-cosmos"
+    },
+    "appSettings": {
+      "value": [
+        {
+          "name": "APP_ID",
+          "value": "145106"
+        },
+        {
+          "name": "DRY_RUN_COMMENTS",
+          "value": "false"
+        },
+        {
+          "name": "DRY_RUN_POSTS",
+          "value": "false"
+        },
+        {
+          "name": "GITHUB_CLIENT_ID",
+          "value": "Iv1.0607075c5bfcbb9e"
+        },
+        {
+          "name": "GITHUB_CLIENT_SECRET",
+          "value": "#{GITHUB_CLIENT_SECRET}#"
+        },
+        {
+          "name": "LOG_LEVEL",
+          "value": "info"
+        },
+        {
+          "name": "PRIVATE_KEY",
+          "value": "#{PRIVATE_SSH_KEY}#"
+        },
+        {
+          "name": "WEBHOOK_SECRET",
+          "value": "#{WEBHOOK_SECRET}#"
+        }
+      ]
+    }
+  }
+}

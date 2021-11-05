@@ -1,18 +1,18 @@
-name: "Cosmos Database CI / CD"
+name: "App Service CI / CD"
 
 on:
   pull_request:
     paths:
       [
-        infrastructure/repost-cosmos/**.bicep,
-        infrastructure/repost-cosmos/**.parameters.json,
+        infrastructure/repost-app/**.bicep,
+        infrastructure/repost-app/**.parameters.json,
       ]
   push:
     branches: [main]
     paths:
       [
-        infrastructure/repost-cosmos/**.bicep,
-        infrastructure/repost-cosmos/**.parameters.json,
+        infrastructure/repost-app/**.bicep,
+        infrastructure/repost-app/**.parameters.json,
       ]
   workflow_dispatch:
     inputs:
@@ -22,10 +22,12 @@ on:
         default: "true"
 
 env:
-  cosmos_template: "infrastructure/repost-cosmos/cosmos.bicep"
-  location: "eastus"
-  resource_group_name: "repost-cosmos"
-  resource_group_template: "infrastructure/repost-cosmos/resource-group.bicep"
+  app_template: "infrastructure/repost-app/repost-app.bicep"
+  github_app_client_secret: ${{ secrets.GITHUBAPP_CLIENT_SECRET }}
+  github_app_private_ssh_key_secret: ${{ secrets.PRIVATE_SSH_KEY }}
+  github_app_webhook_secret: ${{ secrets.WEBHOOK_SECRET }}
+  location: "centralus"
+  resource_group_name: "repost-app"
   service_principal_id: "a815ac51-ea5e-4b31-aa3c-eefb9c87403b"
   service_principal_secret: ${{ secrets.SERVICE_PRINCIPAL_SECRET }}
   subcription_id: "59b7bd22-db8a-4752-840e-6b4507317ff0"
@@ -33,7 +35,7 @@ env:
 
 jobs:
   what-if-deploy:
-    name: "What-If Cosmos Deploy"
+    name: What-If Deploy
     if: github.event_name == 'pull_request' || ( github.event_name == 'workflow_dispatch' && github.event.inputs.What-If == 'true' )
     runs-on: ubuntu-latest
     environment:
@@ -50,22 +52,24 @@ jobs:
           service_principal_secret: ${{ env.service_principal_secret }}
           subcription_id: ${{ env.subcription_id }}
           tenant_id: ${{ env.tenant_id }}
-      - name: What-If Deploy Resource Group
-        uses: ./.github/workflows/composite/azure-subscription-deployment
+      - name: Replace Tokens
+        uses: cschleiden/replace-tokens@v1
         with:
-          location: ${{ env.location }}
-          template_file: ${{ env.resource_group_template }}
-          what_if: ${{ env.what_if }}
-      - name: What-If Deploy Cosmos
+          files: '["infrastructure/**.parameters.json"]'
+        env:
+          GITHUB_CLIENT_SECRET: ${{ env.github_app_client_secret }}
+          PRIVATE_SSH_KEY: ${{ env.github_app_private_ssh_key_secret }}
+          WEBHOOK_SECRET: ${{ env.github_app_webhook_secret }}
+      - name: What-If Deploy
         uses: ./.github/workflows/composite/azure-resourcegroup-deployment
         with:
           resource_group_name: ${{ env.resource_group_name }}
-          template_file: ${{ env.cosmos_template }}
+          template_file: ${{ env.app_template }}
           what_if: ${{ env.what_if }}
   deploy:
-    name: "Cosmos Deploy"
+    name: Deploy
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || ( github.event_name == 'workflow_dispatch' && github.event.inputs.What-If == 'false' ))
-    concurrency: cosmos-deploy
+    concurrency: production-deploy
     runs-on: ubuntu-latest
     environment:
       name: "production"
@@ -81,15 +85,17 @@ jobs:
           service_principal_secret: ${{ env.service_principal_secret }}
           subcription_id: ${{ env.subcription_id }}
           tenant_id: ${{ env.tenant_id }}
-      - name: Deploy Resource Group
-        uses: ./.github/workflows/composite/azure-subscription-deployment
+      - name: Replace Tokens
+        uses: cschleiden/replace-tokens@v1
         with:
-          location: ${{ env.location }}
-          template_file: ${{ env.resource_group_template }}
-          what_if: ${{ env.what_if }}
-      - name: Deploy Cosmos
+          files: '["infrastructure/**.parameters.json"]'
+        env:
+          GITHUB_CLIENT_SECRET: ${{ env.github_app_client_secret }}
+          PRIVATE_SSH_KEY: ${{ env.github_app_private_ssh_key_secret }}
+          WEBHOOK_SECRET: ${{ env.github_app_webhook_secret }}
+      - name: Deploy
         uses: ./.github/workflows/composite/azure-resourcegroup-deployment
         with:
           resource_group_name: ${{ env.resource_group_name }}
-          template_file: ${{ env.cosmos_template }}
+          template_file: ${{ env.app_template }}
           what_if: ${{ env.what_if }}
