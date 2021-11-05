@@ -59,7 +59,7 @@ jobs:
       - name: Replace Tokens
         uses: cschleiden/replace-tokens@v1
         with:
-          files: '["infrastructure/**.parameters.json"]'
+          files: '["infrastructure/**/*.parameters.json"]'
         env:
           GITHUB_CLIENT_SECRET: ${{ env.github_app_client_secret }}
           PRIVATE_SSH_KEY: ${{ env.github_app_private_ssh_key_secret }}
@@ -93,7 +93,7 @@ jobs:
       - name: Replace Tokens
         uses: cschleiden/replace-tokens@v1
         with:
-          files: '["infrastructure/**.parameters.json"]'
+          files: '["infrastructure/**/*.parameters.json"]'
         env:
           GITHUB_CLIENT_SECRET: ${{ env.github_app_client_secret }}
           PRIVATE_SSH_KEY: ${{ env.github_app_private_ssh_key_secret }}
