@@ -44,4 +44,7 @@ module appServiceModule 'modules/appservice-module.bicep' = {
     cosmosAccountName: cosmosAccountName
     siteName: siteName
   }
+  dependsOn: [
+    cosmosModule
+  ]
 }
