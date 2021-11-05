@@ -65,7 +65,7 @@ jobs:
           PRIVATE_SSH_KEY: ${{ env.github_app_private_ssh_key_secret }}
           WEBHOOK_SECRET: ${{ env.github_app_webhook_secret }}
       - name: What-If Deploy
-        uses: ./.github/workflows/composite/azure-resourcegroup-deployment
+        uses: ./.github/workflows/composite/azure-subscription-deployment
         with:
           parameter_file: ${{ env.template_parameter_file }}
           resource_group_name: ${{ env.resource_group_name }}
@@ -99,7 +99,7 @@ jobs:
           PRIVATE_SSH_KEY: ${{ env.github_app_private_ssh_key_secret }}
           WEBHOOK_SECRET: ${{ env.github_app_webhook_secret }}
       - name: Deploy
-        uses: ./.github/workflows/composite/azure-resourcegroup-deployment
+        uses: ./.github/workflows/composite/azure-subscription-deployment
         with:
           parameter_file: ${{ env.template_parameter_file }}
           resource_group_name: ${{ env.resource_group_name }}
