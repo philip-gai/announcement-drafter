@@ -26,7 +26,6 @@ env:
   github_app_private_ssh_key_secret: ${{ secrets.PRIVATE_SSH_KEY }}
   github_app_webhook_secret: ${{ secrets.WEBHOOK_SECRET }}
   location: "centralus"
-  resource_group_name: "repost-app"
   service_principal_id: "a815ac51-ea5e-4b31-aa3c-eefb9c87403b"
   service_principal_secret: ${{ secrets.SERVICE_PRINCIPAL_SECRET }}
   subcription_id: "59b7bd22-db8a-4752-840e-6b4507317ff0"
@@ -67,7 +66,6 @@ jobs:
       - name: What-If Deploy
         uses: ./.github/workflows/composite/azure-subscription-deployment
         with:
-          resource_group_name: ${{ env.resource_group_name }}
           template_file: ${{ env.template_file }}
           template_parameter_file: ${{ env.template_parameter_file }}
           what_if: ${{ env.what_if }}
@@ -101,7 +99,6 @@ jobs:
       - name: Deploy
         uses: ./.github/workflows/composite/azure-subscription-deployment
         with:
-          resource_group_name: ${{ env.resource_group_name }}
           template_file: ${{ env.template_file }}
           template_parameter_file: ${{ env.template_parameter_file }}
           what_if: ${{ env.what_if }}
