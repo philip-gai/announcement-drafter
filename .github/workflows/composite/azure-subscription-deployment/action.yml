@@ -21,8 +21,12 @@ runs:
       uses: azure/powershell@v1
       with:
         inlineScript: |
+          $commitSha = "${{ github.sha }}"
+          $commitShaShort = $commitSha.substring($commitSha.length - 7, 7)
+
           $params = @{
             Location = "${{ inputs.location }}"
+            Tag = @{"commit_sha"=$commitShaShort;}
             TemplateFile = "${{ inputs.template_file }}"
             WhatIf = "false" -ne "${{ inputs.what_if }}"
           }

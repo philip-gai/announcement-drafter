@@ -21,11 +21,15 @@ runs:
       uses: azure/powershell@v1
       with:
         inlineScript: |
+          $commitSha = "${{ github.sha }}"
+          $commitShaShort = $commitSha.substring($commitSha.length - 7, 7)
+
           $params = @{
             ResourceGroupName = "${{ inputs.resource_group_name }}"
+            RollbackToLastDeployment = $true
+            Tag = @{"commit_sha"=$commitShaShort;}
             TemplateFile = "${{ inputs.template_file }}"
             WhatIf = "false" -ne "${{ inputs.what_if }}"
-            RollbackToLastDeployment = $true
           }
 
           $templateParameterFile = "${{ inputs.parameter_file }}"
