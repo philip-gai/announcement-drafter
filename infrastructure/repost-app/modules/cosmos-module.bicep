@@ -1,3 +1,5 @@
+targetScope = 'resourceGroup'
+
 param accountName string
 param location string
 

@@ -1,3 +1,5 @@
+targetScope = 'resourceGroup'
+
 param appSettings array
 param basicPublishingCredentialsPoliciesLocation string
 param cosmosAccountName string
