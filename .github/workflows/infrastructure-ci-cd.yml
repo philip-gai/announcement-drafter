@@ -46,13 +46,6 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
-      - name: Azure Login
-        uses: ./.github/workflows/composite/azure-login
-        with:
-          service_principal_id: ${{ env.service_principal_id }}
-          service_principal_secret: ${{ env.service_principal_secret }}
-          subcription_id: ${{ env.subcription_id }}
-          tenant_id: ${{ env.tenant_id }}
       - name: az bicep build --file "${{ env.template_file }}"
         shell: bash
         run: az bicep build --file "${{ env.template_file }}"
@@ -64,12 +57,19 @@ jobs:
           GITHUB_CLIENT_SECRET: ${{ env.github_app_client_secret }}
           PRIVATE_SSH_KEY: ${{ env.github_app_private_ssh_key_secret }}
           WEBHOOK_SECRET: ${{ env.github_app_webhook_secret }}
+      - name: Azure Login
+        uses: ./.github/workflows/composite/azure-login
+        with:
+          service_principal_id: ${{ env.service_principal_id }}
+          service_principal_secret: ${{ env.service_principal_secret }}
+          subcription_id: ${{ env.subcription_id }}
+          tenant_id: ${{ env.tenant_id }}
       - name: What-If Deploy
         uses: ./.github/workflows/composite/azure-subscription-deployment
         with:
-          parameter_file: ${{ env.template_parameter_file }}
           resource_group_name: ${{ env.resource_group_name }}
           template_file: ${{ env.template_file }}
+          template_parameter_file: ${{ env.template_parameter_file }}
           what_if: ${{ env.what_if }}
   deploy:
     name: Deploy
@@ -83,13 +83,6 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
-      - name: Azure Login
-        uses: ./.github/workflows/composite/azure-login
-        with:
-          service_principal_id: ${{ env.service_principal_id }}
-          service_principal_secret: ${{ env.service_principal_secret }}
-          subcription_id: ${{ env.subcription_id }}
-          tenant_id: ${{ env.tenant_id }}
       - name: Replace Tokens
         uses: cschleiden/replace-tokens@v1
         with:
@@ -98,10 +91,17 @@ jobs:
           GITHUB_CLIENT_SECRET: ${{ env.github_app_client_secret }}
           PRIVATE_SSH_KEY: ${{ env.github_app_private_ssh_key_secret }}
           WEBHOOK_SECRET: ${{ env.github_app_webhook_secret }}
+      - name: Azure Login
+        uses: ./.github/workflows/composite/azure-login
+        with:
+          service_principal_id: ${{ env.service_principal_id }}
+          service_principal_secret: ${{ env.service_principal_secret }}
+          subcription_id: ${{ env.subcription_id }}
+          tenant_id: ${{ env.tenant_id }}
       - name: Deploy
         uses: ./.github/workflows/composite/azure-subscription-deployment
         with:
-          parameter_file: ${{ env.template_parameter_file }}
           resource_group_name: ${{ env.resource_group_name }}
           template_file: ${{ env.template_file }}
+          template_parameter_file: ${{ env.template_parameter_file }}
           what_if: ${{ env.what_if }}
