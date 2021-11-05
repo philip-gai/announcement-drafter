@@ -21,6 +21,7 @@ param regionName string = 'Central US'
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2020-06-01' = {
   name: rgName
   location: rgLocation
+  properties: {}
 }
 
 module cosmosModule 'modules/cosmos-module.bicep' = {
