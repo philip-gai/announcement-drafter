@@ -54,7 +54,7 @@ export class ConfigService {
 
   private static getDefaultConfig(): AppConfig {
     return {
-      cosmos_database_id: 'Repost',
+      cosmos_database_id: 'AnnouncementDrafter',
       cosmos_uri: process.env['COSMOS_URI'] || '',
       cosmos_primary_key: process.env['COSMOS_PRIMARY_KEY'] || '',
       github_callback_url: process.env['CALLBACK_URL'] || '',

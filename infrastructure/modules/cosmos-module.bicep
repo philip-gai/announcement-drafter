@@ -58,11 +58,11 @@ resource databaseAccount 'Microsoft.DocumentDB/databaseAccounts@2021-06-15' = {
     }
     networkAclBypassResourceIds: []
   }
-  resource repostDatabase 'sqlDatabases@2021-06-15' = {
-    name: 'Repost'
+  resource database 'sqlDatabases@2021-06-15' = {
+    name: 'AnnouncementDrafter'
     properties: {
       resource: {
-        id: 'Repost'
+        id: 'AnnouncementDrafter'
       }
     }
 

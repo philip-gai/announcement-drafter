@@ -187,25 +187,25 @@ Please fix the issues and recreate a new PR:
     });
 
     // Our app will skip it if our comment has been edited (for security)
-    const repostComments = pullRequestComments.filter(
+    const botComments = pullRequestComments.filter(
       (comment) => comment.user.login === appLogin && !comment.in_reply_to_id && comment.path && !comment.body.includes(this.errorIcon)
     );
 
-    if (repostComments.length == 0) {
+    if (botComments.length == 0) {
       logger.info(`No ${appLogin} comments found on this PR`);
       return;
     }
 
     // Get new tokens for all the users only once using their refresh tokens
     const userTokenCache: { [login: string]: string } = {};
-    const users = repostComments.map((comment) => this.getAuthorLogin(comment.body));
+    const users = botComments.map((comment) => this.getAuthorLogin(comment.body));
     const usersDistinct = Array.from(new Set(users));
     for (const userLogin of usersDistinct) {
       userTokenCache[userLogin] = await this._tokenService.refreshUserToken(userLogin);
     }
 
     // 2. Check for the approval reaction made by the author
-    for (const fileToPostComment of repostComments) {
+    for (const fileToPostComment of botComments) {
       const authorLogin = this.getAuthorLogin(fileToPostComment.body);
       const reactions = await appGitHubService.getPullRequestCommentReaction({
         ...pullInfo,
