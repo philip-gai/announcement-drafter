@@ -33,7 +33,7 @@
       "type": "User",
       "site_admin": true
     },
-    "body": "https://github.com/apps/repost-app",
+    "body": "https://github.com/apps/announcement-drafter",
     "created_at": "2021-10-14T15:47:28Z",
     "updated_at": "2021-10-14T16:39:23Z",
     "closed_at": "2021-10-14T16:39:23Z",

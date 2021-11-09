@@ -3,7 +3,7 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "rgName": {
-      "value": "repost-app"
+      "value": "announcement-drafter"
     },
     "siteName": {
       "value": "repost"
