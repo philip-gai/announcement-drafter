@@ -5,7 +5,7 @@
 1️⃣ &nbsp;Create a pull request to get feedback from your teammates on your discussion post\
 2️⃣ &nbsp;Merge the pull request and the discussion automatically gets created in whatever repository or team you want!
 
-![Demo](docs/assets/repost-demo.gif)
+![Demo](docs/assets/demo.gif)
 
 ## Quickstart Guide
 
@@ -47,12 +47,12 @@ These options should go in your repository's `.github/announcement-drafter.yml` 
 
 #### Example
 
-Example from [demo repository](https://github.com/philip-gai/repost-demo/blob/main/docs/demo/hello-world.md?plain=1):
+Example from [demo repository](https://github.com/philip-gai/announcement-drafter-demo/blob/main/docs/demo/hello-world.md?plain=1):
 
 ```markdown
 <!--
 author: philip-gai
-repository: https://github.com/philip-gai/repost-demo
+repository: https://github.com/philip-gai/announcement-drafter-demo
 category: announcements
 -->
 
@@ -63,14 +63,14 @@ Hello beautiful world! 🌎
 
 #### Metadata
 
-| Name             | Description                                                                                                                                                                      | Required                                                 | Example                                                 |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------- |
-| `author`         | The author of the post. Should be your GitHub login (handle)                                                                                                                     | Yes                                                      | `philip-gai`                                            |
-| `repository`     | The full url to the repository to create the discussion in<br/>**Prerequisites:**<br/>&nbsp;&nbsp;1. Discussions are enabled<br/>&nbsp;&nbsp;2. The app is installed on the repo | **Conditional**: Required if no `team` is provided       | `https://github.com/philip-gai/repost-demo`             |
-| `team`           | The full url to the team to create the discussion in<br/>**Prerequisites:**<br/>&nbsp;&nbsp;1. The app is installed on the team organization                                     | **Conditional**: Required if no `repository` is provided | `https://github.com/orgs/elastico-group/teams/everyone` |
-| `category`       | The name of the discussion category                                                                                                                                              | Yes                                                      | `announcements`                                         |
-| Discussion Title | The title of your discussion should be the first top-level header (i.e. `# Discussion Title`)                                                                                    | Yes                                                      | See [Example](#example-discussion-markdown)             |
-| Discussion Body  | The body of your discussion is everything after the top-level header                                                                                                             | Yes                                                      | See [Example](#example-discussion-markdown)             |
+| Name             | Description                                                                                                                                                                      | Required                                                 | Example                                                   |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- | --------------------------------------------------------- |
+| `author`         | The author of the post. Should be your GitHub login (handle)                                                                                                                     | Yes                                                      | `philip-gai`                                              |
+| `repository`     | The full url to the repository to create the discussion in<br/>**Prerequisites:**<br/>&nbsp;&nbsp;1. Discussions are enabled<br/>&nbsp;&nbsp;2. The app is installed on the repo | **Conditional**: Required if no `team` is provided       | `https://github.com/philip-gai/announcement-drafter-demo` |
+| `team`           | The full url to the team to create the discussion in<br/>**Prerequisites:**<br/>&nbsp;&nbsp;1. The app is installed on the team organization                                     | **Conditional**: Required if no `repository` is provided | `https://github.com/orgs/elastico-group/teams/everyone`   |
+| `category`       | The name of the discussion category                                                                                                                                              | Yes                                                      | `announcements`                                           |
+| Discussion Title | The title of your discussion should be the first top-level header (i.e. `# Discussion Title`)                                                                                    | Yes                                                      | See [Example](#example-discussion-markdown)               |
+| Discussion Body  | The body of your discussion is everything after the top-level header                                                                                                             | Yes                                                      | See [Example](#example-discussion-markdown)               |
 
 ### Workflow for reviewing and posting a new discussion
 
@@ -98,5 +98,5 @@ For more, check out the [Contributing Guide](CONTRIBUTING.md).
 
 [ISC](LICENSE) © 2021 Philip Gai <philipmgai@gmail.com>
 
-[repost demo]: https://github.com/philip-gai/repost-demo
-[repost demo config]: https://github.com/philip-gai/repost-demo/blob/main/.github/announcement-drafter.yml
+[repost demo]: https://github.com/philip-gai/announcement-drafter-demo
+[repost demo config]: https://github.com/philip-gai/announcement-drafter-demo/blob/main/.github/announcement-drafter.yml
