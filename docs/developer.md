@@ -25,7 +25,7 @@ Appending `username <username>` after `/create-branch-ado` or `/cb-ado` will all
 For example, the command:
 
 ```sh
-/create-branch-ado username jdoe  
+/create-branch-ado username jdoe
 ```
 
 would create the the following branch name:
@@ -44,7 +44,7 @@ If you want to branch off of a specific branch:
 
 ## Contributing
 
-If you have suggestions for how repost could be improved, or want to report a bug, open an issue! We'd love all and any contributions.
+If you have suggestions for how announcement-drafter could be improved, or want to report a bug, open an issue! We'd love all and any contributions.
 
 For more, check out the [Contributing Guide](CONTRIBUTING.md).
 
