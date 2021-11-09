@@ -3,13 +3,13 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "rgName": {
-      "value": "repost-app"
+      "value": "announcement-drafter"
     },
     "siteName": {
-      "value": "repost"
+      "value": "announcement-drafter"
     },
     "cosmosAccountName": {
-      "value": "repost-cosmos"
+      "value": "announcement-drafter-cosmos"
     },
     "appSettings": {
       "value": [

@@ -36,7 +36,7 @@ jobs:
     concurrency: production-deploy
     env:
       slot_name: "Production"
-      app_name: "repost"
+      app_name: "announcement-drafter"
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2

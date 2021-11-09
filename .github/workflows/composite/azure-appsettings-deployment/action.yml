@@ -5,10 +5,10 @@ inputs:
   app_name:
     description: "Name of the web app. If left unspecified, a name will be randomly generated"
     required: true
-    default: "repost"
+    default: "announcement-drafter"
   resource_group_name:
     required: true
-    default: "repost-app"
+    default: "announcement-drafter"
   settings:
     description: "Space-separated appsettings in KEY=VALUE format. Use @{file} to load from a file."
     required: true

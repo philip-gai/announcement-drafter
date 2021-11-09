@@ -1,11 +1,11 @@
 {
-  "name": "repost",
+  "name": "announcement-drafter",
   "version": "1.0.0",
   "private": true,
   "description": "Publish new GitHub discussions using your existing repository's PR workflows 📬",
   "author": "Philip Gai <philipmgai@github.com>",
   "license": "ISC",
-  "homepage": "https://github.com/philip-gai/repost",
+  "homepage": "https://github.com/philip-gai/announcement-drafter",
   "keywords": [
     "probot",
     "github",

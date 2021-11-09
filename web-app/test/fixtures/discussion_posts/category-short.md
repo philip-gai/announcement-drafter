@@ -1,6 +1,6 @@
-<!-- 
+<!--
 author: philip-gai
-repository: https://github.com/philip-gai/repost-demo
+repository: https://github.com/philip-gai/announcement-drafter-demo
 category: announcements
 -->
 
