@@ -2,10 +2,24 @@
 
 A 🤖 &nbsp;for drafting new GitHub announcements using pull requests
 
-1️⃣ &nbsp;Create a pull request to get feedback from your teammates on your discussion post\
-2️⃣ &nbsp;Merge the pull request and the discussion automatically gets created in whatever repository or team you want!
+Do you use GitHub discussions? Do you create announcements for your open-source projects or org team posts? How do you get feedback or peer reviews on your post before creating it?
+
+Now you can:
+
+&nbsp;&nbsp;&nbsp;&nbsp;1️⃣ &nbsp;Create a pull request to get feedback from your teammates on your announcement\
+&nbsp;&nbsp;&nbsp;&nbsp;2️⃣ &nbsp;Merge the pull request to have your announcement posted!
+
+You can even use private repos to draft announcements and get feedback privately, and on merge have the announcement created in your public repo.
+
+No more copy/pasting your post content into Google Docs. No more rewriting the markdown. Write the markdown once, get feedback and merge 🚀
+
+Check it out and don't forget to ⭐ !
+
+## Demo
 
 ![Demo](docs/assets/demo.gif)
+
+Demo repo: [announcement-drafter demo]
 
 ## Quickstart Guide
 
