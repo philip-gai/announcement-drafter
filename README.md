@@ -1,7 +1,7 @@
 # Announcement Drafter
 
-![Web App CI / CD](https://github.com/philip-gai/announcement-drafter/actions/workflows/web-app-ci-cd.yml/badge.svg)
-![Web App CI / CD](https://github.com/philip-gai/announcement-drafter/actions/workflows/infrastructure-ci-cd.yml/badge.svg)
+[![Web App CI / CD](https://github.com/philip-gai/announcement-drafter/actions/workflows/web-app-ci-cd.yml/badge.svg)](https://github.com/philip-gai/announcement-drafter/actions/workflows/web-app-ci-cd.yml)
+[![App Service CI / CD](https://github.com/philip-gai/announcement-drafter/actions/workflows/infrastructure-ci-cd.yml/badge.svg)](https://github.com/philip-gai/announcement-drafter/actions/workflows/infrastructure-ci-cd.yml)
 ![Language Count](https://img.shields.io/github/languages/count/philip-gai/announcement-drafter?label=Languages)
 ![Top Language](https://img.shields.io/github/languages/top/philip-gai/announcement-drafter)
 ![GitHub Repo stars](https://img.shields.io/github/stars/philip-gai/announcement-drafter?style=social)
