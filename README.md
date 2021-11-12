@@ -1,5 +1,11 @@
 # Announcement Drafter
 
+![Web App CI / CD](https://github.com/philip-gai/announcement-drafter/actions/workflows/web-app-ci-cd.yml/badge.svg)
+![Web App CI / CD](https://github.com/philip-gai/announcement-drafter/actions/workflows/infrastructure-ci-cd.yml/badge.svg)
+![Language Count](https://img.shields.io/github/languages/count/philip-gai/announcement-drafter?label=Languages)
+![Top Language](https://img.shields.io/github/languages/top/philip-gai/announcement-drafter)
+![GitHub Repo stars](https://img.shields.io/github/stars/philip-gai/announcement-drafter?style=social)
+
 A 🤖 &nbsp;for drafting new GitHub announcements using pull requests
 
 Do you use GitHub discussions? Do you create announcements for your open-source projects or org team posts? How do you get feedback or peer reviews on your post before creating it?
