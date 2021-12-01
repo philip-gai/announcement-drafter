@@ -27,7 +27,7 @@ export class ConfigService {
   /** Loads the config values from environment variables and input parameters */
   private static loadConfig = async (logger: DeprecatedLogger, context?: Context<any>): Promise<AppConfig | null> => {
     try {
-      let config = this.defaultConfig;
+      const config = this.defaultConfig;
 
       if (context) {
         const defaultSettings = this.getDefaultSettings();
