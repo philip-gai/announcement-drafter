@@ -24,8 +24,16 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
       - name: Build and test
         uses: ./.github/workflows/composite/web-app-build-test
+      - name: git push lint fixes
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git commit -am "Autofix fixable ESLint errors"
+          git push
   build-and-deploy:
     name: "Web App Build & Deploy"
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || ( github.event_name == 'workflow_dispatch' && github.event.inputs.What-If == 'false' ))
