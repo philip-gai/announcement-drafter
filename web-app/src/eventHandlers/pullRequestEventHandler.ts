@@ -299,7 +299,7 @@ Please fix the issues and recreate a new PR:
           owner: repoOwner
         }))
       ) {
-        throw new Error(`The app is not installed on the organization or user \"${repoOwner}\"`);
+        throw new Error(`The app is not installed on the organization or user "${repoOwner}"`);
       }
       await this.createRepoDiscussion(appGitHubService, userGithubService, logger, {
         ...options,
@@ -317,7 +317,7 @@ Please fix the issues and recreate a new PR:
           owner: teamOwner
         }))
       ) {
-        throw new Error(`The app is not installed for the organization or user \"${teamOwner}\"`);
+        throw new Error(`The app is not installed for the organization or user "${teamOwner}"`);
       }
       await this.createOrgTeamDiscussion(userGithubService, appGitHubService, logger, options, parsedItems);
     }
