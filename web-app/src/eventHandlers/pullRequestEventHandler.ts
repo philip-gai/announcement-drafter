@@ -106,17 +106,19 @@ export class PullRequestEventHandler {
             throw new Error('Markdown is missing a repo or team to post the discussion to');
           }
 
-          let commentBody = `⚠️ ${appLinkMarkdown} will create a discussion using this file once this PR is merged ⚠️\n
-${this.approverPrefix}${authorLogin} must react to this comment with a ${this.approvalReaction.icon}
-`;
+          let commentBody = `⚠️ ${appLinkMarkdown} will create a discussion using this file once this PR is merged ⚠️
+          \n${this.approverPrefix}${authorLogin} must react to this comment with a ${this.approvalReaction.icon}
+\n\n**IMPORTANT**:`;
 
           const userRefreshToken = await this._tokenService.getRefreshToken({
             userLogin: authorLogin
           });
           if (!userRefreshToken) {
             const fullAuthUrl = `${appConfig.base_url}${appConfig.auth_url}`;
-            commentBody += `\n\n**IMPORTANT**: @${authorLogin} must [authenticate](${fullAuthUrl}) before merging this PR`;
+            commentBody += `\n- @${authorLogin} must [authenticate](${fullAuthUrl}) before merging this PR`;
           }
+
+          commentBody += `\n- Do not use relative links to files in your repo. Instead, use full URLs and for media drag/drop or paste the file into the markdown. The link generated for media should contain \`https://user-images.githubusercontent.com\``;
 
           await appGitHubService.createPullRequestComment({
             ...pullInfo,
