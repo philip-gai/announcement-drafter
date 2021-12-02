@@ -62,7 +62,7 @@ These options should go in your repository's `.github/announcement-drafter.yml` 
 | `ignore_folders` | A list of what folders (relative paths) `announcement-drafter` should _ignore_ when new pull requests are open                                                                                                                                                                                           | No       | [See demo config][announcement-drafter demo config] |
 
 <details>
-<summary>Example `.github/announcement-drafter.yml`</summary>
+<summary>Example announcement-drafter.yml</summary>
 
 ```markdown
 watch_folders:
