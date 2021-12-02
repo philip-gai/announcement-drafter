@@ -48,6 +48,9 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
+        with:
+          # NOTE: set the fetch-depth to be sure you retrieve all commits to look for the semver commit message
+          fetch-depth: "0"
       - name: Build and test
         uses: ./.github/workflows/composite/web-app-build-test
       - name: Prepare dist
