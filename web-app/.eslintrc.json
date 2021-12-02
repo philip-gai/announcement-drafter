@@ -1,12 +1,11 @@
 {
-    "root": true,
-    "parser": "@typescript-eslint/parser",
-    "plugins": ["@typescript-eslint", "jest"],
-    "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended", "prettier"],
-    "env": {
-      "node": true,
-      "es6": true,
-      "jest/globals": true
-    }
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint", "jest"],
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended", "plugin:prettier/recommended"],
+  "env": {
+    "node": true,
+    "es6": true,
+    "jest/globals": true
   }
-  
+}
