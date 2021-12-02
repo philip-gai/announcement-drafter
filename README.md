@@ -23,7 +23,7 @@ Check it out and don't forget to ⭐ !
 
 ## Demo
 
-![Demo](docs/assets/demo.gif)
+![Demo](/docs/assets/demo.gif)
 
 Demo repo: [announcement-drafter demo]
 
@@ -61,13 +61,26 @@ These options should go in your repository's `.github/announcement-drafter.yml` 
 | `watch_folders`  | A list of what folders (relative paths) `announcement-drafter` should watch when new pull requests are open<br/>&nbsp;&nbsp;1. It is recommened to include the final `/` in the path<br/>&nbsp;&nbsp;2. `announcement-drafter` will also watch all subfolders unless you ignore them in `ignore_folders` | Yes      | [See demo config][announcement-drafter demo config] |
 | `ignore_folders` | A list of what folders (relative paths) `announcement-drafter` should _ignore_ when new pull requests are open                                                                                                                                                                                           | No       | [See demo config][announcement-drafter demo config] |
 
+<details>
+<summary>Example `.github/announcement-drafter.yml`</summary>
+
+```markdown
+watch_folders:
+  - docs/team-posts/
+```
+
+</details>
+
 ### Discussion Markdown
 
 `announcement-drafter` needs to know certain information such as what repository or team to create the discussion in, and what the discussion category should be. This information should be provided in YAML metadata at the top of your markdown file.
 
-#### Example
+#### Examples
 
-Example from [demo repository](https://github.com/philip-gai/announcement-drafter-demo/blob/main/docs/demo/hello-world.md?plain=1):
+See the [demo repository](https://github.com/philip-gai/announcement-drafter-demo/blob/main/docs/demo/hello-world.md?plain=1) for more.
+
+<details>
+<summary>Draft a Repository Discussion</summary>
 
 ```markdown
 <!--
@@ -79,16 +92,36 @@ category: announcements
 # Hello World! 👋
 
 Hello beautiful world! 🌎
+
 ```
+
+</details>
+
+<details>
+<summary>Draft a Team Post</summary>
+
+```markdown
+<!--
+author: philip-gai
+team: https://github.com/orgs/elastico-group/teams/everyone
+-->
+
+# Hello World! 👋
+
+Hello beautiful world! 🌎
+
+```
+
+</details>
 
 #### Metadata
 
 | Name             | Description                                                                                                                                                                      | Required                                                 | Example                                                   |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- | --------------------------------------------------------- |
-| `author`         | The author of the post. Should be your GitHub login (handle)                                                                                                                     | Yes                                                      | `philip-gai`                                              |
+| `author`         | The author of the post. Should be your GitHub login (handle). Do not inclue the '@'                                                                                              | Yes                                                      | `philip-gai`                                              |
 | `repository`     | The full url to the repository to create the discussion in<br/>**Prerequisites:**<br/>&nbsp;&nbsp;1. Discussions are enabled<br/>&nbsp;&nbsp;2. The app is installed on the repo | **Conditional**: Required if no `team` is provided       | `https://github.com/philip-gai/announcement-drafter-demo` |
 | `team`           | The full url to the team to create the discussion in<br/>**Prerequisites:**<br/>&nbsp;&nbsp;1. The app is installed on the team organization                                     | **Conditional**: Required if no `repository` is provided | `https://github.com/orgs/elastico-group/teams/everyone`   |
-| `category`       | The name of the discussion category                                                                                                                                              | Yes                                                      | `announcements`                                           |
+| `category`       | The name of the discussion category                                                                                                                                              | **Conditional**: Required if `repository` is provided    | `announcements`                                           |
 | Discussion Title | The title of your discussion should be the first top-level header (i.e. `# Discussion Title`)                                                                                    | Yes                                                      | See [Example](#example)               |
 | Discussion Body  | The body of your discussion is everything after the top-level header                                                                                                             | Yes                                                      | See [Example](#example)               |
 
