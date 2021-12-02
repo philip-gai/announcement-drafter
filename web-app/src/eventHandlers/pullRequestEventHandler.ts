@@ -1,13 +1,13 @@
-import { EventPayloads } from '@octokit/webhooks';
-import { Context } from 'probot';
-import { DeprecatedLogger } from 'probot/lib/types';
-import { AppConfig } from '../models/appConfig';
-import { AppSettings } from '../models/appSettings';
-import { ConfigService } from '../services/configService';
-import { GitHubService, OctokitPlus } from '../services/githubService';
-import { HelperService } from '../services/helperService';
-import { ParsedMarkdownDiscussion, ParserService } from '../services/parserService';
-import { TokenService } from '../services/tokenService';
+import { EventPayloads } from "@octokit/webhooks";
+import { Context } from "probot";
+import { DeprecatedLogger } from "probot/lib/types";
+import { AppConfig } from "../models/appConfig";
+import { AppSettings } from "../models/appSettings";
+import { ConfigService } from "../services/configService";
+import { GitHubService, OctokitPlus } from "../services/githubService";
+import { HelperService } from "../services/helperService";
+import { ParsedMarkdownDiscussion, ParserService } from "../services/parserService";
+import { TokenService } from "../services/tokenService";
 
 interface PullInfo {
   owner: string;
@@ -17,11 +17,11 @@ interface PullInfo {
 }
 
 export class PullRequestEventHandler {
-  private readonly errorIcon = '⛔️';
-  private readonly approverPrefix = 'To approve, @';
+  private readonly errorIcon = "⛔️";
+  private readonly approverPrefix = "To approve, @";
   private readonly approvalReaction = {
-    icon: '🚀',
-    label: 'rocket'
+    icon: "🚀",
+    label: "rocket",
   };
 
   private _tokenService: TokenService;
@@ -36,17 +36,17 @@ export class PullRequestEventHandler {
     const configService = await ConfigService.build(context.log, context);
     const appSettings = configService.appConfig.appSettings;
     if (!appSettings) {
-      throw new Error('Make sure to build the config service with the webhook context');
+      throw new Error("Make sure to build the config service with the webhook context");
     }
     if (!configService.appConfig.base_url) {
-      throw new Error('Base URL is not set. Make sure router middleware was added');
+      throw new Error("Base URL is not set. Make sure router middleware was added");
     }
     return new PullRequestEventHandler(tokenService, configService);
   }
 
   public onOpened = async (context: Context<EventPayloads.WebhookPayloadPullRequest>): Promise<void> => {
     const logger = context.log;
-    logger.info('Handling pull_request.opened event...');
+    logger.info("Handling pull_request.opened event...");
 
     const appConfig = this._configService.appConfig;
     const appGitHubService = GitHubService.buildForApp(context.octokit as unknown as OctokitPlus, logger, appConfig);
@@ -56,26 +56,26 @@ export class PullRequestEventHandler {
       owner: payload.repository.owner.login,
       repo: payload.repository.name,
       repoName: payload.repository.name,
-      pull_number: payload.pull_request.number
+      pull_number: payload.pull_request.number,
     };
 
     const isDefaultBranch = payload.pull_request.base.ref === payload.repository.default_branch;
 
     if (!isDefaultBranch) {
-      logger.info('The PR is not targeting the default branch, will not post anything');
+      logger.info("The PR is not targeting the default branch, will not post anything");
       return;
     }
 
     const pullRequestFiles = await appGitHubService.getPullRequestFiles(pullInfo);
 
-    const filesAdded = pullRequestFiles.filter((file) => file.status === 'added');
+    const filesAdded = pullRequestFiles.filter((file) => file.status === "added");
 
     logger.debug(`Number of files added in push: ${filesAdded.length}`);
 
     const app = await this.getAuthenticatedApp(logger, context);
     const { appName, appPublicPage } = {
       appName: app.name,
-      appPublicPage: app.html_url
+      appPublicPage: app.html_url,
     };
     const appLinkMarkdown = `[@${appName}](${appPublicPage})`;
 
@@ -90,7 +90,7 @@ export class PullRequestEventHandler {
           const parsedMarkdown = await this.getParsedMarkdownDiscussion(appGitHubService, logger, {
             filepath: filepath,
             pullInfo: pullInfo,
-            fileref: fileref
+            fileref: fileref,
           });
 
           const authorLogin = parsedMarkdown.author;
@@ -98,12 +98,12 @@ export class PullRequestEventHandler {
           if (authorLogin !== payload.pull_request.user.login) {
             await appGitHubService.addPullRequestReviewers({
               ...pullInfo,
-              reviewers: [authorLogin]
+              reviewers: [authorLogin],
             });
           }
 
           if (!parsedMarkdown.repo && !parsedMarkdown.team) {
-            throw new Error('Markdown is missing a repo or team to post the discussion to');
+            throw new Error("Markdown is missing a repo or team to post the discussion to");
           }
 
           let commentBody = `⚠️ ${appLinkMarkdown} will create a discussion using this file once this PR is merged ⚠️
@@ -111,7 +111,7 @@ export class PullRequestEventHandler {
 \n\n**IMPORTANT**:`;
 
           const userRefreshToken = await this._tokenService.getRefreshToken({
-            userLogin: authorLogin
+            userLogin: authorLogin,
           });
           if (!userRefreshToken) {
             const fullAuthUrl = `${appConfig.base_url}${appConfig.auth_url}`;
@@ -126,16 +126,16 @@ export class PullRequestEventHandler {
             start_line: 1,
             end_line: 6,
             body: commentBody,
-            filepath: filepath
+            filepath: filepath,
           });
 
           // Dry run createDiscussion to ensure it will work
           await this.createDiscussion(appGitHubService, logger, appConfig, {
             filepath: filepath,
             pullInfo: pullInfo,
-            userToken: 'dry_run',
+            userToken: "dry_run",
             dryRun: true,
-            fileref: fileref
+            fileref: fileref,
           });
         } catch (error) {
           const exceptionMessage = HelperService.getErrorMessage(error);
@@ -150,17 +150,17 @@ Please fix the issues and recreate a new PR:
             start_line: 1,
             end_line: 6,
             body: errorMessage,
-            filepath: filepath
+            filepath: filepath,
           });
         }
       }
     }
-    logger.info('Exiting pull_request.opened handler');
+    logger.info("Exiting pull_request.opened handler");
   };
 
   public onMerged = async (context: Context<EventPayloads.WebhookPayloadPullRequest>): Promise<void> => {
     const logger = context.log;
-    logger.info('Handling pull_request.closed and merged event...');
+    logger.info("Handling pull_request.closed and merged event...");
 
     const appConfig = this._configService.appConfig;
     const appGitHubService = GitHubService.buildForApp(context.octokit as unknown as OctokitPlus, logger, appConfig);
@@ -170,13 +170,13 @@ Please fix the issues and recreate a new PR:
       owner: payload.repository.owner.login,
       repo: payload.repository.name,
       repoName: payload.repository.name,
-      pull_number: payload.pull_request.number
+      pull_number: payload.pull_request.number,
     };
 
     const isDefaultBranch = payload.pull_request.base.ref === payload.repository.default_branch;
 
     if (!isDefaultBranch) {
-      logger.info('The PR is not targeting the default branch, will not post anything');
+      logger.info("The PR is not targeting the default branch, will not post anything");
       return;
     }
 
@@ -184,11 +184,11 @@ Please fix the issues and recreate a new PR:
     const app = await this.getAuthenticatedApp(logger, context);
     const { appLogin, postFooter } = {
       appLogin: `${app.slug}[bot]`,
-      postFooter: `\n\n> Published with ❤️ by [${app.name}](${app.html_url})\n`
+      postFooter: `\n\n> Published with ❤️ by [${app.name}](${app.html_url})\n`,
     };
 
     const pullRequestComments = await appGitHubService.getPullRequestComments({
-      ...pullInfo
+      ...pullInfo,
     });
 
     // Our app will skip it if our comment has been edited (for security)
@@ -214,11 +214,11 @@ Please fix the issues and recreate a new PR:
       const authorLogin = this.getAuthorLogin(fileToPostComment.body);
       const reactions = await appGitHubService.getPullRequestCommentReaction({
         ...pullInfo,
-        comment_id: fileToPostComment.id
+        comment_id: fileToPostComment.id,
       });
       const authorApprovalReaction = reactions.find((reaction) => reaction.content === this.approvalReaction.label && reaction.user?.login === authorLogin);
       if (authorApprovalReaction) {
-        logger.info('Found an approval!');
+        logger.info("Found an approval!");
         // 3. Create the discussions based off of the file
         const filepath = fileToPostComment.path;
         const userToken = userTokenCache[authorLogin];
@@ -229,7 +229,7 @@ Please fix the issues and recreate a new PR:
             userToken: userToken,
             dryRun: false,
             pullRequestCommentId: fileToPostComment.id,
-            postFooter: postFooter
+            postFooter: postFooter,
           });
         } catch (err) {
           const errorMessage = HelperService.getErrorMessage(err);
@@ -237,11 +237,11 @@ Please fix the issues and recreate a new PR:
         }
       }
     }
-    logger.info('Exiting pull_request.closed handler');
+    logger.info("Exiting pull_request.closed handler");
   };
 
   private getAuthorLogin(commentBody: string) {
-    return commentBody.split(this.approverPrefix)[1].split(' ')[0];
+    return commentBody.split(this.approverPrefix)[1].split(" ")[0];
   }
 
   private async getAuthenticatedApp(logger: DeprecatedLogger, context: Context<EventPayloads.WebhookPayloadPullRequest>) {
@@ -264,7 +264,7 @@ Please fix the issues and recreate a new PR:
     const fileContent = await appGitHubService.getFileContent({
       path: options.filepath,
       ref: options.fileref,
-      ...options.pullInfo
+      ...options.pullInfo,
     });
     logger.info(`Parsing the markdown information for ${options.filepath}...`);
     const parserService = ParserService.build(fileContent, logger);
@@ -286,7 +286,7 @@ Please fix the issues and recreate a new PR:
       pullRequestCommentId?: number;
     }
   ) {
-    logger.debug('Begin createDiscussion method...');
+    logger.debug("Begin createDiscussion method...");
     const parsedItems = await this.getParsedMarkdownDiscussion(appGitHubService, logger, options);
 
     // Appending footer here because it's not really parsed from the markdown
@@ -295,35 +295,35 @@ Please fix the issues and recreate a new PR:
     logger.debug(`Parsed Document Items: ${JSON.stringify(parsedItems)}`);
     const { repo, repoOwner, team, teamOwner } = parsedItems;
 
-    const userGithubService = GitHubService.buildForUser(options.userToken || 'dry_run', logger, appConfig);
+    const userGithubService = GitHubService.buildForUser(options.userToken || "dry_run", logger, appConfig);
 
     // Check for repo to post to
     if (repo) {
       if (!repoOwner) {
-        throw new Error('Missing target repo owner - repo url should include the owner (organization)');
+        throw new Error("Missing target repo owner - repo url should include the owner (organization)");
       }
 
       if (
         !(await appGitHubService.appIsInstalled({
-          owner: repoOwner
+          owner: repoOwner,
         }))
       ) {
         throw new Error(`The app is not installed on the organization or user "${repoOwner}"`);
       }
       await this.createRepoDiscussion(appGitHubService, userGithubService, logger, {
         ...options,
-        parsedItems
+        parsedItems,
       });
     }
 
     // Check for team to post to
     if (team) {
       if (!teamOwner) {
-        throw new Error('The url to the team is not valid - it must include the team owner (organization)');
+        throw new Error("The url to the team is not valid - it must include the team owner (organization)");
       }
       if (
         !(await appGitHubService.appIsInstalled({
-          owner: teamOwner
+          owner: teamOwner,
         }))
       ) {
         throw new Error(`The app is not installed for the organization or user "${teamOwner}"`);
@@ -350,11 +350,11 @@ Please fix the issues and recreate a new PR:
       ...options,
       ...parsedItems,
       team: parsedItems.team!,
-      owner: parsedItems.teamOwner!
+      owner: parsedItems.teamOwner!,
     });
     if (!options.dryRun) {
       if (newDiscussion) {
-        await this.createPrSuccessComment(appGitHubService, logger, options, newDiscussion.title, newDiscussion.html_url, 'team');
+        await this.createPrSuccessComment(appGitHubService, logger, options, newDiscussion.title, newDiscussion.html_url, "team");
       } else {
         await this.createPrErrorComment(appGitHubService, options);
       }
@@ -365,7 +365,7 @@ Please fix the issues and recreate a new PR:
     await appGitHubService.createPullRequestCommentReply({
       ...options.pullInfo,
       comment_id: options.pullRequestCommentId!,
-      body: `⛔️ Something went wrong. Make sure that you have installed and authorized the app on any repository or team that you would like to post to. Then recreate this PR 👍🏼`
+      body: `⛔️ Something went wrong. Make sure that you have installed and authorized the app on any repository or team that you would like to post to. Then recreate this PR 👍🏼`,
     });
   }
 
@@ -382,7 +382,7 @@ Please fix the issues and recreate a new PR:
   ) {
     const repoData = await appGitHubService.getRepoData({
       repoName: options.parsedItems.repo!,
-      owner: options.parsedItems.repoOwner!
+      owner: options.parsedItems.repoOwner!,
     });
     logger.trace(`repoData: ${JSON.stringify(repoData)}`);
     const discussionCategoryMatch = await this.getDiscussionCategory(appGitHubService, options.parsedItems);
@@ -391,12 +391,12 @@ Please fix the issues and recreate a new PR:
       ...options,
       ...options.parsedItems,
       repoNodeId: repoData.node_id,
-      categoryNodeId: discussionCategoryMatch.id
+      categoryNodeId: discussionCategoryMatch.id,
     });
 
     if (!options.dryRun) {
       if (newDiscussion) {
-        await this.createPrSuccessComment(appGitHubService, logger, options, newDiscussion.title, newDiscussion.url, 'repository');
+        await this.createPrSuccessComment(appGitHubService, logger, options, newDiscussion.title, newDiscussion.url, "repository");
       } else {
         await this.createPrErrorComment(appGitHubService, options);
       }
@@ -413,25 +413,25 @@ Please fix the issues and recreate a new PR:
     },
     discussionTitle: string,
     discussionUrl: string,
-    discussionType: 'team' | 'repository'
+    discussionType: "team" | "repository"
   ) {
-    logger.info('Creating success comment reply on original PR comment...');
+    logger.info("Creating success comment reply on original PR comment...");
     if (!options.pullRequestCommentId) {
-      logger.info('Skipping creating PR success comment reply. No PR Comment ID was provided.');
+      logger.info("Skipping creating PR success comment reply. No PR Comment ID was provided.");
       return;
     }
     await appGitHubService.createPullRequestCommentReply({
       ...options.pullInfo,
       comment_id: options.pullRequestCommentId!,
-      body: `🎉 This ${discussionType} discussion has been posted! 🎉\n> View it here: [${discussionTitle}](${discussionUrl})`
+      body: `🎉 This ${discussionType} discussion has been posted! 🎉\n> View it here: [${discussionTitle}](${discussionUrl})`,
     });
-    logger.info('Done.');
+    logger.info("Done.");
   }
 
   private async getDiscussionCategory(appGitHubService: GitHubService, parsedItems: ParsedMarkdownDiscussion) {
     const repoDiscussionCategories = await appGitHubService.getRepoDiscussionCategories({
       repo: parsedItems.repo!,
-      owner: parsedItems.repoOwner!
+      owner: parsedItems.repoOwner!,
     });
     if (!repoDiscussionCategories || repoDiscussionCategories.length === 0) {
       throw new Error(`Discussions are not enabled on ${parsedItems.repoOwner}/${parsedItems.repo}`);
@@ -439,7 +439,7 @@ Please fix the issues and recreate a new PR:
     const discussionCategoryMatch = repoDiscussionCategories.find(
       (node) =>
         node?.name.trim().localeCompare(parsedItems.discussionCategoryName!, undefined, {
-          sensitivity: 'accent'
+          sensitivity: "accent",
         }) === 0
     );
     if (!discussionCategoryMatch) {
@@ -451,7 +451,7 @@ Please fix the issues and recreate a new PR:
   private shouldCreateDiscussionForFile(appSettings: AppSettings, filepath: string) {
     const matchingWatchFolders = appSettings.watch_folders.filter((folder) => filepath.startsWith(folder));
     const matchingIgnoreFolders = appSettings.ignore_folders.filter((folder) => filepath.startsWith(folder));
-    const isMarkdown = filepath.endsWith('.md');
+    const isMarkdown = filepath.endsWith(".md");
     const willPostOnMerge = matchingWatchFolders.length > 0 && matchingIgnoreFolders.length === 0 && isMarkdown;
     return willPostOnMerge;
   }
