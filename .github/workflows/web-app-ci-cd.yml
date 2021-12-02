@@ -2,10 +2,10 @@ name: "Web App CI / CD"
 
 on:
   pull_request:
-    paths: [web-app/src/**]
+    paths: [web-app/**]
   push:
     branches: [main]
-    paths: [web-app/src/**]
+    paths: [web-app/**]
   workflow_dispatch:
     inputs:
       What-If:
