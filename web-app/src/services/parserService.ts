@@ -6,7 +6,7 @@ export interface ParsedMarkdownDiscussion {
   repoOwner: string | undefined;
   team: string | undefined;
   teamOwner: string | undefined;
-  discussionCategoryName: string;
+  discussionCategoryName: string | undefined;
   postBody: string;
   postTitle: string;
   author: string;
@@ -86,7 +86,9 @@ export class ParserService {
     return teamName;
   }
 
-  public getDiscussionCategoryName(): string {
+  public getDiscussionCategoryName(): string | undefined {
+    const repoUrl = this.getTargetRepoUrl();
+    if (!repoUrl) return;
     const rawCat = this._yamlHeader.category as string;
     const categoryName = rawCat?.split('/').pop()?.trim();
     if (!categoryName) throw new Error('Unable to get discussion category');

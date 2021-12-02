@@ -429,7 +429,7 @@ Please fix the issues and recreate a new PR:
     }
     const discussionCategoryMatch = repoDiscussionCategories.find(
       (node) =>
-        node?.name.trim().localeCompare(parsedItems.discussionCategoryName, undefined, {
+        node?.name.trim().localeCompare(parsedItems.discussionCategoryName!, undefined, {
           sensitivity: 'accent'
         }) === 0
     );
