@@ -180,9 +180,12 @@ Please fix the issues and recreate a new PR:
       return;
     }
 
-    // 1. (Shortcut) Look for comments made by (repo)st and which files they were made on
+    // 1. (Shortcut) Look for comments made by the app and which files they were made on
     const app = await this.getAuthenticatedApp(logger, context);
-    const appLogin = `${app.slug}[bot]`;
+    const { appLogin, postFooter } = {
+      appLogin: `${app.slug}[bot]`,
+      postFooter: `\n\n> Published with ❤️ by [${app.name}](${app.html_url})\n`
+    };
 
     const pullRequestComments = await appGitHubService.getPullRequestComments({
       ...pullInfo
@@ -225,7 +228,8 @@ Please fix the issues and recreate a new PR:
             pullInfo: pullInfo,
             userToken: userToken,
             dryRun: false,
-            pullRequestCommentId: fileToPostComment.id
+            pullRequestCommentId: fileToPostComment.id,
+            postFooter: postFooter
           });
         } catch (err) {
           const errorMessage = HelperService.getErrorMessage(err);
@@ -277,12 +281,17 @@ Please fix the issues and recreate a new PR:
       pullInfo: PullInfo;
       userToken: string;
       dryRun: boolean;
+      postFooter?: string;
       fileref?: string;
       pullRequestCommentId?: number;
     }
   ) {
     logger.debug('Begin createDiscussion method...');
     const parsedItems = await this.getParsedMarkdownDiscussion(appGitHubService, logger, options);
+
+    // Appending footer here because it's not really parsed from the markdown
+    parsedItems.postBody += options.postFooter;
+
     logger.debug(`Parsed Document Items: ${JSON.stringify(parsedItems)}`);
     const { repo, repoOwner, team, teamOwner } = parsedItems;
 
