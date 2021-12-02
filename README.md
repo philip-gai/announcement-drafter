@@ -61,15 +61,12 @@ These options should go in your repository's `.github/announcement-drafter.yml` 
 | `watch_folders`  | A list of what folders (relative paths) `announcement-drafter` should watch when new pull requests are open<br/>&nbsp;&nbsp;1. It is recommened to include the final `/` in the path<br/>&nbsp;&nbsp;2. `announcement-drafter` will also watch all subfolders unless you ignore them in `ignore_folders` | Yes      | [See demo config][announcement-drafter demo config] |
 | `ignore_folders` | A list of what folders (relative paths) `announcement-drafter` should _ignore_ when new pull requests are open                                                                                                                                                                                           | No       | [See demo config][announcement-drafter demo config] |
 
-<details>
-<summary>Example announcement-drafter.yml</summary>
+Example announcement-drafter.yml:
 
-```markdown
+```yml
 watch_folders:
   - docs/team-posts/
 ```
-
-</details>
 
 ### Discussion Markdown
 
@@ -79,8 +76,7 @@ watch_folders:
 
 See the [demo repository](https://github.com/philip-gai/announcement-drafter-demo/blob/main/docs/demo/hello-world.md?plain=1) for more.
 
-<details>
-<summary>Draft a Repository Discussion</summary>
+##### Draft a Repository Discussion
 
 ```markdown
 <!--
@@ -95,10 +91,7 @@ Hello beautiful world! 🌎
 
 ```
 
-</details>
-
-<details>
-<summary>Draft a Team Post</summary>
+##### Draft a Team Post
 
 ```markdown
 <!--
@@ -111,8 +104,6 @@ team: https://github.com/orgs/elastico-group/teams/everyone
 Hello beautiful world! 🌎
 
 ```
-
-</details>
 
 #### Metadata
 
