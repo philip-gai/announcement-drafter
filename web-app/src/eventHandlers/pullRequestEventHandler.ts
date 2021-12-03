@@ -184,7 +184,7 @@ Please fix the issues and recreate a new PR:
     const app = await this.getAuthenticatedApp(logger, context);
     const { appLogin, postFooter } = {
       appLogin: `${app.slug}[bot]`,
-      postFooter: `\n\n> Published with ❤️ by [${app.name}](${app.html_url})\n`,
+      postFooter: `\n\n> Published with ❤️&nbsp;by [${app.name}](${app.html_url})\n`,
     };
 
     const pullRequestComments = await appGitHubService.getPullRequestComments({
