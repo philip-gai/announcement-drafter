@@ -43,6 +43,8 @@ export class ConfigService {
         logger.debug(`Using dev configuration: ${JSON.stringify(config)}`);
       }
 
+      logger.info(`App ID: ${config.appId}`);
+
       return config;
     } catch (e: any) {
       context?.log.error(`Exception while parsing app config yml: ${e.message}`);
