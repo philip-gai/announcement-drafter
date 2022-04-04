@@ -26,7 +26,10 @@ export = async (app: Probot, options: ApplicationFunctionOptions) => {
       await pullRequestEventHandler.onOpened(context);
     });
     app.on("pull_request.closed", async (context) => {
-      if (!context.payload.pull_request.merged) return;
+      if (!context.payload.pull_request.merged) {
+        logger.info("Pull request was closed but not merged. Skipping.");
+        return;
+      }
       const pullRequestEventHandler = await PullRequestEventHandler.build(context, tokenService);
       await pullRequestEventHandler.onMerged(context);
     });
