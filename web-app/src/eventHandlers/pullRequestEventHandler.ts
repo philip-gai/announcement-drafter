@@ -134,7 +134,7 @@ export class PullRequestEventHandler {
           commentBody += `\n- Do not use relative links to files in your repo. Instead, use full URLs and for media drag/drop or paste the file into the markdown. The link generated for media should contain \`https://user-images.githubusercontent.com\``;
 
           // If we've already commented on this file, update the comment
-          if (mostRecentBotCommentForFile) {
+          if (mostRecentBotCommentForFile && mostRecentBotCommentForFile.body !== commentBody) {
             await appGitHubService.updatePullRequestComment({
               ...pullInfo,
               comment_id: mostRecentBotCommentForFile.id,
