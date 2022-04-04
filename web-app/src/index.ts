@@ -21,7 +21,7 @@ export = async (app: Probot, options: ApplicationFunctionOptions): Promise<void>
       .addHealthCheckRoute();
     logger.debug("Done.");
 
-    app.on(["pull_request.opened", "pull_request.synchronize", "pull_request.ready_for_review"], async (context) => {
+    app.on(["pull_request.opened", "pull_request.synchronize", "pull_request.ready_for_review", "pull_request.reopened"], async (context) => {
       const pullRequestEventHandler = await PullRequestEventHandler.build(context, tokenService);
       await pullRequestEventHandler.onUpdated(context);
     });
@@ -30,10 +30,6 @@ export = async (app: Probot, options: ApplicationFunctionOptions): Promise<void>
         logger.info("Pull request was closed but not merged. Skipping.");
         return;
       }
-      const pullRequestEventHandler = await PullRequestEventHandler.build(context, tokenService);
-      await pullRequestEventHandler.onMerged(context);
-    });
-    app.on("pull_request.synchronize", async (context) => {
       const pullRequestEventHandler = await PullRequestEventHandler.build(context, tokenService);
       await pullRequestEventHandler.onMerged(context);
     });

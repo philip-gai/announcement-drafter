@@ -270,49 +270,6 @@ Please fix the issues and update the PR:
     logger.info("Exiting pull_request.closed handler");
   };
 
-  public onSynchronize = async (context: Context<EventPayloads.WebhookPayloadPullRequest>): Promise<void> => {
-    const logger = context.log;
-    logger.info("Handling pull_request.synchronize event...");
-
-    const appConfig = this._configService.appConfig;
-    const appGitHubService = GitHubService.buildForApp(context.octokit as unknown as OctokitPlus, logger, appConfig);
-
-    const payload = context.payload;
-    const pullInfo: PullInfo = {
-      owner: payload.repository.owner.login,
-      repo: payload.repository.name,
-      repoName: payload.repository.name,
-      pull_number: payload.pull_request.number,
-    };
-
-    const pullRequestComments = await appGitHubService.getPullRequestComments({
-      ...pullInfo,
-    });
-
-    const app = await this.getAuthenticatedApp(logger, context);
-    const { appLogin } = {
-      appLogin: `${app.slug}[bot]`,
-    };
-
-    // Our app will skip it if our comment has been edited (for security)
-    const botComments = pullRequestComments.filter(
-      (comment) => comment.user.login === appLogin && !comment.in_reply_to_id && comment.path && !comment.body.includes(this.errorIcon)
-    );
-
-    if (botComments.length == 0) {
-      logger.info(`No ${appLogin} comments found on this PR`);
-      return;
-    }
-
-    for (const botComment of botComments) {
-      await appGitHubService.createPullRequestCommentReply({
-        ...pullInfo,
-        comment_id: botComment.id,
-        body: `PR was updated. `,
-      });
-    }
-  };
-
   private getMostRecentBotCommentForFile(existingBotComments: PullRequestComment[], filepath: string, logger: DeprecatedLogger): PullRequestComment | null {
     const existingCommentForFile = existingBotComments.filter((comment) => comment.path === filepath);
     if (existingCommentForFile.length === 0) {
