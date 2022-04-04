@@ -32,3 +32,11 @@ DRY_RUN_COMMENTS=false
 DRY_RUN_POSTS=false
 " > /workspaces/announcement-drafter/web-app/.env
 Write-Host "Done."
+
+Write-Host "Cloning repos..."
+$env:GITHUB_TOKEN | gh auth login --with-token
+gh repo clone philip-gai/announcement-drafter-tests /workspaces/announcement-drafter-tests
+if (!$?) { exit 1 }
+gh repo clone philip-gai/announcement-drafter-demo /workspaces/announcement-drafter-demo
+if (!$?) { exit 1 }
+Write-Host "Done."
