@@ -1,8 +1,7 @@
 name: "App Service CI / CD"
 
 on:
-  pull_request:
-    paths: [infrastructure/**.bicep, infrastructure/**.parameters.json]
+  pull_request: {}
   push:
     branches: [main]
     paths: [infrastructure/**.bicep, infrastructure/**.parameters.json]
