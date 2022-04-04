@@ -96,11 +96,11 @@ export class TokenService {
 
   public async deleteRefreshToken(userLogin: string): Promise<void> {
     this._logger.info(`Deleting user token for "${userLogin}"`);
-    const item = this._container.item(userLogin, userLogin);
-    if (item) {
+    try {
+      const item = this._container.item(userLogin, userLogin);
       await item.delete();
       this._logger.info("Deleted user token.");
-    } else {
+    } catch {
       this._logger.info("No token found for the user.");
     }
   }
