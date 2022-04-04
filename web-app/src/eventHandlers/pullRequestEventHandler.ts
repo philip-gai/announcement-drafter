@@ -4,6 +4,7 @@ import { Context } from "probot";
 import { DeprecatedLogger } from "probot/lib/types";
 import { AppConfig } from "../models/appConfig";
 import { AppSettings } from "../models/appSettings";
+import { PullRequestComment } from "../models/githubModels";
 import { ConfigService } from "../services/configService";
 import { GitHubService, OctokitPlus } from "../services/githubService";
 import { HelperService } from "../services/helperService";
@@ -45,9 +46,10 @@ export class PullRequestEventHandler {
     return new PullRequestEventHandler(tokenService, configService);
   }
 
-  public onOpened = async (context: Context<EventPayloads.WebhookPayloadPullRequest>): Promise<void> => {
+  public onUpdated = async (context: Context<EventPayloads.WebhookPayloadPullRequest>): Promise<void> => {
     const logger = context.log;
-    logger.info("Handling pull_request.opened event...");
+
+    logger.info(`Handling ${context.name} event...`);
 
     const appConfig = this._configService.appConfig;
     const appGitHubService = GitHubService.buildForApp(context.octokit as unknown as OctokitPlus, logger, appConfig);
@@ -61,9 +63,13 @@ export class PullRequestEventHandler {
     };
 
     const isDefaultBranch = payload.pull_request.base.ref === payload.repository.default_branch;
-
     if (!isDefaultBranch) {
       logger.info("The PR is not targeting the default branch, will not post anything");
+      return;
+    }
+
+    if (payload.pull_request.draft) {
+      logger.info("This is a draft PR. Exiting.");
       return;
     }
 
@@ -74,15 +80,22 @@ export class PullRequestEventHandler {
     logger.debug(`Number of files added in push: ${filesAdded.length}`);
 
     const app = await this.getAuthenticatedApp(logger, context);
-    const { appName, appPublicPage } = {
+    const { appName, appPublicPage, appLogin } = {
       appName: app.name,
       appPublicPage: app.html_url,
+      appLogin: `${app.slug}[bot]`,
     };
     const appLinkMarkdown = `[@${appName}](${appPublicPage})`;
+
+    const pullRequestComments = await appGitHubService.getPullRequestComments({
+      ...pullInfo,
+    });
+    const existingBotComments = pullRequestComments.filter((comment) => comment.user.login === appLogin && !comment.in_reply_to_id && comment.path);
 
     // Example filepath: "docs/team-posts/hello-world.md"
     for (const file of filesAdded) {
       const filepath = file.filename;
+      const mostRecentBotCommentForFile = this.getMostRecentBotCommentForFile(existingBotComments, filepath, logger);
       const shouldCreateDiscussionForFile = this.shouldCreateDiscussionForFile(appConfig.appSettings, filepath);
       if (shouldCreateDiscussionForFile) {
         try {
@@ -118,17 +131,25 @@ export class PullRequestEventHandler {
             const fullAuthUrl = `${appConfig.base_url}${appConfig.auth_url}`;
             commentBody += `\n- @${authorLogin} must [authenticate](${fullAuthUrl}) before merging this PR`;
           }
-
           commentBody += `\n- Do not use relative links to files in your repo. Instead, use full URLs and for media drag/drop or paste the file into the markdown. The link generated for media should contain \`https://user-images.githubusercontent.com\``;
 
-          await appGitHubService.createPullRequestComment({
-            ...pullInfo,
-            commit_id: payload.pull_request.head.sha,
-            start_line: 1,
-            end_line: 6,
-            body: commentBody,
-            filepath: filepath,
-          });
+          // If we've already commented on this file, update the comment
+          if (mostRecentBotCommentForFile) {
+            await appGitHubService.updatePullRequestComment({
+              ...pullInfo,
+              comment_id: mostRecentBotCommentForFile.id,
+              body: commentBody,
+            });
+          } else {
+            await appGitHubService.createPullRequestComment({
+              ...pullInfo,
+              commit_id: payload.pull_request.head.sha,
+              start_line: 1,
+              end_line: 6,
+              body: commentBody,
+              filepath: filepath,
+            });
+          }
 
           // Dry run createDiscussion to ensure it will work
           await this.createDiscussion(appGitHubService, logger, appConfig, {
@@ -142,17 +163,25 @@ export class PullRequestEventHandler {
           const exceptionMessage = HelperService.getErrorMessage(error);
           logger.warn(exceptionMessage);
           const errorMessage = `${this.errorIcon} ${appLinkMarkdown} will not be able to create a discussion for this file. ${this.errorIcon}\n
-Please fix the issues and recreate a new PR:
+Please fix the issues and update the PR:
 > ${exceptionMessage}
 `;
-          await appGitHubService.createPullRequestComment({
-            ...pullInfo,
-            commit_id: payload.pull_request.head.sha,
-            start_line: 1,
-            end_line: 6,
-            body: errorMessage,
-            filepath: filepath,
-          });
+          if (mostRecentBotCommentForFile) {
+            await appGitHubService.updatePullRequestComment({
+              ...pullInfo,
+              comment_id: mostRecentBotCommentForFile.id,
+              body: errorMessage,
+            });
+          } else {
+            await appGitHubService.createPullRequestComment({
+              ...pullInfo,
+              commit_id: payload.pull_request.head.sha,
+              start_line: 1,
+              end_line: 6,
+              body: errorMessage,
+              filepath: filepath,
+            });
+          }
         }
       }
     }
@@ -241,56 +270,65 @@ Please fix the issues and recreate a new PR:
     logger.info("Exiting pull_request.closed handler");
   };
 
+  public onSynchronize = async (context: Context<EventPayloads.WebhookPayloadPullRequest>): Promise<void> => {
+    const logger = context.log;
+    logger.info("Handling pull_request.synchronize event...");
+
+    const appConfig = this._configService.appConfig;
+    const appGitHubService = GitHubService.buildForApp(context.octokit as unknown as OctokitPlus, logger, appConfig);
+
+    const payload = context.payload;
+    const pullInfo: PullInfo = {
+      owner: payload.repository.owner.login,
+      repo: payload.repository.name,
+      repoName: payload.repository.name,
+      pull_number: payload.pull_request.number,
+    };
+
+    const pullRequestComments = await appGitHubService.getPullRequestComments({
+      ...pullInfo,
+    });
+
+    const app = await this.getAuthenticatedApp(logger, context);
+    const { appLogin } = {
+      appLogin: `${app.slug}[bot]`,
+    };
+
+    // Our app will skip it if our comment has been edited (for security)
+    const botComments = pullRequestComments.filter(
+      (comment) => comment.user.login === appLogin && !comment.in_reply_to_id && comment.path && !comment.body.includes(this.errorIcon)
+    );
+
+    if (botComments.length == 0) {
+      logger.info(`No ${appLogin} comments found on this PR`);
+      return;
+    }
+
+    for (const botComment of botComments) {
+      await appGitHubService.createPullRequestCommentReply({
+        ...pullInfo,
+        comment_id: botComment.id,
+        body: `PR was updated. `,
+      });
+    }
+  };
+
+  private getMostRecentBotCommentForFile(existingBotComments: PullRequestComment[], filepath: string, logger: DeprecatedLogger): PullRequestComment | null {
+    const existingCommentForFile = existingBotComments.filter((comment) => comment.path === filepath);
+    if (existingCommentForFile.length === 0) {
+      return null;
+    } else if (existingCommentForFile.length > 1) {
+      logger.warn(`Found multiple comments for ${filepath}. Taking most recent.`);
+    }
+    const mostRecentBotComment = existingCommentForFile[0];
+    return mostRecentBotComment;
+  }
+
   private async getAuthenticatedApp(
     logger: DeprecatedLogger,
     context: Context<EventPayloads.WebhookPayloadPullRequest>
-  ): Promise<{
-    id: number;
-    slug?: string | undefined;
-    node_id: string;
-    owner: {
-      name?: string | null | undefined;
-      email?: string | null | undefined;
-      login: string;
-      id: number;
-      node_id: string;
-      avatar_url: string;
-      gravatar_id: string | null;
-      url: string;
-      html_url: string;
-      followers_url: string;
-      following_url: string;
-      gists_url: string;
-      starred_url: string;
-      subscriptions_url: string;
-      organizations_url: string;
-      repos_url: string;
-      events_url: string;
-      received_events_url: string;
-      type: string;
-      site_admin: boolean;
-      starred_at?: string | undefined;
-    } | null;
-    name: string;
-    description: string | null;
-    external_url: string;
-    html_url: string;
-    created_at: string;
-    updated_at: string;
-    permissions: {
-      issues?: string | undefined;
-      checks?: string | undefined;
-      metadata?: string | undefined;
-      contents?: string | undefined;
-      deployments?: string | undefined;
-    } & { [key: string]: string };
-    events: string[];
-    installations_count?: number | undefined;
-    client_id?: string | undefined;
-    client_secret?: string | undefined;
-    webhook_secret?: string | null | undefined;
-    pem?: string | undefined;
-  }> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): Promise<any> {
     logger.info(`Getting authenticated app...`);
     const authenticatedApp = await context.octokit.apps.getAuthenticated();
     logger.trace(`authenticatedApp:\n${JSON.stringify(authenticatedApp)}`);

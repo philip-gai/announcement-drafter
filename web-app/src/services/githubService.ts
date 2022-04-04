@@ -8,6 +8,7 @@ import { ProbotOctokit } from "probot";
 import { DeprecatedLogger } from "probot/lib/types";
 import { AppConfig } from "../models/appConfig";
 import { Content } from "../models/fileContent";
+import { PullRequestComment, PullRequestCommentReaction, TeamDiscussion } from "../models/githubModels";
 
 export type OctokitPlus = Octokit & RestEndpointMethods & Api & PaginateInterface & API;
 
@@ -56,8 +57,13 @@ export class GitHubService {
     return contentData;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public async createOrgTeamDiscussion(options: { owner: string; team: string; postTitle: string; postBody: string; dryRun: boolean }): Promise<any> {
+  public async createOrgTeamDiscussion(options: {
+    owner: string;
+    team: string;
+    postTitle: string;
+    postBody: string;
+    dryRun: boolean;
+  }): Promise<TeamDiscussion | undefined> {
     this._logger.info("Creating org team discussion...");
     if (this._appConfig.dry_run_posts || options.dryRun) {
       this._logger.info("Dry run, not creating.");
@@ -73,6 +79,7 @@ export class GitHubService {
     return discussion.data;
   }
 
+  // See https://docs.github.com/rest/reference/repos#get-a-repository
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public async getRepoData(options: { repoName: string; owner: string }): Promise<any> {
     const repoResponse = await this._octokit.repos.get({
@@ -160,6 +167,23 @@ export class GitHubService {
     this._logger.info(`Done.`);
   }
 
+  public async updatePullRequestComment(options: { owner: string; repo: string; comment_id: number; body: string }): Promise<void> {
+    this._logger.info(`Updating comment on the PR...\n${JSON.stringify(options)}`);
+    if (this._appConfig.dry_run_comments) {
+      this._logger.info("Dry run, not updating comments.");
+      return;
+    }
+
+    // There is a bug where you can't pass unwanted keys
+    await this._octokit.pulls.updateReviewComment({
+      owner: options.owner,
+      repo: options.repo,
+      comment_id: options.comment_id,
+      body: options.body,
+    });
+    this._logger.info(`Done.`);
+  }
+
   public async createPullRequestCommentReply(options: { owner: string; repo: string; pull_number: number; comment_id: number; body: string }): Promise<void> {
     this._logger.info(`Creating a reply to a review comment...\n${JSON.stringify(options)}`);
 
@@ -184,27 +208,27 @@ export class GitHubService {
     await this._octokit.pulls.requestReviewers(options);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public async getPullRequestComments(options: { owner: string; repo: string; pull_number: number }): Promise<any[]> {
+  public async getPullRequestComments(options: { owner: string; repo: string; pull_number: number }): Promise<PullRequestComment[]> {
     this._logger.info(`Getting pull request comments...\n${JSON.stringify(options)}`);
     const comments = await this._octokit.pulls.listReviewComments({
       ...options,
       per_page: 100, // 100 is the GitHub limit
+      sort: "updated",
+      direction: "desc",
     });
     this._logger.trace(`Comments:\n${JSON.stringify(comments.data)}`);
     this._logger.info("Done.");
     return comments.data;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public async getPullRequestCommentReaction(options: { owner: string; repo: string; comment_id: number }): Promise<any[]> {
+  public async getPullRequestCommentReaction(options: { owner: string; repo: string; comment_id: number }): Promise<PullRequestCommentReaction[]> {
     this._logger.info(`Getting pull request comment reactions...\n${JSON.stringify(options)}`);
     const commentReactions = await this._octokit.reactions.listForPullRequestReviewComment({
       ...options,
       per_page: 100,
     });
     this._logger.info("Done.");
-    return commentReactions.data;
+    return commentReactions.data as PullRequestCommentReaction[];
   }
 
   // https://docs.github.com/en/graphql/guides/using-the-graphql-api-for-discussions#creatediscussion
