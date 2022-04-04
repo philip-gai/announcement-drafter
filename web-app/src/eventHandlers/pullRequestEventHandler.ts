@@ -140,7 +140,7 @@ export class PullRequestEventHandler {
               comment_id: mostRecentBotCommentForFile.id,
               body: commentBody,
             });
-          } else {
+          } else if (!mostRecentBotCommentForFile) {
             await appGitHubService.createPullRequestComment({
               ...pullInfo,
               commit_id: payload.pull_request.head.sha,
