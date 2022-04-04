@@ -17,10 +17,10 @@ runs:
         node-version: ${{ inputs.node_version }}
         cache: "npm"
         cache-dependency-path: "${{ inputs.working-directory }}"
-    - name: npm install, lint, build
+    - name: npm ci, lint, build
       working-directory: "${{ inputs.working-directory }}"
       shell: bash
       run: |
-        npm install
+        npm ci
         npm run lint
         npm run build
