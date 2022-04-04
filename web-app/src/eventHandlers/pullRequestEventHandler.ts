@@ -1,3 +1,4 @@
+import { DiscussionCategory } from "@octokit/graphql-schema";
 import { EventPayloads } from "@octokit/webhooks";
 import { Context } from "probot";
 import { DeprecatedLogger } from "probot/lib/types";
@@ -32,7 +33,7 @@ export class PullRequestEventHandler {
     this._configService = configService;
   }
 
-  public static async build(context: Context<EventPayloads.WebhookPayloadPullRequest>, tokenService: TokenService) {
+  public static async build(context: Context<EventPayloads.WebhookPayloadPullRequest>, tokenService: TokenService): Promise<PullRequestEventHandler> {
     const configService = await ConfigService.build(context.log, context);
     const appSettings = configService.appConfig.appSettings;
     if (!appSettings) {
@@ -100,13 +101,20 @@ export class PullRequestEventHandler {
           }
 
           let commentBody = `⚠️ ${appLinkMarkdown} will create a discussion using this file once this PR is merged ⚠️
-          \n${this.approverPrefix}${authorLogin} must react to this comment with a ${this.approvalReaction.icon}
-\n\n**IMPORTANT**:`;
+\n**IMPORTANT**:
+\n- ${this.approverPrefix}${authorLogin} must react (not reply) to this comment with a ${this.approvalReaction.icon}`;
 
           const userRefreshToken = await this._tokenService.getRefreshToken({
             userLogin: authorLogin,
           });
-          if (!userRefreshToken) {
+
+          // Only look for existing refresh tokens in production, otherwise always refresh and then clear
+          // This avoids the shared cosmos instance storing invalid refresh tokens
+          const isNonProd = this._configService.appConfig.appId !== ConfigService.prodAppId;
+          if (isNonProd && userRefreshToken) {
+            await this._tokenService.deleteRefreshToken(authorLogin);
+          }
+          if (!userRefreshToken || isNonProd) {
             const fullAuthUrl = `${appConfig.base_url}${appConfig.auth_url}`;
             commentBody += `\n- @${authorLogin} must [authenticate](${fullAuthUrl}) before merging this PR`;
           }
@@ -221,13 +229,69 @@ Please fix the issues and recreate a new PR:
         } catch (err) {
           const errorMessage = HelperService.getErrorMessage(err);
           logger.error(errorMessage);
+        } finally {
+          // Delete the token to avoid conflicts with prod
+          const appId = this._configService.appConfig.appId;
+          if (appId !== ConfigService.prodAppId) {
+            logger.info(`Current app (${appId}) is not prod, deleting ${authorLogin}'s refresh token`);
+            this._tokenService.deleteRefreshToken(authorLogin);
+          }
         }
       }
     }
     logger.info("Exiting pull_request.closed handler");
   };
 
-  private async getAuthenticatedApp(logger: DeprecatedLogger, context: Context<EventPayloads.WebhookPayloadPullRequest>) {
+  private async getAuthenticatedApp(
+    logger: DeprecatedLogger,
+    context: Context<EventPayloads.WebhookPayloadPullRequest>
+  ): Promise<{
+    id: number;
+    slug?: string | undefined;
+    node_id: string;
+    owner: {
+      name?: string | null | undefined;
+      email?: string | null | undefined;
+      login: string;
+      id: number;
+      node_id: string;
+      avatar_url: string;
+      gravatar_id: string | null;
+      url: string;
+      html_url: string;
+      followers_url: string;
+      following_url: string;
+      gists_url: string;
+      starred_url: string;
+      subscriptions_url: string;
+      organizations_url: string;
+      repos_url: string;
+      events_url: string;
+      received_events_url: string;
+      type: string;
+      site_admin: boolean;
+      starred_at?: string | undefined;
+    } | null;
+    name: string;
+    description: string | null;
+    external_url: string;
+    html_url: string;
+    created_at: string;
+    updated_at: string;
+    permissions: {
+      issues?: string | undefined;
+      checks?: string | undefined;
+      metadata?: string | undefined;
+      contents?: string | undefined;
+      deployments?: string | undefined;
+    } & { [key: string]: string };
+    events: string[];
+    installations_count?: number | undefined;
+    client_id?: string | undefined;
+    client_secret?: string | undefined;
+    webhook_secret?: string | null | undefined;
+    pem?: string | undefined;
+  }> {
     logger.info(`Getting authenticated app...`);
     const authenticatedApp = await context.octokit.apps.getAuthenticated();
     logger.trace(`authenticatedApp:\n${JSON.stringify(authenticatedApp)}`);
@@ -268,7 +332,7 @@ Please fix the issues and recreate a new PR:
       fileref?: string;
       pullRequestCommentId?: number;
     }
-  ) {
+  ): Promise<void> {
     logger.debug("Begin createDiscussion method...");
     const parsedItems = await this.getParsedMarkdownDiscussion(appGitHubService, logger, options);
 
@@ -328,7 +392,7 @@ Please fix the issues and recreate a new PR:
       pullRequestCommentId?: number | undefined;
     },
     parsedItems: ParsedMarkdownDiscussion
-  ) {
+  ): Promise<void> {
     const newDiscussion = await userGithubService.createOrgTeamDiscussion({
       ...options,
       ...parsedItems,
@@ -344,7 +408,10 @@ Please fix the issues and recreate a new PR:
     }
   }
 
-  private async createPrErrorComment(appGitHubService: GitHubService, options: { pullInfo: PullInfo; pullRequestCommentId?: number | undefined }) {
+  private async createPrErrorComment(
+    appGitHubService: GitHubService,
+    options: { pullInfo: PullInfo; pullRequestCommentId?: number | undefined }
+  ): Promise<void> {
     await appGitHubService.createPullRequestCommentReply({
       ...options.pullInfo,
       comment_id: options.pullRequestCommentId!,
@@ -362,7 +429,7 @@ Please fix the issues and recreate a new PR:
       dryRun: boolean;
       pullRequestCommentId?: number;
     }
-  ) {
+  ): Promise<void> {
     const repoData = await appGitHubService.getRepoData({
       repoName: options.parsedItems.repo!,
       owner: options.parsedItems.repoOwner!,
@@ -397,7 +464,7 @@ Please fix the issues and recreate a new PR:
     discussionTitle: string,
     discussionUrl: string,
     discussionType: "team" | "repository"
-  ) {
+  ): Promise<void> {
     logger.info("Creating success comment reply on original PR comment...");
     if (!options.pullRequestCommentId) {
       logger.info("Skipping creating PR success comment reply. No PR Comment ID was provided.");
@@ -411,7 +478,7 @@ Please fix the issues and recreate a new PR:
     logger.info("Done.");
   }
 
-  private async getDiscussionCategory(appGitHubService: GitHubService, parsedItems: ParsedMarkdownDiscussion) {
+  private async getDiscussionCategory(appGitHubService: GitHubService, parsedItems: ParsedMarkdownDiscussion): Promise<DiscussionCategory> {
     const repoDiscussionCategories = await appGitHubService.getRepoDiscussionCategories({
       repo: parsedItems.repo!,
       owner: parsedItems.repoOwner!,
@@ -431,7 +498,7 @@ Please fix the issues and recreate a new PR:
     return discussionCategoryMatch;
   }
 
-  private shouldCreateDiscussionForFile(appSettings: AppSettings, filepath: string) {
+  private shouldCreateDiscussionForFile(appSettings: AppSettings, filepath: string): boolean {
     const matchingWatchFolders = appSettings.watch_folders.filter((folder) => filepath.startsWith(folder));
     const matchingIgnoreFolders = appSettings.ignore_folders.filter((folder) => filepath.startsWith(folder));
     const isMarkdown = filepath.endsWith(".md");

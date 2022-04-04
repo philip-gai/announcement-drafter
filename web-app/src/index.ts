@@ -6,7 +6,7 @@ import { RouterService } from "./services/routerService";
 import { HelperService } from "./services/helperService";
 import { PullRequestEventHandler } from "./eventHandlers/pullRequestEventHandler";
 
-export = async (app: Probot, options: ApplicationFunctionOptions) => {
+export = async (app: Probot, options: ApplicationFunctionOptions): Promise<void> => {
   const logger = app.log;
   try {
     logger.info("Running Probot app...");

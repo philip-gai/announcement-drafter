@@ -29,7 +29,7 @@ export class AuthService {
     return url;
   }
 
-  async authenticateUser(code: string) {
+  async authenticateUser(code: string): Promise<{ token: string; refreshToken: string; refreshTokenExpiresAt: string }> {
     this._logger.info("Authenticating the user by exchanging OAuth code for a token");
     const tokenResponse = await exchangeWebFlowCode({
       clientType: "github-app",
