@@ -23,17 +23,17 @@
 
   // Add the IDs of extensions you want installed when the container is created.
   "extensions": [
-	"cschleiden.vscode-github-actions",
-	"davidanson.vscode-markdownlint",
-	"dbaeumer.vscode-eslint",
-	"eamodio.gitlens",
-	"eg2.vscode-npm-script",
-	"esbenp.prettier-vscode",
-	"ms-azuretools.vscode-azureappservice",
-	"ms-azuretools.vscode-bicep",
-	"yzhang.markdown-all-in-one",
-	"ms-vscode.powershell"
-],
+    "cschleiden.vscode-github-actions",
+    "davidanson.vscode-markdownlint",
+    "dbaeumer.vscode-eslint",
+    "eamodio.gitlens",
+    "eg2.vscode-npm-script",
+    "esbenp.prettier-vscode",
+    "ms-azuretools.vscode-azureappservice",
+    "ms-azuretools.vscode-bicep",
+    "yzhang.markdown-all-in-one",
+    "ms-vscode.powershell"
+  ],
 
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": [],
@@ -49,5 +49,24 @@
     "github-cli": "latest",
     "azure-cli": "latest",
     "powershell": "latest"
+  },
+
+  "codespaces": {
+    "repositories": [
+      {
+        "name": "philip-gai/announcement-drafter-tests",
+        "permissions": {
+          "contents": "write",
+          "pull_requests": "write"
+        }
+      },
+      {
+        "name": "philip-gai/announcement-drafter-demo",
+        "permissions": {
+          "contents": "write",
+          "pull_requests": "write"
+        }
+      }
+    ]
   }
 }
