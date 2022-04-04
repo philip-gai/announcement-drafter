@@ -75,6 +75,7 @@ export class ConfigService {
       github_client_secret: process.env["GITHUB_CLIENT_SECRET"] || "",
     };
     if (defaultConfig.appId !== ConfigService.prodAppId) {
+      console.log(`Override base url to use localhost:3000 because app id is ${defaultConfig.appId}`);
       defaultConfig.base_url = "http://localhost:3000";
     }
     return defaultConfig;
