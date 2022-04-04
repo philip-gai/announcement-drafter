@@ -41,7 +41,7 @@ Demo repo: [announcement-drafter demo]
      - docs/demo/ignore
    ```
 
-3. Now whenever you create a pull request with discussion markdown in those watch folders, `announcement-drafter` will ask for approvals to create discussions, and when the pull request is merged, it will create the discussions and post as the author!
+3. Now whenever you create a pull request with discussion markdown in those watch folders, `announcement-drafter` will ask for approvals to create discussions, and when the pull request is merged, it will create the discussions and post as the pull request author!
 4. See [Usage](#usage) for more specific usage instructions
 
 ## Usage
@@ -80,7 +80,6 @@ See the [demo repository](https://github.com/philip-gai/announcement-drafter-dem
 
 ```markdown
 <!--
-author: philip-gai
 repository: https://github.com/philip-gai/announcement-drafter-demo
 category: announcements
 -->
@@ -95,7 +94,6 @@ Hello beautiful world! 🌎
 
 ```markdown
 <!--
-author: philip-gai
 team: https://github.com/orgs/elastico-group/teams/everyone
 -->
 
@@ -109,7 +107,6 @@ Hello beautiful world! 🌎
 
 | Name             | Description                                                                                                                                                                      | Required                                                 | Example                                                   |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- | --------------------------------------------------------- |
-| `author`         | The author of the post. Should be your GitHub login (handle). Do not inclue the '@'                                                                                              | Yes                                                      | `philip-gai`                                              |
 | `repository`     | The full url to the repository to create the discussion in<br/>**Prerequisites:**<br/>&nbsp;&nbsp;1. Discussions are enabled<br/>&nbsp;&nbsp;2. The app is installed on the repo | **Conditional**: Required if no `team` is provided       | `https://github.com/philip-gai/announcement-drafter-demo` |
 | `team`           | The full url to the team to create the discussion in<br/>**Prerequisites:**<br/>&nbsp;&nbsp;1. The app is installed on the team organization                                     | **Conditional**: Required if no `repository` is provided | `https://github.com/orgs/elastico-group/teams/everyone`   |
 | `category`       | The name of the discussion category                                                                                                                                              | **Conditional**: Required if `repository` is provided    | `announcements`                                           |
@@ -120,7 +117,7 @@ Hello beautiful world! 🌎
 
 1. Write your discussion post with with `announcement-drafter` [discussion markdown](#discussion-markdown)
 2. Create a pull request
-3. `announcement-drafter` will comment on the discussion markdown file asking for approval from the author to post the discussions. It will also notify you of any validation erros.
+3. `announcement-drafter` will comment on the discussion markdown file asking for approval from the pull request author to post the discussions. It will also notify you of any validation erros.
    1. An approval requires the author to react (not reply) to the comment with a 🚀
    2. If there are errors, fix them and recreate a new pull request so `announcement-drafter` can revalidate (Will fix this - see issue [#36](https://github.com/philip-gai/announcement-drafter/issues/36))
 4. Receive feedback from your teammates

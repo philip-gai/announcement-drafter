@@ -9,7 +9,6 @@ export interface ParsedMarkdownDiscussion {
   discussionCategoryName: string | undefined;
   postBody: string;
   postTitle: string;
-  author: string;
 }
 
 export class ParserService {
@@ -40,10 +39,6 @@ export class ParserService {
     } catch (err) {
       throw new Error("The YAML provided was invalid.");
     }
-  }
-
-  public getPostAuthor(): string {
-    return this._yamlHeader.author?.replace("@", "") as string;
   }
 
   private getTargetRepoUrl(): string | undefined {
@@ -117,7 +112,6 @@ export class ParserService {
       discussionCategoryName: this.getDiscussionCategoryName(),
       postBody: this.getPostBody(),
       postTitle: this.getPostTitle(),
-      author: this.getPostAuthor(),
     };
   }
 }
