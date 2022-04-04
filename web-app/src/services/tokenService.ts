@@ -39,11 +39,11 @@ export class TokenService {
     this._logger.info(`Getting refresh token...`);
     this._logger.debug(`Options: ${JSON.stringify(options)}`);
     const itemResponse = await this._container.item(options.userLogin, options.userLogin).read<TokenItem>();
+    this._logger.trace(JSON.stringify(itemResponse.resource));
 
     const token = itemResponse.resource;
 
     if (!token) this._logger.info("No token found for the user");
-    else this._logger.trace(JSON.stringify(token));
 
     if (!this.refreshTokenIsValid(token)) return undefined;
 
@@ -95,7 +95,7 @@ export class TokenService {
   }
 
   public async deleteRefreshToken(userLogin: string): Promise<void> {
-    this._logger.info(`Deleting user token for ${userLogin}`);
+    this._logger.info(`Deleting user token for "${userLogin}"`);
     const item = this._container.item(userLogin, userLogin);
     if (item) {
       await item.delete();
@@ -111,7 +111,7 @@ export class TokenService {
       userLogin: userLogin,
     });
 
-    if (!userRefreshToken || this.refreshTokenIsValid(userRefreshToken)) {
+    if (!userRefreshToken || !this.refreshTokenIsValid(userRefreshToken)) {
       throw new Error("User needs to re-authenticate");
     }
 
