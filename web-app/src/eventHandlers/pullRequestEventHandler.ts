@@ -229,15 +229,14 @@ Please fix the issues and recreate a new PR:
         } catch (err) {
           const errorMessage = HelperService.getErrorMessage(err);
           logger.error(errorMessage);
-        } finally {
-          // Delete the token to avoid conflicts with prod
-          const appId = this._configService.appConfig.appId;
-          if (appId !== ConfigService.prodAppId) {
-            logger.info(`Current app (${appId}) is not prod, deleting ${authorLogin}'s refresh token`);
-            this._tokenService.deleteRefreshToken(authorLogin);
-          }
         }
       }
+    }
+    // Delete the token to avoid conflicts with prod
+    const appId = this._configService.appConfig.appId;
+    if (appId !== ConfigService.prodAppId) {
+      logger.info(`Current app (${appId}) is not prod, deleting ${authorLogin}'s refresh token`);
+      await this._tokenService.deleteRefreshToken(authorLogin);
     }
     logger.info("Exiting pull_request.closed handler");
   };
