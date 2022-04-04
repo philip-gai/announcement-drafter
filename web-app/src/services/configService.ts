@@ -5,6 +5,7 @@ import { AppSettings } from "../models/appSettings";
 
 export class ConfigService {
   static defaultConfig: AppConfig = this.getDefaultConfig();
+  static readonly prodAppId = "145106";
 
   readonly appConfig: AppConfig;
 
@@ -38,6 +39,10 @@ export class ConfigService {
         config.appSettings = appRepoSettings || defaultSettings;
       }
 
+      if (config.appId !== ConfigService.prodAppId) {
+        logger.debug(`Using dev configuration: ${JSON.stringify(config)}`);
+      }
+
       return config;
     } catch (e: any) {
       context?.log.error(`Exception while parsing app config yml: ${e.message}`);
@@ -53,31 +58,37 @@ export class ConfigService {
   }
 
   private static getDefaultConfig(): AppConfig {
-    return {
+    const defaultConfig = {
+      appId: process.env["APP_ID"] || "",
+      appSettings: this.getDefaultSettings(),
+      auth_url: process.env["AUTH_URL"] || "",
+      base_url: process.env["WEBHOOK_PROXY_URL"] || "",
       cosmos_database_id: "AnnouncementDrafter",
-      cosmos_uri: process.env["COSMOS_URI"] || "",
       cosmos_primary_key: process.env["COSMOS_PRIMARY_KEY"] || "",
+      cosmos_uri: process.env["COSMOS_URI"] || "",
+      dry_run_comments: process.env["DRY_RUN_COMMENTS"] === "true",
+      dry_run_posts: process.env["DRY_RUN_POSTS"] === "true",
       github_callback_url: process.env["CALLBACK_URL"] || "",
       github_client_id: process.env["GITHUB_CLIENT_ID"] || "",
       github_client_secret: process.env["GITHUB_CLIENT_SECRET"] || "",
-      appSettings: this.getDefaultSettings(),
-      dry_run_comments: process.env["DRY_RUN_COMMENTS"] === "true",
-      dry_run_posts: process.env["DRY_RUN_POSTS"] === "true",
-      base_url: process.env["WEBHOOK_PROXY_URL"] || "",
-      auth_url: process.env["AUTH_URL"] || "",
     };
+    if (defaultConfig.appId !== ConfigService.prodAppId) {
+      defaultConfig.base_url = "http://localhost:3000";
+    }
+    return defaultConfig;
   }
 
   /** Validates the config values, creates error messages */
   private static validateConfig(config: AppConfig): string[] {
     const errorMessages: string[] = [];
-    if (!config.cosmos_uri) errorMessages.push("Missing cosmos_uri");
+    if (!config.appId) errorMessages.push("Missing App ID (APP_ID)");
+    if (!config.auth_url) errorMessages.push("Missing auth_url (AUTH_URL)");
+    if (!config.base_url) errorMessages.push("Missing base_url (WEBHOOK_PROXY_URL)");
     if (!config.cosmos_primary_key) errorMessages.push("Missing cosmos_primary_key");
+    if (!config.cosmos_uri) errorMessages.push("Missing cosmos_uri");
     if (!config.github_callback_url) errorMessages.push("Missing github_callback_url");
     if (!config.github_client_id) errorMessages.push("Missing github_client_id");
     if (!config.github_client_secret) errorMessages.push("Missing github_client_secret");
-    if (!config.base_url) errorMessages.push("Missing base_url (WEBHOOK_PROXY_URL)");
-    if (!config.auth_url) errorMessages.push("Missing auth_url (AUTH_URL)");
     return errorMessages;
   }
 }

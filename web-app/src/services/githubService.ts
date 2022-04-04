@@ -1,5 +1,5 @@
 import { Octokit } from "@octokit/core";
-import { CreateDiscussionPayload, Repository } from "@octokit/graphql-schema";
+import { CreateDiscussionPayload, Discussion, DiscussionCategory, Maybe, Repository } from "@octokit/graphql-schema";
 import { PaginateInterface } from "@octokit/plugin-paginate-rest";
 import { RestEndpointMethods } from "@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types";
 import { Api } from "@octokit/plugin-rest-endpoint-methods/dist-types/types";
@@ -30,7 +30,7 @@ export class GitHubService {
     return new GitHubService(octokit, logger, appConfig);
   }
 
-  public static buildForApp(octokit: OctokitPlus, logger: DeprecatedLogger, appConfig: AppConfig) {
+  public static buildForApp(octokit: OctokitPlus, logger: DeprecatedLogger, appConfig: AppConfig): GitHubService {
     return new GitHubService(octokit, logger, appConfig);
   }
 
@@ -56,7 +56,8 @@ export class GitHubService {
     return contentData;
   }
 
-  public async createOrgTeamDiscussion(options: { owner: string; team: string; postTitle: string; postBody: string; dryRun: boolean }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public async createOrgTeamDiscussion(options: { owner: string; team: string; postTitle: string; postBody: string; dryRun: boolean }): Promise<any> {
     this._logger.info("Creating org team discussion...");
     if (this._appConfig.dry_run_posts || options.dryRun) {
       this._logger.info("Dry run, not creating.");
@@ -72,7 +73,8 @@ export class GitHubService {
     return discussion.data;
   }
 
-  public async getRepoData(options: { repoName: string; owner: string }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public async getRepoData(options: { repoName: string; owner: string }): Promise<any> {
     const repoResponse = await this._octokit.repos.get({
       ...options,
       repo: options.repoName,
@@ -81,7 +83,7 @@ export class GitHubService {
     return repoResponse.data;
   }
 
-  public async getRepoDiscussionCategories(options: { repo: string; owner: string }) {
+  public async getRepoDiscussionCategories(options: { repo: string; owner: string }): Promise<Maybe<Maybe<DiscussionCategory>[]> | undefined> {
     this._logger.info(`Getting discussion categories: ${JSON.stringify(options)}`);
     const discussionCategoriesResponse = await this._octokit.graphql<{
       repository: Repository;
@@ -107,7 +109,21 @@ export class GitHubService {
     return discussionCategoriesResponse.repository.discussionCategories.nodes;
   }
 
-  public async getPullRequestFiles(options: { owner: string; repo: string; pull_number: number }) {
+  public async getPullRequestFiles(options: { owner: string; repo: string; pull_number: number }): Promise<
+    {
+      sha: string;
+      filename: string;
+      status: "added" | "removed" | "modified" | "renamed" | "copied" | "changed" | "unchanged";
+      additions: number;
+      deletions: number;
+      changes: number;
+      blob_url: string;
+      raw_url: string;
+      contents_url: string;
+      patch?: string | undefined;
+      previous_filename?: string | undefined;
+    }[]
+  > {
     this._logger.info(`Getting pull request files...\n${JSON.stringify(options)}`);
     const pullFiles = await this._octokit.pulls.listFiles(options);
     this._logger.info("Done.");
@@ -123,7 +139,7 @@ export class GitHubService {
     commit_id: string;
     start_line?: number;
     end_line: number;
-  }) {
+  }): Promise<void> {
     this._logger.info(`Commenting on the PR...\n${JSON.stringify(options)}`);
     if (this._appConfig.dry_run_comments) {
       this._logger.info("Dry run, not creating comments.");
@@ -144,7 +160,7 @@ export class GitHubService {
     this._logger.info(`Done.`);
   }
 
-  public async createPullRequestCommentReply(options: { owner: string; repo: string; pull_number: number; comment_id: number; body: string }) {
+  public async createPullRequestCommentReply(options: { owner: string; repo: string; pull_number: number; comment_id: number; body: string }): Promise<void> {
     this._logger.info(`Creating a reply to a review comment...\n${JSON.stringify(options)}`);
 
     // There is a bug where you can't pass unwanted keys
@@ -159,7 +175,7 @@ export class GitHubService {
     this._logger.info("Done");
   }
 
-  public async addPullRequestReviewers(options: { owner: string; repo: string; pull_number: number; reviewers: string[] }) {
+  public async addPullRequestReviewers(options: { owner: string; repo: string; pull_number: number; reviewers: string[] }): Promise<void> {
     this._logger.info(`Adding PR reviewers:\n${JSON.stringify(options)}`);
     if (this._appConfig.dry_run_comments) {
       this._logger.info("Dry run, not adding reviewers.");
@@ -168,7 +184,8 @@ export class GitHubService {
     await this._octokit.pulls.requestReviewers(options);
   }
 
-  public async getPullRequestComments(options: { owner: string; repo: string; pull_number: number }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public async getPullRequestComments(options: { owner: string; repo: string; pull_number: number }): Promise<any[]> {
     this._logger.info(`Getting pull request comments...\n${JSON.stringify(options)}`);
     const comments = await this._octokit.pulls.listReviewComments({
       ...options,
@@ -179,7 +196,8 @@ export class GitHubService {
     return comments.data;
   }
 
-  public async getPullRequestCommentReaction(options: { owner: string; repo: string; comment_id: number }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public async getPullRequestCommentReaction(options: { owner: string; repo: string; comment_id: number }): Promise<any[]> {
     this._logger.info(`Getting pull request comment reactions...\n${JSON.stringify(options)}`);
     const commentReactions = await this._octokit.reactions.listForPullRequestReviewComment({
       ...options,
@@ -190,7 +208,13 @@ export class GitHubService {
   }
 
   // https://docs.github.com/en/graphql/guides/using-the-graphql-api-for-discussions#creatediscussion
-  public async createRepoDiscussion(options: { repoNodeId: string; categoryNodeId: string; postBody: string; postTitle: string; dryRun: boolean }) {
+  public async createRepoDiscussion(options: {
+    repoNodeId: string;
+    categoryNodeId: string;
+    postBody: string;
+    postTitle: string;
+    dryRun: boolean;
+  }): Promise<Maybe<Discussion> | undefined> {
     this._logger.info("Creating repo discussion...");
     if (this._appConfig.dry_run_posts || options.dryRun) {
       this._logger.info("Dry run, not creating.");

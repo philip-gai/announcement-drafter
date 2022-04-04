@@ -56,7 +56,7 @@ export class TokenService {
     refreshTokenExpiresAt: string,
     userLogin?: string,
     refreshTokenCreatedAt: string = new Date(Date.now()).toISOString()
-  ) {
+  ): Promise<void> {
     this._logger.info(`Begin upsert refresh token method...`);
     let login = userLogin;
 
@@ -82,7 +82,7 @@ export class TokenService {
     this._logger.info("Upsert complete");
   }
 
-  public refreshTokenIsValid(refreshToken: TokenItem | undefined) {
+  public refreshTokenIsValid(refreshToken: TokenItem | undefined): boolean {
     if (!refreshToken) {
       this._logger.warn("No refresh token found for the user");
       return false;
@@ -94,13 +94,24 @@ export class TokenService {
     return true;
   }
 
-  async refreshUserToken(userLogin: string) {
+  public async deleteRefreshToken(userLogin: string): Promise<void> {
+    this._logger.info(`Deleting user token for ${userLogin}`);
+    const item = this._container.item(userLogin, userLogin);
+    if (item) {
+      await item.delete();
+      this._logger.info("Deleted user token.");
+    } else {
+      this._logger.info("No token found for the user.");
+    }
+  }
+
+  async refreshUserToken(userLogin: string): Promise<string> {
     this._logger.info(`Refreshing user token for ${userLogin}`);
     const userRefreshToken = await this.getRefreshToken({
       userLogin: userLogin,
     });
 
-    if (!this.refreshTokenIsValid(userRefreshToken)) {
+    if (!userRefreshToken || this.refreshTokenIsValid(userRefreshToken)) {
       throw new Error("User needs to re-authenticate");
     }
 
@@ -109,7 +120,7 @@ export class TokenService {
       clientType: "github-app",
       clientId: this._appConfig.github_client_id,
       clientSecret: this._appConfig.github_client_secret,
-      refreshToken: userRefreshToken!.refreshToken,
+      refreshToken: userRefreshToken.refreshToken,
     });
 
     const { activeToken, updatedRefreshToken, updatedRefreshTokenExpiresAt } = {
