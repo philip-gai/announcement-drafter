@@ -149,6 +149,8 @@ export class PullRequestEventHandler {
               body: commentBody,
               filepath: filepath,
             });
+          } else {
+            logger.info("Skipping comment because nothing has changed.");
           }
 
           // Dry run createDiscussion to ensure it will work
