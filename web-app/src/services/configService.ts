@@ -4,8 +4,8 @@ import { AppConfig } from "../models/appConfig";
 import { AppSettings } from "../models/appSettings";
 
 export class ConfigService {
-  static defaultConfig: AppConfig = this.getDefaultConfig();
   static readonly prodAppId = "145106";
+  static defaultConfig: AppConfig = this.getDefaultConfig();
 
   readonly appConfig: AppConfig;
 
@@ -74,6 +74,9 @@ export class ConfigService {
       github_client_id: process.env["GITHUB_CLIENT_ID"] || "",
       github_client_secret: process.env["GITHUB_CLIENT_SECRET"] || "",
     };
+    if (!ConfigService.prodAppId) {
+      throw new Error("prodAppId is undefined. Make sure to set it before setting defaultConfig");
+    }
     if (defaultConfig.appId !== ConfigService.prodAppId) {
       console.log(`Overriding base url to use localhost:3000 because app (${defaultConfig.appId}) is non-prod (prod app id: ${ConfigService.prodAppId})`);
       defaultConfig.base_url = "http://localhost:3000";
