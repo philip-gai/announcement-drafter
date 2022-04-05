@@ -6,7 +6,7 @@
 ![Top Language](https://img.shields.io/github/languages/top/philip-gai/announcement-drafter)
 ![GitHub Repo stars](https://img.shields.io/github/stars/philip-gai/announcement-drafter?style=social)
 
-A 🤖 &nbsp;for drafting new GitHub announcements using pull requests
+A 🤖 &nbsp;for drafting and publishing new GitHub discussions using pull requests.
 
 Do you use GitHub discussions? Do you create announcements for your open-source projects or team posts? How do you get feedback or peer reviews on your post before creating it?
 
