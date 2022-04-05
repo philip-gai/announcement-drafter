@@ -36,9 +36,7 @@ Demo repo: [announcement-drafter demo]
 
    ```yml
    watch_folders:
-     - docs/
-   ignore_folders:
-     - docs/demo/ignore
+     - docs/discussions/
    ```
 
 3. Now whenever you create a pull request with discussion markdown in those watch folders, `announcement-drafter` will ask for approvals to create discussions, and when the pull request is merged, it will create the discussions and post as the pull request author!
@@ -65,7 +63,7 @@ Example announcement-drafter.yml:
 
 ```yml
 watch_folders:
-  - docs/team-posts/
+  - docs/discussions/
 ```
 
 ### Discussion Markdown
@@ -84,6 +82,7 @@ repository: https://github.com/philip-gai/announcement-drafter-demo
 category: announcements
 -->
 
+<!-- This is the discussion title -->
 # Hello World! 👋
 
 Hello beautiful world! 🌎
@@ -97,6 +96,7 @@ Hello beautiful world! 🌎
 team: https://github.com/orgs/elastico-group/teams/everyone
 -->
 
+<!-- This is the post title -->
 # Hello World! 👋
 
 Hello beautiful world! 🌎
@@ -116,18 +116,15 @@ Hello beautiful world! 🌎
 ### Workflow for reviewing and posting a new discussion
 
 1. Write your discussion post with with `announcement-drafter` [discussion markdown](#discussion-markdown)
-2. Create a pull request
-3. `announcement-drafter` will comment on the discussion markdown file asking for approval from the pull request author to post the discussions. It will also notify you of any validation erros.
-   1. An approval requires the author to react (not reply) to the comment with a 🚀
-   2. If there are errors, fix them and recreate a new pull request so `announcement-drafter` can revalidate (Will fix this - see issue [#36](https://github.com/philip-gai/announcement-drafter/issues/36))
-4. Receive feedback from your teammates
-5. Make updates
-   1. These will not be revalidated by the bot unless you recreate the pull request. See [#36](https://github.com/philip-gai/announcement-drafter/issues/36)
-6. Approve all the discussions you would like posted by reacting (not replying) with a 🚀
-7. If `announcement-drafter` bot asks, make sure to authenticate so it can post as the author and not as itself
-8. Merge the pull request
-9. `announcement-drafter` will create the discussion and reply to the comment with a link to the newly creating discussion
-   1. If there were issues it will include them in the reply
+1. Create a pull request
+1. `announcement-drafter` will comment on the discussion markdown file asking for approval from the pull request author to post the discussions. It will also notify you of any validation erros.
+   1. If there are errors, just fix them and push to the pull request branch and `announcement-drafter` will revalidate
+1. Receive feedback from your teammates
+1. Make updates
+1. Approve all the discussions you would like posted by reacting (not replying) with a 🚀
+1. If `announcement-drafter` bot asks, make sure to authenticate so it can post as the author and not as itself
+1. Merge the pull request
+1. `announcement-drafter` will create the discussion and reply to the comment with a link to the newly created discussion
 
 ## Contributing
 
