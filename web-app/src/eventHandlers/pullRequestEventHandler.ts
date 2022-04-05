@@ -216,10 +216,8 @@ export class PullRequestEventHandler {
 
     // 1. (Shortcut) Look for comments made by the app and which files they were made on
     const app = await appGitHubService.getAuthenticatedApp();
-    const { appLogin, postFooter } = {
-      appLogin: `${app.slug}[bot]`,
-      postFooter: `\n\n> Published with ❤️&nbsp;by [${app.name}](${app.html_url})\n`,
-    };
+    const appLogin = `${app.slug}[bot]`;
+    const postFooter = `\n\n<hr /><em>This discussion was created using <a href='${app.html_url}'>${app.name}</a>.</em>\n`;
 
     const pullRequestComments = await appGitHubService.getPullRequestComments({
       ...pullInfo,
