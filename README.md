@@ -72,7 +72,7 @@ watch_folders:
 
 #### Examples
 
-See the [demo repository](https://github.com/philip-gai/announcement-drafter-demo/blob/main/docs/demo/hello-world.md?plain=1) for more.
+See the [demo repository](https://github.com/philip-gai/announcement-drafter-demo/blob/main/docs/demo) for more.
 
 ##### Draft a Repository Discussion
 
