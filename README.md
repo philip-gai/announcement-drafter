@@ -23,13 +23,13 @@ Check it out and don't forget to ⭐ !
 
 ## Demo
 
-![Demo](/docs/assets/demo.gif)
+<!-- ![Demo](/docs/assets/demo.gif) -->
 
 Demo repo: [announcement-drafter demo]
 
 ## Quickstart Guide
 
-1. [Install the GitHub App](https://github.com/apps/announcement-drafter) and authorize for any repositories or teams you would like it to be able to post to or watch for markdown posts.
+1. [Install the GitHub App](https://github.com/apps/announcement-drafter) and authorize it for any repositories or orgs you would like it to watch or post to.
 2. Add a `.github/announcement-drafter.yml` (not `.yaml`) configuration file to any repositories you want the bot to watch. [Look here for an example in the demo repo][announcement-drafter demo config]
 
    1. Provide what folders you want the `announcement-drafter` bot to watch and (optionally) what folders you would like it to ignore when new pull requests are open
@@ -39,8 +39,9 @@ Demo repo: [announcement-drafter demo]
      - docs/discussions/
    ```
 
-3. Now whenever you create a pull request with discussion markdown in those watch folders, `announcement-drafter` will ask for approvals to create discussions, and when the pull request is merged, it will create the discussions and post as the pull request author!
-4. See [Usage](#usage) for more specific usage instructions
+3. Now whenever you create a pull request with [discussion markdown](#discussion-markdown) in those watch folders, `announcement-drafter` will ask for approvals to create the discussion
+4. When the pull request is merged, it will create the discussion *as the pull request author*!
+5. See [Usage](#usage) for more specific usage instructions
 
 ## Usage
 
@@ -72,7 +73,7 @@ watch_folders:
 
 #### Examples
 
-See the [demo repository](https://github.com/philip-gai/announcement-drafter-demo/blob/main/docs/demo) for more.
+See the [demo repository](**https**://github.com/philip-gai/announcement-drafter-demo/blob/main/docs/demo) for more.
 
 ##### Draft a Repository Discussion
 
@@ -110,21 +111,22 @@ Hello beautiful world! 🌎
 | `repository`     | The full url to the repository to create the discussion in<br/>**Prerequisites:**<br/>&nbsp;&nbsp;1. Discussions are enabled<br/>&nbsp;&nbsp;2. The app is installed on the repo | **Conditional**: Required if no `team` is provided       | `https://github.com/philip-gai/announcement-drafter-demo` |
 | `team`           | The full url to the team to create the discussion in<br/>**Prerequisites:**<br/>&nbsp;&nbsp;1. The app is installed on the team organization                                     | **Conditional**: Required if no `repository` is provided | `https://github.com/orgs/elastico-group/teams/everyone`   |
 | `category`       | The name of the discussion category                                                                                                                                              | **Conditional**: Required if `repository` is provided    | `announcements`                                           |
-| Discussion Title | The title of your discussion should be the first top-level header (i.e. `# Discussion Title`)                                                                                    | Yes                                                      | See [Example](#example)               |
-| Discussion Body  | The body of your discussion is everything after the top-level header                                                                                                             | Yes                                                      | See [Example](#example)               |
+| Discussion Title | The title of your discussion should be the first top-level header (i.e. `# Discussion Title`)                                                                                    | Yes                                                      | See [Example](#examples)                                  |
+| Discussion Body  | The body of your discussion is everything after the top-level header                                                                                                             | Yes                                                      | See [Example](#examples)                                  |
 
 ### Workflow for reviewing and posting a new discussion
 
-1. Write your discussion post with with `announcement-drafter` [discussion markdown](#discussion-markdown)
+1. Write your discussion post as usual, adding a special [header with metadata](#discussion-markdown)
 1. Create a pull request
-1. `announcement-drafter` will comment on the discussion markdown file asking for approval from the pull request author to post the discussions. It will also notify you of any validation erros.
-   1. If there are errors, just fix them and push to the pull request branch and `announcement-drafter` will revalidate
+1. `announcement-drafter` will comment on the file asking for approval from the pull request author to post the discussion
+   1. If there are errors, just fix them and push to the pull request branch and `announcement-drafter` will [automatically revalidate](https://github.com/philip-gai/announcement-drafter/discussions/75)
 1. Receive feedback from your teammates
-1. Make updates
-1. Approve all the discussions you would like posted by reacting (not replying) with a 🚀
+1. Push updates
 1. If `announcement-drafter` bot asks, make sure to authenticate so it can post as the author and not as itself
+1. Approve the discussion to be created by reacting (not replying) with a 🚀
 1. Merge the pull request
-1. `announcement-drafter` will create the discussion and reply to the comment with a link to the newly created discussion
+1. `announcement-drafter` will create the discussion
+1. `announcement-drafter` will reply to the comment with a link to the newly created discussion
 
 ## Contributing
 
