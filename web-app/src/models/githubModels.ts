@@ -149,3 +149,51 @@ export interface TeamDiscussion {
       }
     | undefined;
 }
+
+export interface GitHubApp {
+  id: number;
+  slug?: string | undefined;
+  node_id: string;
+  owner: {
+    name?: string | null | undefined;
+    email?: string | null | undefined;
+    login: string;
+    id: number;
+    node_id: string;
+    avatar_url: string;
+    gravatar_id: string | null;
+    url: string;
+    html_url: string;
+    followers_url: string;
+    following_url: string;
+    gists_url: string;
+    starred_url: string;
+    subscriptions_url: string;
+    organizations_url: string;
+    repos_url: string;
+    events_url: string;
+    received_events_url: string;
+    type: string;
+    site_admin: boolean;
+    starred_at?: string | undefined;
+  } | null;
+  name: string;
+  description: string | null;
+  external_url: string;
+  html_url: string;
+  created_at: string;
+  updated_at: string;
+  permissions: {
+    issues?: string | undefined;
+    checks?: string | undefined;
+    metadata?: string | undefined;
+    contents?: string | undefined;
+    deployments?: string | undefined;
+  } & { [key: string]: string };
+  events: string[];
+  installations_count?: number | undefined;
+  client_id?: string | undefined;
+  client_secret?: string | undefined;
+  webhook_secret?: string | null | undefined;
+  pem?: string | undefined;
+}

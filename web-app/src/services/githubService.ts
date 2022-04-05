@@ -8,7 +8,7 @@ import { ProbotOctokit } from "probot";
 import { DeprecatedLogger } from "probot/lib/types";
 import { AppConfig } from "../models/appConfig";
 import { Content } from "../models/fileContent";
-import { PullRequestComment, PullRequestCommentReaction, TeamDiscussion } from "../models/githubModels";
+import { GitHubApp, PullRequestComment, PullRequestCommentReaction, TeamDiscussion } from "../models/githubModels";
 
 export type OctokitPlus = Octokit & RestEndpointMethods & Api & PaginateInterface & API;
 
@@ -55,28 +55,6 @@ export class GitHubService {
     this._logger.info("Success.");
     this._logger.trace(`Data: ${contentData}`);
     return contentData;
-  }
-
-  public async createOrgTeamDiscussion(options: {
-    owner: string;
-    team: string;
-    postTitle: string;
-    postBody: string;
-    dryRun: boolean;
-  }): Promise<TeamDiscussion | undefined> {
-    this._logger.info("Creating org team discussion...");
-    if (this._appConfig.dry_run_posts || options.dryRun) {
-      this._logger.info("Dry run, not creating.");
-      return;
-    }
-    const discussion = await this._octokit.teams.createDiscussionInOrg({
-      org: options.owner,
-      team_slug: options.team,
-      title: options.postTitle,
-      body: options.postBody,
-    });
-    this._logger.info("Successfully created the org team discussion.");
-    return discussion.data;
   }
 
   // See https://docs.github.com/rest/reference/repos#get-a-repository
@@ -147,8 +125,11 @@ export class GitHubService {
     start_line?: number;
     end_line: number;
   }): Promise<void> {
-    this._logger.info(`Commenting on the PR...\n${JSON.stringify(options)}`);
-    if (this._appConfig.dry_run_comments) {
+    const isDryRun = this._appConfig.dry_run_comments;
+    this._logger.info(`${isDryRun ? "DRY RUN: " : ""}Commenting on the PR...`);
+    this._logger.debug(`Options: ${JSON.stringify(options)}`);
+
+    if (isDryRun) {
       this._logger.info("Dry run, not creating comments.");
       return;
     }
@@ -168,8 +149,11 @@ export class GitHubService {
   }
 
   public async updatePullRequestComment(options: { owner: string; repo: string; comment_id: number; body: string }): Promise<void> {
-    this._logger.info(`Updating comment on the PR...\n${JSON.stringify(options)}`);
-    if (this._appConfig.dry_run_comments) {
+    const isDryRun = this._appConfig.dry_run_comments;
+    this._logger.info(`${isDryRun ? "DRY RUN: " : ""}Updating comment on the PR...`);
+    this._logger.debug(`Options: ${JSON.stringify(options)}`);
+
+    if (isDryRun) {
       this._logger.info("Dry run, not updating comments.");
       return;
     }
@@ -199,15 +183,6 @@ export class GitHubService {
     this._logger.info("Done");
   }
 
-  public async addPullRequestReviewers(options: { owner: string; repo: string; pull_number: number; reviewers: string[] }): Promise<void> {
-    this._logger.info(`Adding PR reviewers:\n${JSON.stringify(options)}`);
-    if (this._appConfig.dry_run_comments) {
-      this._logger.info("Dry run, not adding reviewers.");
-      return;
-    }
-    await this._octokit.pulls.requestReviewers(options);
-  }
-
   public async getPullRequestComments(options: { owner: string; repo: string; pull_number: number }): Promise<PullRequestComment[]> {
     this._logger.info(`Getting pull request comments...\n${JSON.stringify(options)}`);
     const comments = await this._octokit.pulls.listReviewComments({
@@ -222,7 +197,8 @@ export class GitHubService {
   }
 
   public async getPullRequestCommentReaction(options: { owner: string; repo: string; comment_id: number }): Promise<PullRequestCommentReaction[]> {
-    this._logger.info(`Getting pull request comment reactions...\n${JSON.stringify(options)}`);
+    this._logger.info(`Getting pull request comment reactions...`);
+    this._logger.debug(`Options: ${JSON.stringify(options)}`);
     const commentReactions = await this._octokit.reactions.listForPullRequestReviewComment({
       ...options,
       per_page: 100,
@@ -239,8 +215,9 @@ export class GitHubService {
     postTitle: string;
     dryRun: boolean;
   }): Promise<Maybe<Discussion> | undefined> {
-    this._logger.info("Creating repo discussion...");
-    if (this._appConfig.dry_run_posts || options.dryRun) {
+    const isDryRun = this._appConfig.dry_run_posts || options.dryRun;
+    this._logger.info(`${isDryRun ? "DRY RUN: " : ""}Creating repo discussion...`);
+    if (isDryRun) {
       this._logger.info("Dry run, not creating.");
       return;
     }
@@ -268,6 +245,29 @@ export class GitHubService {
     return graphqlResponse.createDiscussion.discussion;
   }
 
+  public async createTeamPost(options: {
+    owner: string;
+    team: string;
+    postTitle: string;
+    postBody: string;
+    dryRun: boolean;
+  }): Promise<TeamDiscussion | undefined> {
+    const isDryRun = this._appConfig.dry_run_posts || options.dryRun;
+    this._logger.info(`${isDryRun ? "DRY RUN: " : ""}Creating team post...`);
+    if (isDryRun) {
+      this._logger.info("Dry run, not creating.");
+      return;
+    }
+    const discussion = await this._octokit.teams.createDiscussionInOrg({
+      org: options.owner,
+      team_slug: options.team,
+      title: options.postTitle,
+      body: options.postBody,
+    });
+    this._logger.info("Successfully created the team post.");
+    return discussion.data;
+  }
+
   public async appIsInstalled(options: { owner: string }): Promise<boolean> {
     this._logger.debug(`Getting app installations...`);
     const appInstallations = await this._octokit.apps.listInstallations({
@@ -278,5 +278,13 @@ export class GitHubService {
     const hasAccess = !!match;
     this._logger.debug(`HasAccess: ${hasAccess}`);
     return hasAccess;
+  }
+
+  public async getAuthenticatedApp(): Promise<GitHubApp> {
+    this._logger.info(`Getting authenticated app...`);
+    const authenticatedApp = await this._octokit.apps.getAuthenticated();
+    this._logger.trace(`authenticatedApp:\n${JSON.stringify(authenticatedApp)}`);
+    this._logger.info(`Done.`);
+    return authenticatedApp.data;
   }
 }

@@ -79,7 +79,7 @@ export class PullRequestEventHandler {
 
     logger.debug(`Number of files added in push: ${filesAdded.length}`);
 
-    const app = await this.getAuthenticatedApp(logger, context);
+    const app = await appGitHubService.getAuthenticatedApp();
     const { appName, appPublicPage, appLogin } = {
       appName: app.name,
       appPublicPage: app.html_url,
@@ -113,9 +113,10 @@ export class PullRequestEventHandler {
             throw new Error("Markdown is missing a repo or team to post the discussion to");
           }
 
-          let commentBody = `⚠️ ${appLinkMarkdown} will create a discussion using this file once this PR is merged ⚠️
-\n**IMPORTANT**:
-\n- ${this.approverPrefix}${authorLogin} must react (not reply) to this comment with a ${this.approvalReaction.icon}`;
+          let commentBody =
+            `⚠️ ${appLinkMarkdown} will create a discussion using this file once this PR is merged ⚠️\n\n` +
+            "**IMPORTANT**:\n\n" +
+            `- ${this.approverPrefix}${authorLogin} must react (not reply) to this comment with a ${this.approvalReaction.icon}\n`;
 
           const userRefreshToken = await this._tokenService.getRefreshToken({
             userLogin: authorLogin,
@@ -129,18 +130,12 @@ export class PullRequestEventHandler {
           }
           if (!userRefreshToken || isNonProd) {
             const fullAuthUrl = `${appConfig.base_url}${appConfig.auth_url}`;
-            commentBody += `\n- @${authorLogin} must [authenticate](${fullAuthUrl}) before merging this PR`;
+            commentBody += `- @${authorLogin} must [authenticate](${fullAuthUrl}) before merging this PR\n`;
           }
-          commentBody += `\n- Do not use relative links to files in your repo. Instead, use full URLs and for media drag/drop or paste the file into the markdown. The link generated for media should contain \`https://user-images.githubusercontent.com\``;
+          commentBody +=
+            "- Do not use relative links to files in your repo. Instead, use full URLs and for media drag/drop or paste the file into the markdown. The link generated for media should contain `https://user-images.githubusercontent.com`\n";
 
-          // If we've already commented on this file, update the comment
-          if (mostRecentBotCommentForFile && mostRecentBotCommentForFile.body !== commentBody) {
-            await appGitHubService.updatePullRequestComment({
-              ...pullInfo,
-              comment_id: mostRecentBotCommentForFile.id,
-              body: commentBody,
-            });
-          } else if (!mostRecentBotCommentForFile) {
+          if (!mostRecentBotCommentForFile) {
             await appGitHubService.createPullRequestComment({
               ...pullInfo,
               commit_id: payload.pull_request.head.sha,
@@ -149,8 +144,15 @@ export class PullRequestEventHandler {
               body: commentBody,
               filepath: filepath,
             });
+          } else if (mostRecentBotCommentForFile.body !== commentBody) {
+            // If we've already commented on this file, and our new comment has new info, update the comment
+            await appGitHubService.updatePullRequestComment({
+              ...pullInfo,
+              comment_id: mostRecentBotCommentForFile.id,
+              body: commentBody,
+            });
           } else {
-            logger.info("Skipping comment because nothing has changed.");
+            logger.info("Not updating the comment because nothing has changed.");
           }
 
           // Dry run createDiscussion to ensure it will work
@@ -164,10 +166,10 @@ export class PullRequestEventHandler {
         } catch (error) {
           const exceptionMessage = HelperService.getErrorMessage(error);
           logger.warn(exceptionMessage);
-          const errorMessage = `${this.errorIcon} ${appLinkMarkdown} will not be able to create a discussion for this file. ${this.errorIcon}\n
-Please fix the issues and update the PR:
-> ${exceptionMessage}
-`;
+          const errorMessage =
+            `${this.errorIcon} ${appLinkMarkdown} will not be able to create a discussion for \`${filepath}\` ${this.errorIcon}\n\n` +
+            `Please fix the issues and update the PR:\n\n` +
+            `> ${exceptionMessage}\n`;
           if (mostRecentBotCommentForFile) {
             await appGitHubService.updatePullRequestComment({
               ...pullInfo,
@@ -213,7 +215,7 @@ Please fix the issues and update the PR:
     }
 
     // 1. (Shortcut) Look for comments made by the app and which files they were made on
-    const app = await this.getAuthenticatedApp(logger, context);
+    const app = await appGitHubService.getAuthenticatedApp();
     const { appLogin, postFooter } = {
       appLogin: `${app.slug}[bot]`,
       postFooter: `\n\n> Published with ❤️&nbsp;by [${app.name}](${app.html_url})\n`,
@@ -280,19 +282,8 @@ Please fix the issues and update the PR:
       logger.warn(`Found multiple comments for ${filepath}. Taking most recent.`);
     }
     const mostRecentBotComment = existingCommentForFile[0];
+    logger.debug(`Found most recent bot comment for ${filepath}: Updated at ${mostRecentBotComment.updated_at}`);
     return mostRecentBotComment;
-  }
-
-  private async getAuthenticatedApp(
-    logger: DeprecatedLogger,
-    context: Context<EventPayloads.WebhookPayloadPullRequest>
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ): Promise<any> {
-    logger.info(`Getting authenticated app...`);
-    const authenticatedApp = await context.octokit.apps.getAuthenticated();
-    logger.trace(`authenticatedApp:\n${JSON.stringify(authenticatedApp)}`);
-    logger.info(`Done.`);
-    return authenticatedApp.data;
   }
 
   private async getParsedMarkdownDiscussion(
@@ -333,7 +324,9 @@ Please fix the issues and update the PR:
     const parsedItems = await this.getParsedMarkdownDiscussion(appGitHubService, logger, options);
 
     // Appending footer here because it's not really parsed from the markdown
-    parsedItems.postBody += options.postFooter;
+    if (options.postFooter) {
+      parsedItems.postBody += options.postFooter;
+    }
 
     logger.debug(`Parsed Document Items: ${JSON.stringify(parsedItems)}`);
     const { repo, repoOwner, team, teamOwner } = parsedItems;
@@ -371,11 +364,11 @@ Please fix the issues and update the PR:
       ) {
         throw new Error(`The app is not installed for the organization or user "${teamOwner}"`);
       }
-      await this.createOrgTeamDiscussion(userGithubService, appGitHubService, logger, options, parsedItems);
+      await this.createTeamPost(userGithubService, appGitHubService, logger, options, parsedItems);
     }
   }
 
-  private async createOrgTeamDiscussion(
+  private async createTeamPost(
     userGithubService: GitHubService,
     appGitHubService: GitHubService,
     logger: DeprecatedLogger,
@@ -389,11 +382,12 @@ Please fix the issues and update the PR:
     },
     parsedItems: ParsedMarkdownDiscussion
   ): Promise<void> {
-    const newDiscussion = await userGithubService.createOrgTeamDiscussion({
+    if (!parsedItems.team || !parsedItems.teamOwner) throw new Error("Missing team or team owner");
+    const newDiscussion = await userGithubService.createTeamPost({
       ...options,
       ...parsedItems,
-      team: parsedItems.team!,
-      owner: parsedItems.teamOwner!,
+      team: parsedItems.team,
+      owner: parsedItems.teamOwner,
     });
     if (!options.dryRun) {
       if (newDiscussion) {
@@ -408,10 +402,11 @@ Please fix the issues and update the PR:
     appGitHubService: GitHubService,
     options: { pullInfo: PullInfo; pullRequestCommentId?: number | undefined }
   ): Promise<void> {
+    if (!options.pullRequestCommentId) throw new Error("Missing pullRequestCommentId");
     await appGitHubService.createPullRequestCommentReply({
       ...options.pullInfo,
-      comment_id: options.pullRequestCommentId!,
-      body: `⛔️ Something went wrong. Make sure that you have installed and authorized the app on any repository or team that you would like to post to. Then recreate this PR 👍🏼`,
+      comment_id: options.pullRequestCommentId,
+      body: "⛔️ Something went wrong. Make sure that you have installed and authorized the app on any repository or team that you would like to post to. Then recreate this PR 👍🏼",
     });
   }
 
@@ -426,9 +421,10 @@ Please fix the issues and update the PR:
       pullRequestCommentId?: number;
     }
   ): Promise<void> {
+    if (!options.parsedItems.repo || !options.parsedItems.repoOwner) throw new Error("Missing repo or repo owner");
     const repoData = await appGitHubService.getRepoData({
-      repoName: options.parsedItems.repo!,
-      owner: options.parsedItems.repoOwner!,
+      repoName: options.parsedItems.repo,
+      owner: options.parsedItems.repoOwner,
     });
     logger.trace(`repoData: ${JSON.stringify(repoData)}`);
     const discussionCategoryMatch = await this.getDiscussionCategory(appGitHubService, options.parsedItems);
@@ -463,33 +459,37 @@ Please fix the issues and update the PR:
   ): Promise<void> {
     logger.info("Creating success comment reply on original PR comment...");
     if (!options.pullRequestCommentId) {
-      logger.info("Skipping creating PR success comment reply. No PR Comment ID was provided.");
+      logger.info("Not creating PR success comment reply. No PR Comment ID was provided.");
       return;
     }
     await appGitHubService.createPullRequestCommentReply({
       ...options.pullInfo,
-      comment_id: options.pullRequestCommentId!,
+      comment_id: options.pullRequestCommentId,
       body: `🎉 This ${discussionType} discussion has been posted! 🎉\n> View it here: [${discussionTitle}](${discussionUrl})`,
     });
     logger.info("Done.");
   }
 
   private async getDiscussionCategory(appGitHubService: GitHubService, parsedItems: ParsedMarkdownDiscussion): Promise<DiscussionCategory> {
+    const { repo, repoOwner, discussionCategoryName } = parsedItems;
+    if (!repo || !repoOwner) throw new Error("Missing repo or repo owner");
+    if (!discussionCategoryName) throw new Error("Missing discussion category name");
+
     const repoDiscussionCategories = await appGitHubService.getRepoDiscussionCategories({
-      repo: parsedItems.repo!,
-      owner: parsedItems.repoOwner!,
+      repo: repo,
+      owner: repoOwner,
     });
     if (!repoDiscussionCategories || repoDiscussionCategories.length === 0) {
-      throw new Error(`Discussions are not enabled on ${parsedItems.repoOwner}/${parsedItems.repo}`);
+      throw new Error(`Discussions are not enabled on ${repoOwner}/${repo}`);
     }
     const discussionCategoryMatch = repoDiscussionCategories.find(
       (node) =>
-        node?.name.trim().localeCompare(parsedItems.discussionCategoryName!, undefined, {
+        node?.name.trim().localeCompare(discussionCategoryName, undefined, {
           sensitivity: "accent",
         }) === 0
     );
     if (!discussionCategoryMatch) {
-      throw new Error(`Could not find discussion category "${parsedItems.discussionCategoryName} in ${parsedItems.repoOwner}/${parsedItems.repo}".`);
+      throw new Error(`Could not find discussion category "${discussionCategoryName} in ${repoOwner}/${repo}".`);
     }
     return discussionCategoryMatch;
   }
