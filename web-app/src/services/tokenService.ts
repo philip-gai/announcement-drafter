@@ -84,11 +84,11 @@ export class TokenService {
 
   public refreshTokenIsValid(refreshToken: TokenItem | undefined): boolean {
     if (!refreshToken) {
-      this._logger.warn("No refresh token found for the user");
+      this._logger.info("No refresh token found for the user");
       return false;
     }
     if (Date.now() > Date.parse(refreshToken.refreshTokenExpiresAt)) {
-      this._logger.warn("The refresh token is expired");
+      this._logger.info("The refresh token is expired");
       return false;
     }
     return true;

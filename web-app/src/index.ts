@@ -21,9 +21,9 @@ export = async (app: Probot, options: ApplicationFunctionOptions): Promise<void>
       .addHealthCheckRoute();
     logger.debug("Done.");
 
-    app.on("pull_request.opened", async (context) => {
+    app.on(["pull_request.opened", "pull_request.synchronize", "pull_request.ready_for_review", "pull_request.reopened"], async (context) => {
       const pullRequestEventHandler = await PullRequestEventHandler.build(context, tokenService);
-      await pullRequestEventHandler.onOpened(context);
+      await pullRequestEventHandler.onUpdated(context);
     });
     app.on("pull_request.closed", async (context) => {
       if (!context.payload.pull_request.merged) {

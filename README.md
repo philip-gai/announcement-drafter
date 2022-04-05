@@ -8,7 +8,7 @@
 
 A 🤖 &nbsp;for drafting new GitHub announcements using pull requests
 
-Do you use GitHub discussions? Do you create announcements for your open-source projects or org team posts? How do you get feedback or peer reviews on your post before creating it?
+Do you use GitHub discussions? Do you create announcements for your open-source projects or team posts? How do you get feedback or peer reviews on your post before creating it?
 
 Now you can:
 
