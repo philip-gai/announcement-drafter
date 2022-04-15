@@ -123,7 +123,6 @@ Hello beautiful world! 🌎
 1. Receive feedback from your teammates
 1. Push updates
 1. If `announcement-drafter` bot asks, make sure to authenticate so it can post as the author and not as itself
-1. Approve the discussion to be created by reacting (not replying) with a 🚀
 1. Merge the pull request
 1. `announcement-drafter` will create the discussion
 1. `announcement-drafter` will reply to the comment with a link to the newly created discussion
