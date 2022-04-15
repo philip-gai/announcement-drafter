@@ -20,11 +20,6 @@ interface PullInfo {
 
 export class PullRequestEventHandler {
   private readonly errorIcon = "⛔️";
-  private readonly approverPrefix = "To approve, @";
-  private readonly approvalReaction = {
-    icon: "🚀",
-    label: "rocket",
-  };
 
   private _tokenService: TokenService;
   private _configService: ConfigService;
@@ -113,10 +108,7 @@ export class PullRequestEventHandler {
             throw new Error("Markdown is missing a repo or team to post the discussion to");
           }
 
-          let commentBody =
-            `⚠️ ${appLinkMarkdown} will create a discussion using this file once this PR is merged ⚠️\n\n` +
-            "**IMPORTANT**:\n\n" +
-            `- ${this.approverPrefix}${authorLogin} must react (not reply) to this comment with a ${this.approvalReaction.icon}\n`;
+          let commentBody = `⚠️ ${appLinkMarkdown} will create a discussion using this file once this PR is merged ⚠️\n\n` + "**IMPORTANT**:\n\n";
 
           const userRefreshToken = await this._tokenService.getRefreshToken({
             userLogin: authorLogin,
@@ -214,7 +206,7 @@ export class PullRequestEventHandler {
       return;
     }
 
-    // 1. (Shortcut) Look for comments made by the app and which files they were made on
+    // Get pull request comments
     const app = await appGitHubService.getAuthenticatedApp();
     const appLogin = `${app.slug}[bot]`;
     const postFooter = `\n\n<hr /><em>This discussion was created using <a href='${app.html_url}'>${app.name}</a>.</em>\n`;
@@ -223,7 +215,7 @@ export class PullRequestEventHandler {
       ...pullInfo,
     });
 
-    // Our app will skip it if our comment has been edited (for security)
+    // Get comments made by the bot
     const botComments = pullRequestComments.filter(
       (comment) => comment.user.login === appLogin && !comment.in_reply_to_id && comment.path && !comment.body.includes(this.errorIcon)
     );
@@ -237,30 +229,22 @@ export class PullRequestEventHandler {
     const authorLogin = payload.pull_request.user.login;
     const authorToken = await this._tokenService.refreshUserToken(authorLogin);
 
-    // 2. Check for the approval reaction made by the author
+    // For each file to post
     for (const fileToPostComment of botComments) {
-      const reactions = await appGitHubService.getPullRequestCommentReaction({
-        ...pullInfo,
-        comment_id: fileToPostComment.id,
-      });
-      const authorApprovalReaction = reactions.find((reaction) => reaction.content === this.approvalReaction.label && reaction.user?.login === authorLogin);
-      if (authorApprovalReaction) {
-        logger.info("Found an approval!");
-        // 3. Create the discussions based off of the file
-        const filepath = fileToPostComment.path;
-        try {
-          await this.createDiscussion(appGitHubService, logger, appConfig, {
-            filepath: filepath,
-            pullInfo: pullInfo,
-            userToken: authorToken,
-            dryRun: false,
-            pullRequestCommentId: fileToPostComment.id,
-            postFooter: postFooter,
-          });
-        } catch (err) {
-          const errorMessage = HelperService.getErrorMessage(err);
-          logger.error(errorMessage);
-        }
+      // Create the discussion!
+      const filepath = fileToPostComment.path;
+      try {
+        await this.createDiscussion(appGitHubService, logger, appConfig, {
+          filepath: filepath,
+          pullInfo: pullInfo,
+          userToken: authorToken,
+          dryRun: false,
+          pullRequestCommentId: fileToPostComment.id,
+          postFooter: postFooter,
+        });
+      } catch (err) {
+        const errorMessage = HelperService.getErrorMessage(err);
+        logger.error(errorMessage);
       }
     }
     // Delete the token to avoid conflicts with prod

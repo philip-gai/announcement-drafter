@@ -8,7 +8,7 @@ import { ProbotOctokit } from "probot";
 import { DeprecatedLogger } from "probot/lib/types";
 import { AppConfig } from "../models/appConfig";
 import { Content } from "../models/fileContent";
-import { GitHubApp, PullRequestComment, PullRequestCommentReaction, TeamDiscussion } from "../models/githubModels";
+import { GitHubApp, PullRequestComment, TeamDiscussion } from "../models/githubModels";
 
 export type OctokitPlus = Octokit & RestEndpointMethods & Api & PaginateInterface & API;
 
@@ -194,17 +194,6 @@ export class GitHubService {
     this._logger.trace(`Comments:\n${JSON.stringify(comments.data)}`);
     this._logger.info("Done.");
     return comments.data;
-  }
-
-  public async getPullRequestCommentReaction(options: { owner: string; repo: string; comment_id: number }): Promise<PullRequestCommentReaction[]> {
-    this._logger.info(`Getting pull request comment reactions...`);
-    this._logger.debug(`Options: ${JSON.stringify(options)}`);
-    const commentReactions = await this._octokit.reactions.listForPullRequestReviewComment({
-      ...options,
-      per_page: 100,
-    });
-    this._logger.info("Done.");
-    return commentReactions.data as PullRequestCommentReaction[];
   }
 
   // https://docs.github.com/en/graphql/guides/using-the-graphql-api-for-discussions#creatediscussion
