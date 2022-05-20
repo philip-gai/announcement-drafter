@@ -127,6 +127,21 @@ Hello beautiful world! 🌎
 1. `announcement-drafter` will create the discussion
 1. `announcement-drafter` will reply to the comment with a link to the newly created discussion
 
+## FAQ
+
+### I opened a pull request, but I never received a comment on the pull request from Announcement Drafter. What did I do wrong?
+
+Make sure that you:
+
+1. Installed the app on the repository you created the pull request from
+2. Added a `.github/announcement-drafter.yml` file to the repository with `watch_folders`
+3. Created a new `*.md` file inside one of the `watch_folders` from a branch
+   1. Announcement Drafter will *only* process files that were added. It will not process files that were removed, modified, renamed, copied, changed or unchanged.
+4. Opened a pull request targeting the repository's default branch (i.e. `main`)
+   1. Announcement Drafter will ignore draft pull requests
+
+If you followed all of the above steps and are still experiencing issues, please [open an issue](https://github.com/philip-gai/announcement-drafter/issues/new?assignees=&labels=bug&template=bug_report.md&title=) :slightly_smiling_face:
+
 ## Contributing
 
 If you have suggestions for how announcement-drafter could be improved, or want to report a bug, open an issue! We'd love all and any contributions.
