@@ -215,7 +215,8 @@ export class PullRequestEventHandler {
     // Get pull request comments
     const app = await appGitHubService.getAuthenticatedApp();
     const appLogin = `${app.slug}[bot]`;
-    const postFooter = `\n\n<hr /><em>This discussion was created using <a href='${app.html_url}'>${app.name}</a>.</em>\n`;
+    const optionalPullRequestFooterMarkdown = payload.repository.private ? "" : `<a href='${payload.pull_request.html_url}'>from a pull request</a> `;
+    const postFooter = `\n\n<hr /><em>This discussion was created ${optionalPullRequestFooterMarkdown}using <a href='${app.html_url}'>${app.name}</a>.</em>\n`;
 
     const pullRequestComments = await appGitHubService.getPullRequestComments({
       ...pullInfo,
