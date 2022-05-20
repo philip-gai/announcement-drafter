@@ -72,6 +72,12 @@ export class PullRequestEventHandler {
 
     const filesAdded = pullRequestFiles.filter((file) => file.status === "added");
 
+    if (filesAdded.length === 0) {
+      logger.warn("No new files were added so nothing to process");
+      logger.info("Exiting pull_request.onUpdated handler");
+      return;
+    }
+
     logger.debug(`Number of files added in push: ${filesAdded.length}`);
 
     const app = await appGitHubService.getAuthenticatedApp();
@@ -181,7 +187,7 @@ export class PullRequestEventHandler {
         }
       }
     }
-    logger.info("Exiting pull_request.opened handler");
+    logger.info("Exiting pull_request.onUpdated handler");
   };
 
   public onMerged = async (context: Context<EventPayloads.WebhookPayloadPullRequest>): Promise<void> => {
