@@ -9,21 +9,27 @@ export interface ParsedMarkdownDiscussion {
   discussionCategoryName: string | undefined;
   postBody: string;
   postTitle: string;
+  headerEndLine: number;
 }
 
 export class ParserService {
   private _content: string;
   private _yamlHeader: any;
   private _logger: DeprecatedLogger;
+  private _fileLines?: string[];
 
   private constructor(fileContent: string, logger: DeprecatedLogger) {
     this._content = fileContent;
     this._logger = logger;
-    this._yamlHeader = this.parseYamlHeader(fileContent);
   }
 
   static build(fileContent: string, logger: DeprecatedLogger): ParserService {
     return new ParserService(fileContent, logger);
+  }
+
+  private getYamlHeader(): any {
+    if (!this._yamlHeader) this._yamlHeader = this.parseYamlHeader(this._content);
+    return this._yamlHeader;
   }
 
   // https://www.npmjs.com/package/yaml
@@ -42,7 +48,7 @@ export class ParserService {
   }
 
   private getTargetRepoUrl(): string | undefined {
-    return (this._yamlHeader.repo as string) || (this._yamlHeader.repository as string);
+    return (this.getYamlHeader().repo as string) || (this.getYamlHeader().repository as string);
   }
 
   public getTargetRepoOwner(): string | undefined {
@@ -62,7 +68,7 @@ export class ParserService {
   }
 
   private getTargetTeamUrl(): string | undefined {
-    return this._yamlHeader.team as string;
+    return this.getYamlHeader().team as string;
   }
 
   public getTargetTeamOwner(): string | undefined {
@@ -84,7 +90,7 @@ export class ParserService {
   public getDiscussionCategoryName(): string | undefined {
     const repoUrl = this.getTargetRepoUrl();
     if (!repoUrl) return;
-    const rawCat = this._yamlHeader.category as string;
+    const rawCat = this.getYamlHeader().category as string;
     const categoryName = rawCat?.split("/").pop()?.trim();
     if (!categoryName) throw new Error("Unable to get discussion category");
     return categoryName;
@@ -103,6 +109,17 @@ export class ParserService {
     return postBody;
   }
 
+  public getFileLines(): string[] {
+    if (!this._fileLines) this._fileLines = this._content.split(/\r\n|\r|\n/);
+    return this._fileLines;
+  }
+
+  public getHeaderEndLine(): number {
+    const index = this.getFileLines().findIndex((line) => line.includes("-->"));
+    if (index === -1) return 1;
+    return index + 1;
+  }
+
   public parseDocument(): ParsedMarkdownDiscussion {
     return {
       repo: this.getTargetRepoName(),
@@ -112,6 +129,7 @@ export class ParserService {
       discussionCategoryName: this.getDiscussionCategoryName(),
       postBody: this.getPostBody(),
       postTitle: this.getPostTitle(),
+      headerEndLine: this.getHeaderEndLine(),
     };
   }
 }
