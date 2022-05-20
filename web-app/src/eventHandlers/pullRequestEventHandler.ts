@@ -132,7 +132,7 @@ export class PullRequestEventHandler {
               ...pullInfo,
               commit_id: payload.pull_request.head.sha,
               start_line: 1,
-              end_line: 6,
+              end_line: parsedMarkdown.headerEndLine,
               body: commentBody,
               filepath: filepath,
             });
@@ -173,7 +173,7 @@ export class PullRequestEventHandler {
               ...pullInfo,
               commit_id: payload.pull_request.head.sha,
               start_line: 1,
-              end_line: 6,
+              end_line: 1,
               body: errorMessage,
               filepath: filepath,
             });
