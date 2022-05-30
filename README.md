@@ -75,7 +75,9 @@ watch_folders:
 
 See the [demo repository](https://github.com/philip-gai/announcement-drafter-demo) for more.
 
-##### Draft a Repository Discussion
+##### Draft an Org or Repository Discussion
+
+A note on org discussions: Org discussions are backed by repository discussions, so just point to the repository used by your org discussions and 🪄 it will work!
 
 ```markdown
 <!--
