@@ -2,6 +2,7 @@ import { exchangeWebFlowCode, GitHubAppAuthenticationWithRefreshToken } from "@o
 import { AppConfig } from "../models/appConfig";
 import * as queryString from "query-string";
 import { DeprecatedLogger } from "probot/lib/types";
+import CryptoJS from "crypto-js";
 
 export class AuthService {
   private _appConfig: AppConfig;
@@ -20,9 +21,17 @@ export class AuthService {
     const protocol = req.headers["x-forwarded-proto"] || req.protocol;
     const host = req.headers["x-forwarded-host"] || req.get("host");
 
+    // Encrypt
+    const state = {
+      pull_url: req.query.pull_url,
+      github_client_id: this._appConfig.github_client_id,
+    };
+    const encryptedState = CryptoJS.AES.encrypt(JSON.stringify(state), this._appConfig.github_client_secret).toString();
+
     const params = queryString.stringify({
       client_id: this._appConfig.github_client_id,
       redirect_uri: `${protocol}://${host}${this._appConfig.github_callback_url}`,
+      state: encryptedState,
     });
 
     const url = `https://github.com/login/oauth/authorize?${params}`;

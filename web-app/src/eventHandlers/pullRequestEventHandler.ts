@@ -50,20 +50,23 @@ export class PullRequestEventHandler {
     const appGitHubService = GitHubService.buildForApp(context.octokit as unknown as OctokitPlus, logger, appConfig);
 
     const payload = context.payload;
+
+    const pullRepo = payload.repository;
+    const pullRequest = payload.pull_request;
     const pullInfo: PullInfo = {
-      owner: payload.repository.owner.login,
-      repo: payload.repository.name,
-      repoName: payload.repository.name,
-      pull_number: payload.pull_request.number,
+      owner: pullRepo.owner.login,
+      repo: pullRepo.name,
+      repoName: pullRepo.name,
+      pull_number: pullRequest.number,
     };
 
-    const isDefaultBranch = payload.pull_request.base.ref === payload.repository.default_branch;
+    const isDefaultBranch = pullRequest.base.ref === pullRepo.default_branch;
     if (!isDefaultBranch) {
       logger.info("The PR is not targeting the default branch, will not post anything");
       return;
     }
 
-    if (payload.pull_request.draft) {
+    if (pullRequest.draft) {
       logger.info("This is a draft PR. Exiting.");
       return;
     }
@@ -100,7 +103,7 @@ export class PullRequestEventHandler {
       const shouldCreateDiscussionForFile = this.shouldCreateDiscussionForFile(appConfig.appSettings, filepath);
       if (shouldCreateDiscussionForFile) {
         try {
-          const fileref = payload.pull_request.head.ref;
+          const fileref = pullRequest.head.ref;
           // Parse the markdown to get the discussion metadata and details
           const parsedMarkdown = await this.getParsedMarkdownDiscussion(appGitHubService, logger, {
             filepath: filepath,
@@ -108,7 +111,7 @@ export class PullRequestEventHandler {
             fileref: fileref,
           });
 
-          const authorLogin = payload.pull_request.user.login;
+          const authorLogin = pullRequest.user.login;
 
           if (!parsedMarkdown.repo && !parsedMarkdown.team) {
             throw new Error("Markdown is missing a repo or team to post the discussion to");
@@ -127,16 +130,16 @@ export class PullRequestEventHandler {
             await this._tokenService.deleteRefreshToken(authorLogin);
           }
           if (!userRefreshToken || isNonProd) {
-            const fullAuthUrl = `${appConfig.base_url}${appConfig.auth_url}`;
-            commentBody += `- @${authorLogin} must [authenticate](${fullAuthUrl}) before merging this PR\n`;
+            const fullAuthUrl = `${appConfig.base_url}${appConfig.auth_url}?pull_url=${pullRequest.html_url}`;
+            commentBody += `- @${authorLogin}: you must [authorize the app](${fullAuthUrl}) before merging this pull request so the discussion can be created as you. This is not required every time.\n`;
           }
           commentBody +=
-            "- Do not use relative links to files in your repo. Instead, use full URLs and for media drag/drop or paste the file into the markdown. The link generated for media should contain `https://user-images.githubusercontent.com`\n";
+            "- Do not use relative links to files in your repo. Instead, use full URLs and for media drag/drop or paste the file into the markdown. The link generated for media should contain `https://user-images.githubusercontent.com`.\n";
 
           if (!mostRecentBotCommentForFile) {
             await appGitHubService.createPullRequestComment({
               ...pullInfo,
-              commit_id: payload.pull_request.head.sha,
+              commit_id: pullRequest.head.sha,
               start_line: 1,
               end_line: parsedMarkdown.headerEndLine,
               body: commentBody,
@@ -177,7 +180,7 @@ export class PullRequestEventHandler {
           } else {
             await appGitHubService.createPullRequestComment({
               ...pullInfo,
-              commit_id: payload.pull_request.head.sha,
+              commit_id: pullRequest.head.sha,
               start_line: 1,
               end_line: 1,
               body: errorMessage,
@@ -198,14 +201,16 @@ export class PullRequestEventHandler {
     const appGitHubService = GitHubService.buildForApp(context.octokit as unknown as OctokitPlus, logger, appConfig);
 
     const payload = context.payload;
+    const pullRepo = payload.repository;
+    const pullRequest = payload.pull_request;
     const pullInfo: PullInfo = {
-      owner: payload.repository.owner.login,
-      repo: payload.repository.name,
-      repoName: payload.repository.name,
-      pull_number: payload.pull_request.number,
+      owner: pullRepo.owner.login,
+      repo: pullRepo.name,
+      repoName: pullRepo.name,
+      pull_number: pullRequest.number,
     };
 
-    const isDefaultBranch = payload.pull_request.base.ref === payload.repository.default_branch;
+    const isDefaultBranch = pullRequest.base.ref === pullRepo.default_branch;
 
     if (!isDefaultBranch) {
       logger.info("The PR is not targeting the default branch, will not post anything");
@@ -215,7 +220,7 @@ export class PullRequestEventHandler {
     // Get pull request comments
     const app = await appGitHubService.getAuthenticatedApp();
     const appLogin = `${app.slug}[bot]`;
-    const optionalPullRequestFooterMarkdown = payload.repository.private ? "" : `<a href='${payload.pull_request.html_url}'>from a pull request</a> `;
+    const optionalPullRequestFooterMarkdown = pullRepo.private ? "" : `<a href='${pullRequest.html_url}'>from a pull request</a> `;
     const postFooter = `\n\n<hr /><em>This discussion was created ${optionalPullRequestFooterMarkdown}using <a href='${app.html_url}'>${app.name}</a>.</em>\n`;
 
     const pullRequestComments = await appGitHubService.getPullRequestComments({
@@ -233,7 +238,7 @@ export class PullRequestEventHandler {
     }
 
     // Assume the pull request author is the intended post author
-    const authorLogin = payload.pull_request.user.login;
+    const authorLogin = pullRequest.user.login;
     const authorToken = await this._tokenService.refreshUserToken(authorLogin);
 
     // For each file to post
