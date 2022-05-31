@@ -1,5 +1,4 @@
 import { DiscussionCategory } from "@octokit/graphql-schema";
-import { EventPayloads } from "@octokit/webhooks";
 import { Context } from "probot";
 import { DeprecatedLogger } from "probot/lib/types";
 import { AppConfig } from "../models/appConfig";
@@ -29,7 +28,7 @@ export class PullRequestEventHandler {
     this._configService = configService;
   }
 
-  public static async build(context: Context<EventPayloads.WebhookPayloadPullRequest>, tokenService: TokenService): Promise<PullRequestEventHandler> {
+  public static async build(context: Context<"pull_request">, tokenService: TokenService): Promise<PullRequestEventHandler> {
     const configService = await ConfigService.build(context.log, context);
     const appSettings = configService.appConfig.appSettings;
     if (!appSettings) {
@@ -41,7 +40,7 @@ export class PullRequestEventHandler {
     return new PullRequestEventHandler(tokenService, configService);
   }
 
-  public onUpdated = async (context: Context<EventPayloads.WebhookPayloadPullRequest>): Promise<void> => {
+  public onUpdated = async (context: Context<"pull_request">): Promise<void> => {
     const logger = context.log;
 
     logger.info(`Handling ${context.name} event...`);
@@ -193,7 +192,7 @@ export class PullRequestEventHandler {
     logger.info("Exiting pull_request.onUpdated handler");
   };
 
-  public onMerged = async (context: Context<EventPayloads.WebhookPayloadPullRequest>): Promise<void> => {
+  public onMerged = async (context: Context<"pull_request">): Promise<void> => {
     const logger = context.log;
     logger.info("Handling pull_request.closed and merged event...");
 

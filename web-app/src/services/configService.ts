@@ -13,7 +13,7 @@ export class ConfigService {
     this.appConfig = appConfig;
   }
 
-  static async build(logger: DeprecatedLogger, context?: Context<any>): Promise<ConfigService> {
+  static async build(logger: DeprecatedLogger, context?: Context<"pull_request">): Promise<ConfigService> {
     const config = await this.loadConfig(logger, context);
     if (!config) throw new Error("No config was found");
     const errorMessages = ConfigService.validateConfig(config);
@@ -26,7 +26,7 @@ export class ConfigService {
   }
 
   /** Loads the config values from environment variables and input parameters */
-  private static loadConfig = async (logger: DeprecatedLogger, context?: Context<any>): Promise<AppConfig | null> => {
+  private static loadConfig = async (logger: DeprecatedLogger, context?: Context<"pull_request">): Promise<AppConfig | null> => {
     try {
       const config = this.defaultConfig;
 
@@ -46,9 +46,9 @@ export class ConfigService {
       logger.info(`App ID: ${config.appId}`);
 
       return config;
-    } catch (e: any) {
-      context?.log.error(`Exception while parsing app config yml: ${e.message}`);
-      throw new Error(`Exception while parsing app config yml: ${e.message}`);
+    } catch (error: any) {
+      context?.log.error(`Exception while parsing app config yml: ${error.message}`);
+      throw new Error(`Exception while parsing app config yml: ${error.message}`);
     }
   };
 
