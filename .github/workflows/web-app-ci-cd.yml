@@ -33,6 +33,12 @@ jobs:
           git config user.email github-actions@github.com
           git diff-index --quiet HEAD || git commit -am "Autofix ESLint errors"
           git push
+      - name: Prepare dist
+        env:
+          NODE_ENV: "production"
+        working-directory: ${{ env.working_directory }}
+        shell: bash
+        run: ./scripts/make_dist.sh
   build-and-deploy:
     name: "Web App Build & Deploy"
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || ( github.event_name == 'workflow_dispatch' && github.event.inputs.What-If == 'false' ))
