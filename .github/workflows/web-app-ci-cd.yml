@@ -67,6 +67,8 @@ jobs:
       - name: "Deploy to Azure Web App"
         id: azure-webapps-deploy
         uses: azure/webapps-deploy@v2
+        env:
+          NODE_ENV: "production"
         with:
           app-name: ${{ env.app_name }}
           slot-name: ${{ env.slot_name }}

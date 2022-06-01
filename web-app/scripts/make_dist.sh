@@ -26,3 +26,5 @@ mkdir dist/scripts && cp scripts/startup.sh dist/scripts/
 echo "Installing the node modules in the dist folder."
 cd dist
 npm ci --production
+npm cache clean --force
+npm install
