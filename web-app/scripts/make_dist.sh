@@ -20,8 +20,8 @@ echo "Copying package*.json files to dist folder."
 cp package*.json dist/
 
 # Startup command that will be run as part of container startup
-echo "Copying startup.sh to dist folder."
-cp scripts/startup.sh dist/
+echo "Copying startup.sh to dist/scripts folder."
+mkdir dist/scripts && cp scripts/startup.sh dist/scripts/
 
 echo "Installing the node modules in the dist folder."
 cd dist
