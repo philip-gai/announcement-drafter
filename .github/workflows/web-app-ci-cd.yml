@@ -74,4 +74,5 @@ jobs:
           slot-name: ${{ env.slot_name }}
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
           package: "${{ env.working_directory }}/dist"
-          startup-command: npm run start
+          # Error: startup-command is not a valid input for Windows web app or with publish-profile auth scheme.
+          # startup-command: npm run start
