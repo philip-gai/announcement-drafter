@@ -13,8 +13,9 @@
   ],
   "scripts": {
     "build": "tsc",
-    "start": "probot run ./lib/index.js",
-    "dev": "npm run build && npm run start",
+    "start:probot": "probot run ./lib/index.js",
+    "start": "./scripts/startup.sh",
+    "dev": "npm run build && npm run start:probot",
     "lint": "eslint '*/**/*.{js,ts,tsx}' --quiet --fix"
   },
   "dependencies": {

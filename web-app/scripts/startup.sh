@@ -14,5 +14,5 @@ npm cache clean --force
 echo "npm rebuild..."
 npm rebuild
 
-echo "npm run start..."
-npm run start
+echo "npm run start:probot..."
+npm run start:probot
