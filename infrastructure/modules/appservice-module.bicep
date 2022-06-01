@@ -12,7 +12,6 @@ resource cosmosDatabaseAccount 'Microsoft.DocumentDB/databaseAccounts@2021-06-15
   name: cosmosAccountName
 }
 
-var appStartupCommand = 'sh startup.sh'
 var cosmosEndpoint = cosmosDatabaseAccount.properties.documentEndpoint
 var cosmosPrimaryKey = cosmosDatabaseAccount.listKeys().primaryMasterKey
 var linuxFxVersion = 'NODE|14-lts'
@@ -110,7 +109,7 @@ resource website 'Microsoft.Web/sites@2021-01-15' = {
       appSettings: finalAppSettings
     }
     scmSiteAlsoStopped: false
-    clientAffinityEnabled: true
+    clientAffinityEnabled: false
     clientCertEnabled: false
     clientCertMode: 'Required'
     hostNamesDisabled: false
@@ -166,7 +165,6 @@ resource website 'Microsoft.Web/sites@2021-01-15' = {
       use32BitWorkerProcess: true
       webSocketsEnabled: false
       alwaysOn: false
-      appCommandLine: appStartupCommand
       managedPipelineMode: 'Integrated'
       virtualApplications: [
         {

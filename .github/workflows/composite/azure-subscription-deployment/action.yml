@@ -22,7 +22,7 @@ runs:
       with:
         inlineScript: |
           $commitSha = "${{ github.sha }}"
-          $commitShaShort = $commitSha.substring($commitSha.length - 7, 7)
+          $commitShaShort = $commitSha.substring(0, 7)
 
           $params = @{
             Location = "${{ inputs.location }}"

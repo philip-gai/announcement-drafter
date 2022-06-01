@@ -9,8 +9,8 @@ Set-Location web-app
 npm install
 if (!$?) { exit 1 }
 
-Write-Host "Running npm run build..."
-npm run build
+Write-Host "Running npm run build:dev..."
+npm run build:dev
 if (!$?) { exit 1 }
 Set-Location -
 Write-Host "Done."
