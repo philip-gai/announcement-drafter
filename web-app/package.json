@@ -12,10 +12,9 @@
     "probot-app"
   ],
   "scripts": {
-    "build": "tsc",
-    "start:probot": "probot run ./lib/index.js",
-    "start": "./scripts/startup.sh",
-    "dev": "npm run build && npm run start:probot",
+    "build:dev": "tsc",
+    "start": "probot run ./lib/index.js",
+    "dev": "npm run build:dev && npm run start",
     "lint": "eslint '*/**/*.{js,ts,tsx}' --quiet --fix"
   },
   "dependencies": {
