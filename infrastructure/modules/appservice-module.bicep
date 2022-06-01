@@ -109,7 +109,7 @@ resource website 'Microsoft.Web/sites@2021-01-15' = {
       appSettings: finalAppSettings
     }
     scmSiteAlsoStopped: false
-    clientAffinityEnabled: true
+    clientAffinityEnabled: false
     clientCertEnabled: false
     clientCertMode: 'Required'
     hostNamesDisabled: false
