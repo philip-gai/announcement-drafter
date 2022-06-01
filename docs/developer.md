@@ -9,7 +9,7 @@ Publish new GitHub discussions using your existing repository's PR workflows ðŸ“
 npm install
 
 # Run the bot
-npm start
+npm run dev
 ```
 
 ## Usage
