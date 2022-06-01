@@ -41,7 +41,7 @@ var finalAppSettings = concat(appSettings, [
   }
   {
     'name': 'SCM_DO_BUILD_DURING_DEPLOYMENT'
-    'value': 'false'
+    'value': 'true'
   }
   {
     'name': 'WEBHOOK_PROXY_URL'
