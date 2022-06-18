@@ -180,7 +180,6 @@ export class PullRequestEventHandler {
             await appGitHubService.createPullRequestComment({
               ...pullInfo,
               commit_id: pullRequest.head.sha,
-              start_line: 1,
               end_line: 1,
               body: errorMessage,
               filepath: filepath,
