@@ -8,6 +8,8 @@ import pug from "pug";
 import { authSuccessTemplate } from "../templates/authorization";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const stringify = require("js-stringify");
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const crypto = require("crypto");
 
 export class RouterService {
   private _router: Router;
@@ -29,6 +31,10 @@ export class RouterService {
     const router = options.getRouter && options.getRouter("/");
     if (!router) throw new Error("Invalid router");
     this._router = router;
+    this._router.use((_, res, next) => {
+      res.setHeader("Content-Security-Policy", "default-src 'none'");
+      return next();
+    });
     this._appConfig = appConfig;
     this._tokenService = tokenService;
     this._authService = authService;
@@ -96,11 +102,14 @@ export class RouterService {
       const redirectLocationText = redirectUrl !== RouterService.DEFAULT_REDIRECT ? "pull request" : "Announcement Drafter repository";
 
       res.setHeader("Content-Type", "text/html");
+      const nonce = crypto.randomBytes(16).toString("base64") as string;
+      res.setHeader("Content-Security-Policy", `script-src 'nonce-${nonce}'; default-src 'none'`);
       const html = pug.render(authSuccessTemplate, {
         redirectLocationText,
         redirectUrl,
         secondsToRedirect: RouterService.SECONDS_TO_REDIRECT,
         stringify,
+        nonce,
       });
       this._logger.debug("Template: " + html);
       res.status(200).send(html);

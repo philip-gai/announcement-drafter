@@ -3,7 +3,7 @@ doctype html
 html(lang="en")
   head
     title announcement-drafter | authorization
-    script.
+    script(nonce=nonce).
       setTimeout(function () {
         window.location = '#{redirectUrl}'
       }, #{stringify(secondsToRedirect)} * 1000)
