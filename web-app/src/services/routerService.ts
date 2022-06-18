@@ -4,6 +4,7 @@ import { AppConfig } from "../models/appConfig";
 import { TokenService } from "./tokenService";
 import { AuthService } from "./authService";
 import CryptoJS from "crypto-js";
+import pug from "pug";
 
 export class RouterService {
   private _router: Router;
@@ -91,22 +92,9 @@ export class RouterService {
       // Display authentication success message and redirect after SECONDS_TO_REDIRECT seconds
       const redirectLocationText = redirectUrl !== RouterService.DEFAULT_REDIRECT ? "pull request" : "Announcement Drafter repository";
       res.setHeader("Content-Type", "text/html");
-      res.status(200).send(`
-        <html>
-        <head>
-          <title>announcement-drafter | authorization</title>
-        </head>
-        <body>
-          <div><h2>Success! Now Announcement Drafter can create discussions for you 🚀</h2></div>
-          <div><p>Sending you back to the ${redirectLocationText} in just a few seconds...</p></div>
-        </body>
-        <script>
-          setTimeout(function () {
-            window.location = "${redirectUrl}";
-          }, ${RouterService.SECONDS_TO_REDIRECT * 1000})
-        </script>
-        </html>
-        `);
+      const html = pug.renderFile("authorization.pug", { redirectLocationText, redirectUrl, secondsToRedirect: RouterService.SECONDS_TO_REDIRECT });
+      this._logger.debug("Template: " + html);
+      res.status(200).send(html);
     });
     return this;
   }
