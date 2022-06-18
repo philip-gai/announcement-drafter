@@ -48,10 +48,14 @@ export class TokenService {
 
     if (!tokenItem || !this.refreshTokenIsValid(tokenItem)) return undefined;
 
-    // Decrypt the token
-    const bytes = CryptoJS.AES.decrypt(tokenItem.refreshToken, this._appConfig.github_client_secret);
-    const token = bytes.toString(CryptoJS.enc.Utf8);
-    tokenItem.refreshToken = token;
+    // "ghr_" is for GitHub App refresh tokens
+    // This is to maintain compat with tokens already stored without being encrypted
+    if (!tokenItem.refreshToken.startsWith("ghr_")) {
+      // Decrypt the token
+      const bytes = CryptoJS.AES.decrypt(tokenItem.refreshToken, this._appConfig.github_client_secret);
+      const token = bytes.toString(CryptoJS.enc.Utf8);
+      tokenItem.refreshToken = token;
+    }
 
     return tokenItem;
   }
