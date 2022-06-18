@@ -26,6 +26,7 @@
     "@octokit/plugin-rest-endpoint-methods": "^5.13.0",
     "@probot/octokit-plugin-config": "^1.1.5",
     "crypto-js": "^4.1.1",
+    "js-stringify": "^1.0.2",
     "probot": "^12.2.3",
     "query-string": "^7.1.1",
     "yaml": "^2.1.1"

@@ -5,6 +5,9 @@ import { TokenService } from "./tokenService";
 import { AuthService } from "./authService";
 import CryptoJS from "crypto-js";
 import pug from "pug";
+import { authSuccessTemplate } from "../templates/authorization";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const stringify = require("js-stringify");
 
 export class RouterService {
   private _router: Router;
@@ -77,7 +80,7 @@ export class RouterService {
           return;
         }
         // Get the pull request url from the state for redirection
-        if (state.pull_url) {
+        if (state.pull_url && this.isValidHttpUrl(state.pull_url)) {
           redirectUrl = state.pull_url;
         }
       } catch (error) {
@@ -91,8 +94,14 @@ export class RouterService {
 
       // Display authentication success message and redirect after SECONDS_TO_REDIRECT seconds
       const redirectLocationText = redirectUrl !== RouterService.DEFAULT_REDIRECT ? "pull request" : "Announcement Drafter repository";
+
       res.setHeader("Content-Type", "text/html");
-      const html = pug.renderFile("authorization.pug", { redirectLocationText, redirectUrl, secondsToRedirect: RouterService.SECONDS_TO_REDIRECT });
+      const html = pug.render(authSuccessTemplate, {
+        redirectLocationText,
+        redirectUrl,
+        secondsToRedirect: RouterService.SECONDS_TO_REDIRECT,
+        stringify,
+      });
       this._logger.debug("Template: " + html);
       res.status(200).send(html);
     });
@@ -104,5 +113,15 @@ export class RouterService {
       res.status(200).send("Success");
     });
     return this;
+  }
+
+  private isValidHttpUrl(string: string): boolean {
+    let url;
+    try {
+      url = new URL(string);
+    } catch (_) {
+      return false;
+    }
+    return url.protocol === "http:" || url.protocol === "https:";
   }
 }
