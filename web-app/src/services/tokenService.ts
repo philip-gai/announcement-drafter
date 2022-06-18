@@ -52,9 +52,14 @@ export class TokenService {
     // This is to maintain compat with tokens already stored without being encrypted
     if (!tokenItem.refreshToken.startsWith("ghr_")) {
       // Decrypt the token
-      const bytes = CryptoJS.AES.decrypt(tokenItem.refreshToken, this._appConfig.github_client_secret);
-      const token = bytes.toString(CryptoJS.enc.Utf8);
-      tokenItem.refreshToken = token;
+      try {
+        const bytes = CryptoJS.AES.decrypt(tokenItem.refreshToken, this._appConfig.github_client_secret);
+        const token = bytes.toString(CryptoJS.enc.Utf8);
+        tokenItem.refreshToken = token;
+      } catch (_) {
+        this._logger.error("Unable to decrypt token.");
+        return undefined;
+      }
     }
 
     return tokenItem;
