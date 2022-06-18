@@ -51,7 +51,7 @@ export class TokenService {
     // Decrypt the token
     const bytes = CryptoJS.AES.decrypt(tokenItem.refreshToken, this._appConfig.github_client_secret);
     const token = bytes.toString(CryptoJS.enc.Utf8);
-    tokenItem!.refreshToken = token;
+    tokenItem.refreshToken = token;
 
     return tokenItem;
   }
