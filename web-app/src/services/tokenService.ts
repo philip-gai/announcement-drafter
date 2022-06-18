@@ -3,6 +3,7 @@ import { refreshToken } from "@octokit/oauth-methods";
 import { ProbotOctokit } from "probot";
 import { DeprecatedLogger } from "probot/lib/types";
 import { AppConfig } from "../models/appConfig";
+import CryptoJS from "crypto-js";
 
 export interface GetRefreshTokenOptions {
   userLogin: string;
@@ -41,13 +42,18 @@ export class TokenService {
     const itemResponse = await this._container.item(options.userLogin, options.userLogin).read<TokenItem>();
     this._logger.trace(JSON.stringify(itemResponse.resource));
 
-    const token = itemResponse.resource;
+    const tokenItem = itemResponse.resource;
 
-    if (!token) this._logger.info("No token found for the user");
+    if (!tokenItem) this._logger.info("No token found for the user");
 
-    if (!this.refreshTokenIsValid(token)) return undefined;
+    if (!this.refreshTokenIsValid(tokenItem)) return undefined;
 
-    return token;
+    // Decrypt the token
+    const bytes = CryptoJS.AES.decrypt(tokenItem!.refreshToken, this._appConfig.github_client_secret);
+    const token = bytes.toString(CryptoJS.enc.Utf8);
+    tokenItem!.refreshToken = token;
+
+    return tokenItem;
   }
 
   async upsertRefreshToken(
@@ -73,21 +79,25 @@ export class TokenService {
     }
 
     this._logger.info(`Upserting refreshToken for user ${login}`);
+
+    // Encrypt the token at rest
+    const encryptedRefreshToken = CryptoJS.AES.encrypt(refreshToken, this._appConfig.github_client_secret).toString();
+
     await this._container.items.upsert<TokenItem>({
       id: login,
-      refreshToken: refreshToken,
+      refreshToken: encryptedRefreshToken,
       refreshTokenExpiresAt: refreshTokenExpiresAt,
       refreshTokenCreatedAt: refreshTokenCreatedAt,
     });
     this._logger.info("Upsert complete");
   }
 
-  public refreshTokenIsValid(refreshToken: TokenItem | undefined): boolean {
-    if (!refreshToken) {
+  public refreshTokenIsValid(tokenItem: TokenItem | undefined): boolean {
+    if (!tokenItem || !tokenItem.refreshToken) {
       this._logger.info("No refresh token found for the user");
       return false;
     }
-    if (Date.now() > Date.parse(refreshToken.refreshTokenExpiresAt)) {
+    if (Date.now() > Date.parse(tokenItem.refreshTokenExpiresAt)) {
       this._logger.info("The refresh token is expired");
       return false;
     }
