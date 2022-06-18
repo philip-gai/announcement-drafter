@@ -28,6 +28,7 @@
     "crypto-js": "^4.1.1",
     "js-stringify": "^1.0.2",
     "probot": "^12.2.3",
+    "pug": "^3.0.2",
     "query-string": "^7.1.1",
     "yaml": "^2.1.1"
   },
