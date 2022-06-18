@@ -46,10 +46,10 @@ export class TokenService {
 
     if (!tokenItem) this._logger.info("No token found for the user");
 
-    if (!this.refreshTokenIsValid(tokenItem)) return undefined;
+    if (!tokenItem || !this.refreshTokenIsValid(tokenItem)) return undefined;
 
     // Decrypt the token
-    const bytes = CryptoJS.AES.decrypt(tokenItem!.refreshToken, this._appConfig.github_client_secret);
+    const bytes = CryptoJS.AES.decrypt(tokenItem.refreshToken, this._appConfig.github_client_secret);
     const token = bytes.toString(CryptoJS.enc.Utf8);
     tokenItem!.refreshToken = token;
 
