@@ -142,6 +142,8 @@ Make sure that you:
 4. Opened a pull request targeting the repository's default branch (i.e. `main`)
    1. Announcement Drafter will ignore draft pull requests
 
+Also, try closing and re-opening your PR after making any changes to the announcement drafter configuration to trigger the flow again.
+
 If you followed all of the above steps and are still experiencing issues, please [open an issue](https://github.com/philip-gai/announcement-drafter/issues/new?assignees=&labels=bug&template=bug_report.md&title=) :slightly_smiling_face:
 
 ## Contributing
