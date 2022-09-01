@@ -9,7 +9,7 @@ inputs:
     required: true
   subcription_id:
     required: true
-    default: "59b7bd22-db8a-4752-840e-6b4507317ff0"
+    default: "7100b295-05bb-4ecf-a59b-246bd1f17d9a"
   tenant_id:
     required: true
     default: "87e276c0-7d18-4d86-948a-ba5eea990211"
