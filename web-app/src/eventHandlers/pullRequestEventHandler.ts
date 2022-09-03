@@ -88,7 +88,7 @@ export class PullRequestEventHandler {
       appPublicPage: app.html_url,
       appLogin: `${app.slug}[bot]`,
     };
-    const appLinkMarkdown = `[@${appName}](${appPublicPage})`;
+    const appLinkMarkdown = `[${appName}](${appPublicPage})`;
 
     const pullRequestComments = await appGitHubService.getPullRequestComments({
       ...pullInfo,
@@ -116,7 +116,7 @@ export class PullRequestEventHandler {
             throw new Error("Markdown is missing a repo or team to post the discussion to");
           }
 
-          let commentBody = `⚠️ ${appLinkMarkdown} will create a discussion using this file once this PR is merged ⚠️\n\n` + "**IMPORTANT**:\n\n";
+          let commentBody = `⚠️ ${appLinkMarkdown} will create a discussion using this file once this PR is merged.\n\n` + "**IMPORTANT**:\n\n";
 
           const userRefreshToken = await this._tokenService.getRefreshToken({
             userLogin: authorLogin,
@@ -130,7 +130,7 @@ export class PullRequestEventHandler {
           }
           if (!userRefreshToken || isNonProd) {
             const fullAuthUrl = `${appConfig.base_url}${appConfig.auth_url}?pull_url=${pullRequest.html_url}`;
-            commentBody += `- @${authorLogin}: you must [authorize the app](${fullAuthUrl}) before merging this pull request so the discussion can be created as you. This is not required every time.\n`;
+            commentBody += `- @${authorLogin} must [authorize the app](${fullAuthUrl}) before merging this pull request so the discussion can be created as you. This is not required every time.\n`;
           }
           commentBody +=
             "- Do not use relative links to files in your repo. Instead, use full URLs and for media drag/drop or paste the file into the markdown. The link generated for media should contain `https://user-images.githubusercontent.com`.\n";
@@ -167,9 +167,9 @@ export class PullRequestEventHandler {
           const exceptionMessage = HelperService.getErrorMessage(error);
           logger.warn(exceptionMessage);
           const errorMessage =
-            `${this.errorIcon} ${appLinkMarkdown} will not be able to create a discussion for \`${filepath}\` ${this.errorIcon}\n\n` +
-            `Please fix the issues and update the PR:\n\n` +
-            `> ${exceptionMessage}\n`;
+            `${this.errorIcon} ${appLinkMarkdown} will not be able to create a discussion for this file.\n\n` +
+            `Fix the following issue before merging the pull request:\n\n` +
+            `\`\`\`\n${exceptionMessage}\n\`\`\``;
           if (mostRecentBotCommentForFile) {
             await appGitHubService.updatePullRequestComment({
               ...pullInfo,
@@ -394,7 +394,7 @@ export class PullRequestEventHandler {
     await appGitHubService.createPullRequestCommentReply({
       ...options.pullInfo,
       comment_id: options.pullRequestCommentId,
-      body: "⛔️ Something went wrong. Make sure that you have installed and authorized the app on any repository or team that you would like to post to. Then recreate this PR 👍🏼",
+      body: `${this.errorIcon} Something went wrong. Make sure that you have installed and authorized the app on any repository or team that you would like to post to. Then close and reopen the PR 👍🏼`,
     });
   }
 
