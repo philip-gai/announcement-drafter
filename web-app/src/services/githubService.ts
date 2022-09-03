@@ -45,15 +45,15 @@ export class GitHubService {
 
     const contentResponse = await this._octokit.repos.getContent(options);
 
-    this._logger.trace(`content: ${JSON.stringify(contentResponse)}`);
+    this._logger.trace(`File content response: ${JSON.stringify(contentResponse)}`);
     const content = contentResponse as unknown as Content;
 
     this._logger.debug(`Buffering and decoding base64 encoded data...`);
     const contentDataBuffer = Buffer.from(content.data.content, "base64");
     const contentData = contentDataBuffer.toString("utf-8");
 
-    this._logger.info("Success.");
-    this._logger.trace(`Data: ${contentData}`);
+    this._logger.info("Success getting file content.");
+    this._logger.trace(`File content data: ${contentData}`);
     return contentData;
   }
 
