@@ -459,7 +459,7 @@ export class PullRequestEventHandler {
       comment_id: options.pullRequestCommentId,
       body: `🎉 This ${discussionType} discussion has been posted! 🎉\n> View it here: [${discussionTitle}](${discussionUrl})`,
     });
-    logger.info("Done.");
+    logger.info("Done creating success comment reply on original PR comment.");
   }
 
   private async getDiscussionCategory(appGitHubService: GitHubService, parsedItems: ParsedMarkdownDiscussion): Promise<DiscussionCategory> {

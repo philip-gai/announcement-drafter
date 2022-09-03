@@ -19,7 +19,7 @@ export = async (app: Probot, options: ApplicationFunctionOptions): Promise<void>
       .addOAuthAuthorizeRoute()
       .addOAuthCallbackRoute()
       .addHealthCheckRoute();
-    logger.debug("Done.");
+    logger.debug("Done initializing services.");
 
     app.on(["pull_request.opened", "pull_request.synchronize", "pull_request.ready_for_review", "pull_request.reopened"], async (context) => {
       const pullRequestEventHandler = await PullRequestEventHandler.build(context, tokenService);

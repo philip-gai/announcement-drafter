@@ -111,7 +111,7 @@ export class GitHubService {
   > {
     this._logger.info(`Getting pull request files...\n${JSON.stringify(options)}`);
     const pullFiles = await this._octokit.pulls.listFiles(options);
-    this._logger.info("Done.");
+    this._logger.info("Done getting pull request files.");
     return pullFiles.data;
   }
 
@@ -145,7 +145,7 @@ export class GitHubService {
       start_line: options.start_line,
       line: options.end_line,
     });
-    this._logger.info(`Done.`);
+    this._logger.info(`Done creating pull request review comment.`);
   }
 
   public async updatePullRequestComment(options: { owner: string; repo: string; comment_id: number; body: string }): Promise<void> {
@@ -165,7 +165,7 @@ export class GitHubService {
       comment_id: options.comment_id,
       body: options.body,
     });
-    this._logger.info(`Done.`);
+    this._logger.info(`Done updating the pull request review comment.`);
   }
 
   public async createPullRequestCommentReply(options: { owner: string; repo: string; pull_number: number; comment_id: number; body: string }): Promise<void> {
@@ -180,7 +180,7 @@ export class GitHubService {
       body: options.body,
     });
 
-    this._logger.info("Done");
+    this._logger.info("Done creating a reply to a review comment.");
   }
 
   public async getPullRequestComments(options: { owner: string; repo: string; pull_number: number }): Promise<PullRequestComment[]> {
@@ -192,7 +192,7 @@ export class GitHubService {
       direction: "desc",
     });
     this._logger.trace(`Comments:\n${JSON.stringify(comments.data)}`);
-    this._logger.info("Done.");
+    this._logger.info("Done getting pull request comments.");
     return comments.data;
   }
 
@@ -273,7 +273,7 @@ export class GitHubService {
     this._logger.info(`Getting authenticated app...`);
     const authenticatedApp = await this._octokit.apps.getAuthenticated();
     this._logger.trace(`authenticatedApp:\n${JSON.stringify(authenticatedApp)}`);
-    this._logger.info(`Done.`);
+    this._logger.info(`Done getting the authenticated app.`);
     return authenticatedApp.data;
   }
 }
