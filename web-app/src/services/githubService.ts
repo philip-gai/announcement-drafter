@@ -60,10 +60,12 @@ export class GitHubService {
   // See https://docs.github.com/rest/reference/repos#get-a-repository
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public async getRepoData(options: { repoName: string; owner: string }): Promise<any> {
+    this._logger.info(`Getting repo data...`);
     const repoResponse = await this._octokit.repos.get({
       ...options,
       repo: options.repoName,
     });
+    this._logger.info(`Done getting repo data.`);
     if (!repoResponse?.data) throw new Error(`Could not find repo: ${JSON.stringify(options)}`);
     return repoResponse.data;
   }
