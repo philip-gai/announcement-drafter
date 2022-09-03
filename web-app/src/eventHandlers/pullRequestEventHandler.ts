@@ -477,7 +477,7 @@ export class PullRequestEventHandler {
     const discussionCategoryMatch = repoDiscussionCategories.find(
       (node) =>
         node?.name.trim().localeCompare(discussionCategoryName, undefined, {
-          sensitivity: "accent",
+          sensitivity: "accent", // this is case-insensitive
         }) === 0
     );
     if (!discussionCategoryMatch) {
