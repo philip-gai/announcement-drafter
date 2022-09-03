@@ -330,14 +330,7 @@ export class PullRequestEventHandler {
       if (!repoOwner) {
         throw new Error("Missing target repo owner - repo url should include the owner (organization)");
       }
-
-      if (
-        !(await appGitHubService.appIsInstalled({
-          owner: repoOwner,
-        }))
-      ) {
-        throw new Error(`The app is not installed on the organization or user "${repoOwner}"`);
-      }
+      await this.assertAppIsInstalled(appGitHubService, repoOwner);
       await this.createRepoDiscussion(appGitHubService, userGithubService, logger, {
         ...options,
         parsedItems,
@@ -349,14 +342,17 @@ export class PullRequestEventHandler {
       if (!teamOwner) {
         throw new Error("The url to the team is not valid - it must include the team owner (organization)");
       }
-      if (
-        !(await appGitHubService.appIsInstalled({
-          owner: teamOwner,
-        }))
-      ) {
-        throw new Error(`The app is not installed for the organization or user "${teamOwner}"`);
-      }
+      await this.assertAppIsInstalled(appGitHubService, teamOwner);
       await this.createTeamPost(userGithubService, appGitHubService, logger, options, parsedItems);
+    }
+  }
+
+  private async assertAppIsInstalled(appGitHubService: GitHubService, owner: string): Promise<void> {
+    const appIsInstalled = await appGitHubService.appIsInstalled({
+      owner: owner,
+    });
+    if (!appIsInstalled) {
+      throw new Error(`The app is not installed for the organization or user "${owner}"`);
     }
   }
 
