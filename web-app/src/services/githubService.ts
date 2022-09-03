@@ -126,18 +126,18 @@ export class GitHubService {
     commit_id: string;
     start_line?: number;
     end_line: number;
-  }): Promise<void> {
+  }): Promise<PullRequestComment | null> {
     const isDryRun = this._appConfig.dry_run_comments;
     this._logger.info(`${isDryRun ? "DRY RUN: " : ""}Commenting on the PR...`);
     this._logger.debug(`Options: ${JSON.stringify(options)}`);
 
     if (isDryRun) {
       this._logger.info("Dry run, not creating comments.");
-      return;
+      return null;
     }
 
     // There is a bug where you can't pass unwanted keys
-    await this._octokit.pulls.createReviewComment({
+    const response = await this._octokit.pulls.createReviewComment({
       owner: options.owner,
       repo: options.repo,
       pull_number: options.pull_number,
@@ -148,6 +148,7 @@ export class GitHubService {
       line: options.end_line,
     });
     this._logger.info(`Done creating pull request review comment.`);
+    return response.data;
   }
 
   public async updatePullRequestComment(options: { owner: string; repo: string; comment_id: number; body: string }): Promise<void> {

@@ -98,7 +98,7 @@ export class PullRequestEventHandler {
     // Example filepath: "docs/team-posts/hello-world.md"
     for (const file of filesAdded) {
       const filepath = file.filename;
-      const mostRecentBotCommentForFile = this.getMostRecentBotCommentForFile(existingBotComments, filepath, logger);
+      let mostRecentBotCommentForFile = this.getMostRecentBotCommentForFile(existingBotComments, filepath, logger);
       const shouldCreateDiscussionForFile = this.shouldCreateDiscussionForFile(appConfig.appSettings, filepath);
       if (shouldCreateDiscussionForFile) {
         try {
@@ -136,7 +136,7 @@ export class PullRequestEventHandler {
             "- Do not use relative links to files in your repo. Instead, use full URLs and for media drag/drop or paste the file into the markdown. The link generated for media should contain `https://user-images.githubusercontent.com`.\n";
 
           if (!mostRecentBotCommentForFile) {
-            await appGitHubService.createPullRequestComment({
+            mostRecentBotCommentForFile = await appGitHubService.createPullRequestComment({
               ...pullInfo,
               commit_id: pullRequest.head.sha,
               start_line: 1,
