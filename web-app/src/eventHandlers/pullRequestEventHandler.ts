@@ -83,12 +83,12 @@ export class PullRequestEventHandler {
     logger.debug(`Number of files added in push: ${filesAdded.length}`);
 
     const app = await appGitHubService.getAuthenticatedApp();
-    const { appName, appPublicPage, appLogin } = {
-      appName: app.name,
+    const { appSlug, appPublicPage, appLogin } = {
+      appSlug: app.slug,
       appPublicPage: app.html_url,
       appLogin: `${app.slug}[bot]`,
     };
-    const appLinkMarkdown = `[${appName}](${appPublicPage})`;
+    const appLinkMarkdown = `[${appSlug}](${appPublicPage})`;
 
     const pullRequestComments = await appGitHubService.getPullRequestComments({
       ...pullInfo,
