@@ -61,13 +61,17 @@ export class GitHubService {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public async getRepoData(options: { repoName: string; owner: string }): Promise<any> {
     this._logger.info(`Getting repo data...`);
-    const repoResponse = await this._octokit.repos.get({
-      ...options,
-      repo: options.repoName,
-    });
-    this._logger.info(`Done getting repo data.`);
-    if (!repoResponse?.data) throw new Error(`Could not find repo: ${JSON.stringify(options)}`);
-    return repoResponse.data;
+    try {
+      const repoResponse = await this._octokit.repos.get({
+        ...options,
+        repo: options.repoName,
+      });
+      this._logger.info(`Done getting repo data.`);
+      if (!repoResponse?.data) throw new Error(`Could not find repo: ${JSON.stringify(options)}`);
+      return repoResponse.data;
+    } catch (error: unknown) {
+      throw new Error(`Could not find the repository. Make sure the URL is correct and the GitHub App is installed on "${options.owner}/${options.repoName}"`);
+    }
   }
 
   public async getRepoDiscussionCategories(options: { repo: string; owner: string }): Promise<Maybe<Maybe<DiscussionCategory>[]> | undefined> {
