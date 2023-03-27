@@ -477,7 +477,7 @@ export class PullRequestEventHandler {
         }) === 0
     );
     if (!discussionCategoryMatch) {
-      throw new Error(`Could not find discussion category "${discussionCategoryName} in ${repoOwner}/${repo}".`);
+      throw new Error(`Could not find discussion category "${discussionCategoryName}" in "${repoOwner}/${repo}".`);
     }
     return discussionCategoryMatch;
   }
