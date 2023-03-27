@@ -61,7 +61,7 @@ resource serverFarm 'Microsoft.Web/serverfarms@2021-01-15' = {
     tier: 'Basic'
     size: 'B1'
     family: 'B'
-    capacity: 2
+    capacity: 1
   }
   kind: 'linux'
   properties: {
@@ -108,6 +108,8 @@ resource website 'Microsoft.Web/sites@2021-01-15' = {
       functionAppScaleLimit: 0
       minimumElasticInstanceCount: 1
       appSettings: finalAppSettings
+      localMySqlEnabled: false
+      netFrameworkVersion: 'v4.6'
     }
     scmSiteAlsoStopped: false
     clientAffinityEnabled: false
