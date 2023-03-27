@@ -28,7 +28,7 @@ export class AuthService {
     };
     const encryptedState = CryptoJS.AES.encrypt(JSON.stringify(state), this._appConfig.github_client_secret).toString();
 
-    const params = queryString.stringify({
+    const params = queryString.default.stringify({
       client_id: this._appConfig.github_client_id,
       redirect_uri: `${protocol}://${host}${this._appConfig.github_callback_url}`,
       state: encryptedState,

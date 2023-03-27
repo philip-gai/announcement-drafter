@@ -19,4 +19,4 @@ RUN echo "Installing bicep CLI..." \
 # RUN su node -c "source /usr/local/share/nvm/nvm.sh && nvm install ${EXTRA_NODE_VERSION}"
 
 # Install more global node packages
-RUN su node -c "npm install -g npm-check-updates"
+RUN su node -c "npm install -g typescript@^5.0.2 npm-check-updates"
