@@ -15,7 +15,7 @@ resource cosmosDatabaseAccount 'Microsoft.DocumentDB/databaseAccounts@2021-06-15
 var appStartupCommand = 'npm start'
 var cosmosEndpoint = cosmosDatabaseAccount.properties.documentEndpoint
 var cosmosPrimaryKey = cosmosDatabaseAccount.listKeys().primaryMasterKey
-var linuxFxVersion = 'NODE|14-lts'
+var linuxFxVersion = 'NODE|18-lts'
 var siteUrl = '${siteName}.azurewebsites.net'
 
 var finalAppSettings = concat(appSettings, [
