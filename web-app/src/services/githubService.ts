@@ -81,7 +81,7 @@ export class GitHubService {
     }>(
       `query ($owner: String!, $repo: String!) {
           repository(owner: $owner, name: $repo) {
-            discussionCategories(first: 10) {
+            discussionCategories(first: 100) {
               # type: DiscussionCategoryConnection
               nodes {
                 # type: DiscussionCategory
