@@ -11,3 +11,4 @@
    1. Upgrade: `npm install -g typescript@latest`
    2. Verify: `tsc -v`
 6. [Test the app](./testing.md)
+   1. See example pull request: <https://github.com/philip-gai/announcement-drafter/pull/85>
