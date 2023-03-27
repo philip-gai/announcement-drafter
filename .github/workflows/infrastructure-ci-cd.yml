@@ -24,6 +24,10 @@ env:
   template_parameter_file: "infrastructure/announcement-drafter.parameters.json"
   tenant_id: "87e276c0-7d18-4d86-948a-ba5eea990211"
 
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read  # This is required for actions/checkout
+
 jobs:
   what-if-deploy:
     name: What-If Deploy

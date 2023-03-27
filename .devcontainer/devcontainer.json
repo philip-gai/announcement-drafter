@@ -9,7 +9,7 @@
     // Append -bullseye or -buster to pin to an OS version.
     // Use -bullseye variants on local on arm64/Apple Silicon.
     "args": {
-      "VARIANT": "14"
+      "VARIANT": "ubuntu-22.04"
     }
   },
 
@@ -23,17 +23,18 @@
 
   // Add the IDs of extensions you want installed when the container is created.
   "extensions": [
-    "cschleiden.vscode-github-actions",
-    "davidanson.vscode-markdownlint",
-    "dbaeumer.vscode-eslint",
-    "eamodio.gitlens",
-    "eg2.vscode-npm-script",
-    "esbenp.prettier-vscode",
-    "ms-azuretools.vscode-azureappservice",
-    "ms-azuretools.vscode-bicep",
-    "yzhang.markdown-all-in-one",
-    "ms-vscode.powershell"
-  ],
+	"cschleiden.vscode-github-actions",
+	"davidanson.vscode-markdownlint",
+	"dbaeumer.vscode-eslint",
+	"eamodio.gitlens",
+	"eg2.vscode-npm-script",
+	"esbenp.prettier-vscode",
+	"ms-azuretools.vscode-azureappservice",
+	"ms-azuretools.vscode-bicep",
+	"yzhang.markdown-all-in-one",
+	"ms-vscode.powershell",
+	"GitHub.copilot"
+],
 
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": [],
@@ -42,7 +43,7 @@
   "postCreateCommand": "pwsh ./.devcontainer/Update-DevContainer.ps1",
 
   // Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
-  "remoteUser": "node",
+  // "remoteUser": "node",
   "features": {
     "git": "latest",
     "git-lfs": "latest",

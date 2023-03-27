@@ -1,6 +1,6 @@
 import { exchangeWebFlowCode, GitHubAppAuthenticationWithRefreshToken } from "@octokit/oauth-methods";
 import { AppConfig } from "../models/appConfig";
-import * as queryString from "query-string";
+import querystring from "querystring";
 import { DeprecatedLogger } from "probot/lib/types";
 import CryptoJS from "crypto-js";
 
@@ -28,7 +28,7 @@ export class AuthService {
     };
     const encryptedState = CryptoJS.AES.encrypt(JSON.stringify(state), this._appConfig.github_client_secret).toString();
 
-    const params = queryString.stringify({
+    const params = querystring.stringify({
       client_id: this._appConfig.github_client_id,
       redirect_uri: `${protocol}://${host}${this._appConfig.github_callback_url}`,
       state: encryptedState,

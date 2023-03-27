@@ -25,7 +25,8 @@ export = async (app: Probot, options: ApplicationFunctionOptions): Promise<void>
       const pullRequestEventHandler = await PullRequestEventHandler.build(context, tokenService);
       await pullRequestEventHandler.onUpdated(context);
     });
-    app.on("pull_request.closed", async (context) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Fixing error TS2590: Expression produces a union type that is too complex to represent.
+    app.on("pull_request.closed", async (context: any) => {
       if (!context.payload.pull_request.merged) {
         logger.info("Pull request was closed but not merged. Skipping.");
         return;

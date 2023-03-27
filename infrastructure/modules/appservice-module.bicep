@@ -20,36 +20,36 @@ var siteUrl = '${siteName}.azurewebsites.net'
 
 var finalAppSettings = concat(appSettings, [
   {
-    'name': 'AUTH_URL'
-    'value': '/login/oauth/authorize'
+    name: 'AUTH_URL'
+    value: '/login/oauth/authorize'
   }
   {
-    'name': 'CALLBACK_URL'
-    'value': '/login/oauth/authorize/complete'
+    name: 'CALLBACK_URL'
+    value: '/login/oauth/authorize/complete'
   }
   {
-    'name': 'COSMOS_URI'
-    'value': cosmosEndpoint
+    name: 'COSMOS_URI'
+    value: cosmosEndpoint
   }
   {
-    'name': 'COSMOS_PRIMARY_KEY'
-    'value': cosmosPrimaryKey
+    name: 'COSMOS_PRIMARY_KEY'
+    value: cosmosPrimaryKey
   }
   {
-    'name': 'NODE_ENV'
-    'value': 'production'
+    name: 'NODE_ENV'
+    value: 'production'
   }
   {
-    'name': 'SCM_DO_BUILD_DURING_DEPLOYMENT'
-    'value': 'true'
+    name: 'SCM_DO_BUILD_DURING_DEPLOYMENT'
+    value: 'true'
   }
   {
-    'name': 'WEBHOOK_PROXY_URL'
-    'value': 'https://${siteUrl}'
+    name: 'WEBHOOK_PROXY_URL'
+    value: 'https://${siteUrl}'
   }
   {
-    'name': 'WEBSITE_WEBDEPLOY_USE_SCM'
-    'value': 'true'
+    name: 'WEBSITE_WEBDEPLOY_USE_SCM'
+    value: 'true'
   }
 ])
 
@@ -61,7 +61,7 @@ resource serverFarm 'Microsoft.Web/serverfarms@2021-01-15' = {
     tier: 'Basic'
     size: 'B1'
     family: 'B'
-    capacity: 2
+    capacity: 1
   }
   kind: 'linux'
   properties: {
@@ -108,6 +108,8 @@ resource website 'Microsoft.Web/sites@2021-01-15' = {
       functionAppScaleLimit: 0
       minimumElasticInstanceCount: 1
       appSettings: finalAppSettings
+      localMySqlEnabled: false
+      netFrameworkVersion: 'v4.6'
     }
     scmSiteAlsoStopped: false
     clientAffinityEnabled: false

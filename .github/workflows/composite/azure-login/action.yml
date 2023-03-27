@@ -19,8 +19,8 @@ runs:
   steps:
     - name: Azure Login
       uses: azure/login@v1
-      env:
-        azure_creds: '{"clientId":"${{ inputs.service_principal_id }}","clientSecret":"${{ inputs.service_principal_secret }}","subscriptionId":"${{ inputs.subcription_id }}","tenantId":"${{ inputs.tenant_id }}"}'
       with:
-        creds: ${{ env.azure_creds }}
+        client-id: ${{ inputs.service_principal_id }}
+        tenant-id: ${{ inputs.tenant_id }}
+        subscription-id: ${{ inputs.subcription_id }}
         enable-AzPSSession: true
