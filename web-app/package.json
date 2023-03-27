@@ -12,7 +12,7 @@
     "probot-app"
   ],
   "scripts": {
-    "build:dev": "tsc -v; tsc",
+    "build:dev": "tsc",
     "start": "probot run ./lib/index.js",
     "dev": "npm run build:dev && npm run start",
     "lint": "eslint '*/**/*.{js,ts,tsx}' --quiet --fix"
@@ -30,7 +30,6 @@
     "js-stringify": "^1.0.2",
     "probot": "^12.3.0",
     "pug": "^3.0.2",
-    "query-string": "^8.1.0",
     "yaml": "^2.2.1"
   },
   "devDependencies": {
@@ -52,6 +51,6 @@
     "typescript": "^5.0.2"
   },
   "engines": {
-    "node": ">= 16"
+    "node": ">= 19"
   }
 }
