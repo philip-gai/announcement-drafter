@@ -5,4 +5,4 @@
 3. Validate the changes to your package.json
 4. Install the new packages `npm install`
 5. Test the app
-   1. See example PR: https://github.com/philip-gai/announcement-drafter/pull/85
+   1. See example PR: <https://github.com/philip-gai/announcement-drafter/pull/85>
