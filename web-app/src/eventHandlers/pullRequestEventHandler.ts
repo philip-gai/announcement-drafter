@@ -1,6 +1,6 @@
 import { DiscussionCategory } from "@octokit/graphql-schema";
 import { Context } from "probot";
-import { DeprecatedLogger } from "probot/lib/types";
+import type { Logger } from "probot";
 import { AppConfig } from "../models/appConfig";
 import { AppSettings } from "../models/appSettings";
 import { PullRequestComment } from "../models/githubModels";
@@ -226,7 +226,7 @@ export class PullRequestEventHandler {
 
     // Get comments made by the bot
     const botComments = pullRequestComments.filter(
-      (comment) => comment.user.login === appLogin && !comment.in_reply_to_id && comment.path && !comment.body.includes(this.errorIcon)
+      (comment) => comment.user.login === appLogin && !comment.in_reply_to_id && comment.path && !comment.body.includes(this.errorIcon),
     );
 
     if (botComments.length == 0) {
@@ -265,7 +265,7 @@ export class PullRequestEventHandler {
     logger.info("Exiting pull_request.closed handler");
   };
 
-  private getMostRecentBotCommentForFile(existingBotComments: PullRequestComment[], filepath: string, logger: DeprecatedLogger): PullRequestComment | null {
+  private getMostRecentBotCommentForFile(existingBotComments: PullRequestComment[], filepath: string, logger: Logger): PullRequestComment | null {
     const existingCommentForFile = existingBotComments.filter((comment) => comment.path === filepath);
     if (existingCommentForFile.length === 0) {
       return null;
@@ -279,12 +279,12 @@ export class PullRequestEventHandler {
 
   private async getParsedMarkdownDiscussion(
     appGitHubService: GitHubService,
-    logger: DeprecatedLogger,
+    logger: Logger,
     options: {
       filepath: string;
       pullInfo: PullInfo;
       fileref?: string;
-    }
+    },
   ): Promise<ParsedMarkdownDiscussion> {
     const fileContent = await appGitHubService.getFileContent({
       path: options.filepath,
@@ -299,7 +299,7 @@ export class PullRequestEventHandler {
 
   private async createDiscussion(
     appGitHubService: GitHubService,
-    logger: DeprecatedLogger,
+    logger: Logger,
     appConfig: AppConfig,
     options: {
       filepath: string;
@@ -309,7 +309,7 @@ export class PullRequestEventHandler {
       postFooter?: string;
       fileref?: string;
       pullRequestCommentId?: number;
-    }
+    },
   ): Promise<void> {
     logger.debug("Begin createDiscussion method...");
     const parsedItems = await this.getParsedMarkdownDiscussion(appGitHubService, logger, options);
@@ -358,7 +358,7 @@ export class PullRequestEventHandler {
   private async createTeamPost(
     userGithubService: GitHubService,
     appGitHubService: GitHubService,
-    logger: DeprecatedLogger,
+    logger: Logger,
     options: {
       filepath: string;
       pullInfo: PullInfo;
@@ -367,7 +367,7 @@ export class PullRequestEventHandler {
       fileref?: string | undefined;
       pullRequestCommentId?: number | undefined;
     },
-    parsedItems: ParsedMarkdownDiscussion
+    parsedItems: ParsedMarkdownDiscussion,
   ): Promise<void> {
     if (!parsedItems.team || !parsedItems.teamOwner) throw new Error("Missing team or team owner");
     const newDiscussion = await userGithubService.createTeamPost({
@@ -387,7 +387,7 @@ export class PullRequestEventHandler {
 
   private async createPrErrorComment(
     appGitHubService: GitHubService,
-    options: { pullInfo: PullInfo; pullRequestCommentId?: number | undefined }
+    options: { pullInfo: PullInfo; pullRequestCommentId?: number | undefined },
   ): Promise<void> {
     if (!options.pullRequestCommentId) throw new Error("Missing pullRequestCommentId");
     await appGitHubService.createPullRequestCommentReply({
@@ -400,13 +400,13 @@ export class PullRequestEventHandler {
   private async createRepoDiscussion(
     appGitHubService: GitHubService,
     userGithubService: GitHubService,
-    logger: DeprecatedLogger,
+    logger: Logger,
     options: {
       pullInfo: PullInfo;
       parsedItems: ParsedMarkdownDiscussion;
       dryRun: boolean;
       pullRequestCommentId?: number;
-    }
+    },
   ): Promise<void> {
     if (!options.parsedItems.repo || !options.parsedItems.repoOwner) throw new Error("Missing repo or repo owner");
     const repoData = await appGitHubService.getRepoData({
@@ -434,7 +434,7 @@ export class PullRequestEventHandler {
 
   private async createPrSuccessComment(
     appGitHubService: GitHubService,
-    logger: DeprecatedLogger,
+    logger: Logger,
     options: {
       pullInfo: PullInfo;
       dryRun: boolean;
@@ -442,7 +442,7 @@ export class PullRequestEventHandler {
     },
     discussionTitle: string,
     discussionUrl: string,
-    discussionType: "team" | "repository"
+    discussionType: "team" | "repository",
   ): Promise<void> {
     logger.info("Creating success comment reply on original PR comment...");
     if (!options.pullRequestCommentId) {
@@ -473,7 +473,7 @@ export class PullRequestEventHandler {
       (node) =>
         node?.name.trim().localeCompare(discussionCategoryName, undefined, {
           sensitivity: "accent", // this is case-insensitive
-        }) === 0
+        }) === 0,
     );
     if (!discussionCategoryMatch) {
       throw new Error(`Could not find discussion category "${discussionCategoryName}" in "${repoOwner}/${repo}".`);

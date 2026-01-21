@@ -1,4 +1,4 @@
-import { DeprecatedLogger } from "probot/lib/types";
+import type { Logger } from "probot";
 import YAML from "yaml";
 
 export interface ParsedMarkdownDiscussion {
@@ -15,15 +15,15 @@ export interface ParsedMarkdownDiscussion {
 export class ParserService {
   private _content: string;
   private _yamlHeader: any;
-  private _logger: DeprecatedLogger;
+  private _logger: Logger;
   private _fileLines?: string[];
 
-  private constructor(fileContent: string, logger: DeprecatedLogger) {
+  private constructor(fileContent: string, logger: Logger) {
     this._content = fileContent;
     this._logger = logger;
   }
 
-  static build(fileContent: string, logger: DeprecatedLogger): ParserService {
+  static build(fileContent: string, logger: Logger): ParserService {
     return new ParserService(fileContent, logger);
   }
 

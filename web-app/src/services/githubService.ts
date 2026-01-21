@@ -5,7 +5,7 @@ import { RestEndpointMethods } from "@octokit/plugin-rest-endpoint-methods/dist-
 import { Api } from "@octokit/plugin-rest-endpoint-methods/dist-types/types";
 import { API } from "@probot/octokit-plugin-config/dist-types/types";
 import { ProbotOctokit } from "probot";
-import { DeprecatedLogger } from "probot/lib/types";
+import type { Logger } from "probot";
 import { AppConfig } from "../models/appConfig";
 import { Content } from "../models/fileContent";
 import { GitHubApp, PullRequestComment, TeamDiscussion } from "../models/githubModels";
@@ -14,16 +14,16 @@ export type OctokitPlus = Octokit & RestEndpointMethods & Api & PaginateInterfac
 
 export class GitHubService {
   private _octokit: OctokitPlus;
-  private _logger: DeprecatedLogger;
+  private _logger: Logger;
   private _appConfig: AppConfig;
 
-  private constructor(octokit: OctokitPlus, logger: DeprecatedLogger, appConfig: AppConfig) {
+  private constructor(octokit: OctokitPlus, logger: Logger, appConfig: AppConfig) {
     this._octokit = octokit;
     this._logger = logger;
     this._appConfig = appConfig;
   }
 
-  public static buildForUser(token: string, logger: DeprecatedLogger, appConfig: AppConfig): GitHubService {
+  public static buildForUser(token: string, logger: Logger, appConfig: AppConfig): GitHubService {
     const octokit = new ProbotOctokit({
       auth: { token: token },
       log: logger,
@@ -31,7 +31,7 @@ export class GitHubService {
     return new GitHubService(octokit, logger, appConfig);
   }
 
-  public static buildForApp(octokit: OctokitPlus, logger: DeprecatedLogger, appConfig: AppConfig): GitHubService {
+  public static buildForApp(octokit: OctokitPlus, logger: Logger, appConfig: AppConfig): GitHubService {
     return new GitHubService(octokit, logger, appConfig);
   }
 
@@ -94,7 +94,7 @@ export class GitHubService {
       {
         owner: options.owner,
         repo: options.repo,
-      }
+      },
     );
     this._logger.trace(`discussionCategories: ${JSON.stringify(discussionCategoriesResponse)}`);
     return discussionCategoriesResponse.repository.discussionCategories.nodes;
@@ -233,7 +233,7 @@ export class GitHubService {
         categoryNodeId: options.categoryNodeId,
         postBody: options.postBody,
         postTitle: options.postTitle,
-      }
+      },
     );
 
     this._logger.info("Successfully created the repo discussion.");
@@ -281,6 +281,9 @@ export class GitHubService {
     const authenticatedApp = await this._octokit.apps.getAuthenticated();
     this._logger.trace(`authenticatedApp:\n${JSON.stringify(authenticatedApp)}`);
     this._logger.info(`Done getting the authenticated app.`);
-    return authenticatedApp.data;
+    if (!authenticatedApp.data) {
+      throw new Error("Failed to get authenticated app");
+    }
+    return authenticatedApp.data as GitHubApp;
   }
 }
