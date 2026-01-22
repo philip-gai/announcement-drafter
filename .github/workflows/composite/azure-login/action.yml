@@ -1,26 +1,27 @@
 name: "Azure Login"
-description: "Wrapper for azure/login@v1"
+description: "Azure OIDC login using federated credentials"
 
 inputs:
-  service_principal_id:
+  client_id:
+    description: "Azure AD application (client) ID"
     required: true
     default: "a815ac51-ea5e-4b31-aa3c-eefb9c87403b"
-  service_principal_secret:
-    required: true
-  subcription_id:
+  subscription_id:
+    description: "Azure subscription ID"
     required: true
     default: "7100b295-05bb-4ecf-a59b-246bd1f17d9a"
   tenant_id:
+    description: "Azure AD tenant ID"
     required: true
     default: "87e276c0-7d18-4d86-948a-ba5eea990211"
 
 runs:
   using: "composite"
   steps:
-    - name: Azure Login
-      uses: azure/login@v1
+    - name: Azure Login (OIDC)
+      uses: azure/login@v2
       with:
-        client-id: ${{ inputs.service_principal_id }}
+        client-id: ${{ inputs.client_id }}
         tenant-id: ${{ inputs.tenant_id }}
-        subscription-id: ${{ inputs.subcription_id }}
+        subscription-id: ${{ inputs.subscription_id }}
         enable-AzPSSession: true

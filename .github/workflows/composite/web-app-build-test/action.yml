@@ -4,7 +4,7 @@ description: "Sets up node and runs npm install, lint and build"
 inputs:
   node-version:
     required: true
-    default: "19.x"
+    default: "22.x"
   working-directory:
     required: true
     default: "./web-app"
@@ -12,9 +12,9 @@ runs:
   using: "composite"
   steps:
     - name: Set up Node.js version
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v4
       with:
-        node-version: ${{ inputs.node_version }}
+        node-version: ${{ inputs.node-version }}
         cache: "npm"
         cache-dependency-path: "${{ inputs.working-directory }}"
     - name: npm ci, lint, build

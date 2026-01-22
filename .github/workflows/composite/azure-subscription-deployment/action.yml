@@ -14,10 +14,21 @@ inputs:
   what_if:
     required: true
     default: "true"
+  what_if_output_file:
+    description: "Path to write what-if output for external consumption"
+    required: false
+    default: ""
+
+outputs:
+  deployment:
+    description: "The deployment result as JSON"
+    value: ${{ steps.deploy.outputs.deployment }}
+
 runs:
   using: "composite"
   steps:
     - name: App Service Resource Group Deploy
+      id: deploy
       uses: azure/powershell@v1
       with:
         inlineScript: |
@@ -38,8 +49,69 @@ runs:
           $params['Name'] = If($deploymentNameInput) { $deploymentNameInput } Else { "$($params['Location'])-$($(Get-Date).ToString("yyyyMMddHHss"))" }
 
           Write-Host "Running New-AzSubscriptionDeployment... $($params | Out-String)"
-          $result = $(New-AzSubscriptionDeployment @params | ConvertTo-Json)
 
-          echo "::set-output name=deployment::$($result)"
+          # Capture what-if output if running in what-if mode
+          if ($params['WhatIf']) {
+            # Use Get-AzSubscriptionDeploymentWhatIfResult for better output capture
+            $whatIfParams = @{
+              Location = $params['Location']
+              TemplateFile = $params['TemplateFile']
+            }
+            if ($params['TemplateParameterFile']) {
+              $whatIfParams['TemplateParameterFile'] = $params['TemplateParameterFile']
+            }
+            
+            Write-Host "Running What-If deployment analysis..."
+            $whatIfResult = Get-AzSubscriptionDeploymentWhatIfResult @whatIfParams
+            
+            # Format the what-if result with proper structure
+            $outputLines = @()
+            $outputLines += "**Status:** $($whatIfResult.Status)"
+            $outputLines += ""
+            
+            if ($whatIfResult.Error) {
+              $outputLines += "**Error:** $($whatIfResult.Error)"
+              $outputLines += ""
+            }
+            
+            if ($whatIfResult.Changes -and $whatIfResult.Changes.Count -gt 0) {
+              $outputLines += "### Resource Changes"
+              $outputLines += ""
+              $outputLines += "| Change | Resource |"
+              $outputLines += "|--------|----------|"
+              
+              foreach ($change in $whatIfResult.Changes) {
+                $changeType = $change.ChangeType
+                $icon = switch ($changeType) {
+                  "Create" { "🆕 Create" }
+                  "Delete" { "🗑️ Delete" }
+                  "Modify" { "✏️ Modify" }
+                  "Deploy" { "🚀 Deploy" }
+                  "NoChange" { "⚪ No Change" }
+                  "Ignore" { "⏭️ Ignore" }
+                  default { "❓ $changeType" }
+                }
+                $resourceId = $change.RelativeResourceId
+                if (-not $resourceId) { $resourceId = $change.ResourceId }
+                $outputLines += "| $icon | ``$resourceId`` |"
+              }
+            } else {
+              $outputLines += "✅ **No changes detected.** Infrastructure is up to date."
+            }
+            
+            $formattedOutput = $outputLines -join "`n"
+            
+            # Write to file if output file path is specified
+            $outputFile = "${{ inputs.what_if_output_file }}"
+            if ($outputFile) {
+              $formattedOutput | Out-File -FilePath $outputFile -Encoding utf8 -NoNewline
+              Write-Host "What-if output written to: $outputFile"
+            }
+            
+            Write-Host $formattedOutput
+          } else {
+            $result = $(New-AzSubscriptionDeployment @params | ConvertTo-Json)
+            "deployment=$result" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          }
         azPSVersion: "latest"
-        failOnStandardError: "true"
+        failOnStandardError: "false"

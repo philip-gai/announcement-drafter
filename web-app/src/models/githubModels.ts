@@ -5,8 +5,8 @@ export interface PullRequestComment {
   node_id: string;
   diff_hunk: string;
   path: string;
-  position: number;
-  original_position: number;
+  position?: number;
+  original_position?: number;
   commit_id: string;
   original_commit_id: string;
   in_reply_to_id?: number | undefined;

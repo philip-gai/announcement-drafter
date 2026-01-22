@@ -1,32 +1,25 @@
-import { ApplicationFunctionOptions, DeprecatedLogger } from "probot/lib/types";
+import type { ApplicationFunctionOptions, Logger } from "probot";
 import { Router } from "express";
 import { AppConfig } from "../models/appConfig";
 import { TokenService } from "./tokenService";
 import { AuthService } from "./authService";
-import CryptoJS from "crypto-js";
+import { decrypt } from "./cryptoService";
+import crypto from "crypto";
 import pug from "pug";
 import { authSuccessTemplate } from "../templates/authorization";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const stringify = require("js-stringify");
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const crypto = require("crypto");
 
 export class RouterService {
   private _router: Router;
-  private _logger: DeprecatedLogger;
+  private _logger: Logger;
   private _appConfig: AppConfig;
   private _tokenService: TokenService;
   private _authService: AuthService;
   static readonly SECONDS_TO_REDIRECT = 6;
   static readonly DEFAULT_REDIRECT = "https://github.com/philip-gai/announcement-drafter";
 
-  private constructor(
-    logger: DeprecatedLogger,
-    options: ApplicationFunctionOptions,
-    appConfig: AppConfig,
-    tokenService: TokenService,
-    authService: AuthService
-  ) {
+  private constructor(logger: Logger, options: ApplicationFunctionOptions, appConfig: AppConfig, tokenService: TokenService, authService: AuthService) {
     this._logger = logger;
     const router = options.getRouter && options.getRouter("/");
     if (!router) throw new Error("Invalid router");
@@ -45,11 +38,11 @@ export class RouterService {
   }
 
   public static build(
-    logger: DeprecatedLogger,
+    logger: Logger,
     options: ApplicationFunctionOptions,
     appConfig: AppConfig,
     tokenService: TokenService,
-    authService: AuthService
+    authService: AuthService,
   ): RouterService {
     return new RouterService(logger, options, appConfig, tokenService, authService);
   }
@@ -82,9 +75,9 @@ export class RouterService {
       let redirectUrl = RouterService.DEFAULT_REDIRECT;
       try {
         // Decrypt the state and validate it
-        const bytes = CryptoJS.AES.decrypt(encryptedState, this._appConfig.github_client_secret);
+        const decryptedState = decrypt(encryptedState, this._appConfig.github_client_secret);
 
-        const state = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+        const state = JSON.parse(decryptedState);
         if (state.github_client_id !== this._appConfig.github_client_id) {
           res.status(400).send("Invalid state");
           return;
@@ -93,7 +86,7 @@ export class RouterService {
         if (state.pull_url && this.isValidHttpUrl(state.pull_url)) {
           redirectUrl = state.pull_url;
         }
-      } catch (error) {
+      } catch (_error) {
         res.status(400).send("Unable to parse state");
         return;
       }
@@ -132,7 +125,7 @@ export class RouterService {
     let url;
     try {
       url = new URL(string);
-    } catch (_) {
+    } catch (_error) {
       return false;
     }
     return url.protocol === "http:" || url.protocol === "https:";

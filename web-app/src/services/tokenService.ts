@@ -1,9 +1,9 @@
 import { Container, CosmosClient } from "@azure/cosmos";
 import { refreshToken } from "@octokit/oauth-methods";
 import { ProbotOctokit } from "probot";
-import { DeprecatedLogger } from "probot/lib/types";
+import type { Logger } from "probot";
 import { AppConfig } from "../models/appConfig";
-import CryptoJS from "crypto-js";
+import { encrypt, decrypt } from "./cryptoService";
 
 export interface GetRefreshTokenOptions {
   userLogin: string;
@@ -19,9 +19,9 @@ export interface TokenItem {
 export class TokenService {
   private _container: Container;
   private _appConfig: AppConfig;
-  private _logger: DeprecatedLogger;
+  private _logger: Logger;
 
-  private constructor(appConfig: AppConfig, logger: DeprecatedLogger) {
+  private constructor(appConfig: AppConfig, logger: Logger) {
     const client = new CosmosClient({
       endpoint: appConfig.cosmos_uri,
       key: appConfig.cosmos_primary_key,
@@ -32,7 +32,7 @@ export class TokenService {
     this._logger = logger;
   }
 
-  static build(appConfig: AppConfig, logger: DeprecatedLogger): TokenService {
+  static build(appConfig: AppConfig, logger: Logger): TokenService {
     return new TokenService(appConfig, logger);
   }
 
@@ -53,10 +53,9 @@ export class TokenService {
     if (!tokenItem.refreshToken.startsWith("ghr_")) {
       // Decrypt the token
       try {
-        const bytes = CryptoJS.AES.decrypt(tokenItem.refreshToken, this._appConfig.github_client_secret);
-        const token = bytes.toString(CryptoJS.enc.Utf8);
+        const token = decrypt(tokenItem.refreshToken, this._appConfig.github_client_secret);
         tokenItem.refreshToken = token;
-      } catch (_) {
+      } catch (_error) {
         this._logger.error("Unable to decrypt token.");
         return undefined;
       }
@@ -70,7 +69,7 @@ export class TokenService {
     refreshToken: string,
     refreshTokenExpiresAt: string,
     userLogin?: string,
-    refreshTokenCreatedAt: string = new Date(Date.now()).toISOString()
+    refreshTokenCreatedAt: string = new Date(Date.now()).toISOString(),
   ): Promise<void> {
     this._logger.info(`Begin upsert refresh token method...`);
     let login = userLogin;
@@ -90,7 +89,7 @@ export class TokenService {
     this._logger.info(`Upserting refreshToken for user ${login}`);
 
     // Encrypt the token at rest
-    const encryptedRefreshToken = CryptoJS.AES.encrypt(refreshToken, this._appConfig.github_client_secret).toString();
+    const encryptedRefreshToken = encrypt(refreshToken, this._appConfig.github_client_secret);
 
     await this._container.items.upsert<TokenItem>({
       id: login,

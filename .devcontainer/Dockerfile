@@ -6,7 +6,7 @@ FROM mcr.microsoft.com/vscode/devcontainers/base:0-${VARIANT}
 
 # https://github.com/nodesource/distributions#installation-instructions
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-    && curl -fsSL https://deb.nodesource.com/setup_19.x | sudo -E bash - \
+    && curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - \
     && sudo apt-get install --no-install-recommends nodejs
 
 RUN echo "Installing bicep CLI..." \
@@ -16,7 +16,7 @@ RUN echo "Installing bicep CLI..." \
     && bicep --version
 
 # [Optional] Uncomment if you want to install an additional version of node using nvm
-# RUN su node -c "source /usr/local/share/nvm/nvm.sh && nvm install 19"
+# RUN su node -c "source /usr/local/share/nvm/nvm.sh && nvm install 22"
 
 # Install more global node packages
-RUN npm install -g typescript@^5.0.2 npm-check-updates
+RUN npm install -g typescript@^5.8.3 npm-check-updates

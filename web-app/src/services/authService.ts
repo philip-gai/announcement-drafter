@@ -1,23 +1,24 @@
 import { exchangeWebFlowCode, GitHubAppAuthenticationWithRefreshToken } from "@octokit/oauth-methods";
 import { AppConfig } from "../models/appConfig";
 import querystring from "querystring";
-import { DeprecatedLogger } from "probot/lib/types";
-import CryptoJS from "crypto-js";
+import type { Logger } from "probot";
+import { encrypt } from "./cryptoService";
+import type { Request } from "express";
 
 export class AuthService {
   private _appConfig: AppConfig;
-  private _logger: DeprecatedLogger;
+  private _logger: Logger;
 
-  private constructor(appConfig: AppConfig, logger: DeprecatedLogger) {
+  private constructor(appConfig: AppConfig, logger: Logger) {
     this._appConfig = appConfig;
     this._logger = logger;
   }
 
-  public static build(appConfig: AppConfig, logger: DeprecatedLogger): AuthService {
+  public static build(appConfig: AppConfig, logger: Logger): AuthService {
     return new AuthService(appConfig, logger);
   }
 
-  public getGitHubOAuthUrl(req: any): string {
+  public getGitHubOAuthUrl(req: Request): string {
     const protocol = req.headers["x-forwarded-proto"] || req.protocol;
     const host = req.headers["x-forwarded-host"] || req.get("host");
 
@@ -26,7 +27,7 @@ export class AuthService {
       pull_url: req.query.pull_url,
       github_client_id: this._appConfig.github_client_id,
     };
-    const encryptedState = CryptoJS.AES.encrypt(JSON.stringify(state), this._appConfig.github_client_secret).toString();
+    const encryptedState = encrypt(JSON.stringify(state), this._appConfig.github_client_secret);
 
     const params = querystring.stringify({
       client_id: this._appConfig.github_client_id,

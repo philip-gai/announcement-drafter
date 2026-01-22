@@ -1,5 +1,5 @@
 import { Context } from "probot";
-import { DeprecatedLogger } from "probot/lib/types";
+import type { Logger } from "probot";
 import { AppConfig } from "../models/appConfig";
 import { AppSettings } from "../models/appSettings";
 
@@ -13,7 +13,7 @@ export class ConfigService {
     this.appConfig = appConfig;
   }
 
-  static async build(logger: DeprecatedLogger, context?: Context<"pull_request">): Promise<ConfigService> {
+  static async build(logger: Logger, context?: Context<"pull_request">): Promise<ConfigService> {
     const config = await this.loadConfig(logger, context);
     if (!config) throw new Error("No config was found");
     const errorMessages = ConfigService.validateConfig(config);
@@ -26,7 +26,7 @@ export class ConfigService {
   }
 
   /** Loads the config values from environment variables and input parameters */
-  private static loadConfig = async (logger: DeprecatedLogger, context?: Context<"pull_request">): Promise<AppConfig | null> => {
+  private static loadConfig = async (logger: Logger, context?: Context<"pull_request">): Promise<AppConfig | null> => {
     try {
       const config = this.defaultConfig;
 
@@ -46,9 +46,10 @@ export class ConfigService {
       logger.info(`App ID: ${config.appId}`);
 
       return config;
-    } catch (error: any) {
-      context?.log.error(`Exception while parsing app config yml: ${error.message}`);
-      throw new Error(`Exception while parsing app config yml: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      context?.log.error(`Exception while parsing app config yml: ${message}`);
+      throw new Error(`Exception while parsing app config yml: ${message}`);
     }
   };
 

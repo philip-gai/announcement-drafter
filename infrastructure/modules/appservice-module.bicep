@@ -1,7 +1,6 @@
 targetScope = 'resourceGroup'
 
 param appSettings array
-param basicPublishingCredentialsPoliciesLocation string
 param cosmosAccountName string
 param siteName string
 
@@ -15,7 +14,7 @@ resource cosmosDatabaseAccount 'Microsoft.DocumentDB/databaseAccounts@2021-06-15
 var appStartupCommand = 'npm start'
 var cosmosEndpoint = cosmosDatabaseAccount.properties.documentEndpoint
 var cosmosPrimaryKey = cosmosDatabaseAccount.listKeys().primaryMasterKey
-var linuxFxVersion = 'NODE|18-lts'
+var linuxFxVersion = 'NODE|22-lts'
 var siteUrl = '${siteName}.azurewebsites.net'
 
 var finalAppSettings = concat(appSettings, [
@@ -126,7 +125,6 @@ resource website 'Microsoft.Web/sites@2021-01-15' = {
 
   resource ftpPublishingPolicies 'basicPublishingCredentialsPolicies@2021-01-15' = {
     name: 'ftp'
-    location: basicPublishingCredentialsPoliciesLocation
     properties: {
       allow: true
     }
@@ -134,7 +132,6 @@ resource website 'Microsoft.Web/sites@2021-01-15' = {
 
   resource scmPublishingPolicies 'basicPublishingCredentialsPolicies@2021-01-15' = {
     name: 'scm'
-    location: basicPublishingCredentialsPoliciesLocation
     properties: {
       allow: true
     }
