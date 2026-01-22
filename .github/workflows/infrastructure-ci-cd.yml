@@ -26,6 +26,7 @@ env:
 permissions:
   id-token: write # This is required for requesting the JWT
   contents: read # This is required for actions/checkout
+  pull-requests: write # Required for PR comments
 
 jobs:
   what-if-deploy:
@@ -57,11 +58,38 @@ jobs:
           subscription_id: ${{ env.azure_subscription_id }}
           tenant_id: ${{ env.azure_tenant_id }}
       - name: What-If Deploy
+        id: whatif
         uses: ./.github/workflows/composite/azure-subscription-deployment
         with:
           template_file: ${{ env.template_file }}
           template_parameter_file: ${{ env.template_parameter_file }}
           what_if: ${{ env.what_if }}
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ## 🔍 Infrastructure What-If Deployment Results
+
+            The following changes would be made to Azure infrastructure:
+
+            ```
+            ${{ steps.whatif.outputs.what_if_output }}
+            ```
+
+            <details>
+            <summary>ℹ️ About What-If</summary>
+
+            This is a preview of what changes would occur if this PR is merged.
+            No actual changes have been made to the infrastructure.
+
+            - ✅ **Create**: New resources that would be created
+            - 🔄 **Modify**: Existing resources that would be modified  
+            - ❌ **Delete**: Resources that would be removed
+            - ⚪ **NoChange**: Resources that remain unchanged
+
+            </details>
   deploy:
     name: Deploy
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || ( github.event_name == 'workflow_dispatch' && github.event.inputs.What-If == 'false' ))

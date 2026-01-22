@@ -14,10 +14,20 @@ inputs:
   what_if:
     required: true
     default: "true"
+
+outputs:
+  deployment:
+    description: "The deployment result as JSON"
+    value: ${{ steps.deploy.outputs.deployment }}
+  what_if_output:
+    description: "The what-if output text"
+    value: ${{ steps.deploy.outputs.what_if_output }}
+
 runs:
   using: "composite"
   steps:
     - name: App Service Resource Group Deploy
+      id: deploy
       uses: azure/powershell@v1
       with:
         inlineScript: |
@@ -38,8 +48,21 @@ runs:
           $params['Name'] = If($deploymentNameInput) { $deploymentNameInput } Else { "$($params['Location'])-$($(Get-Date).ToString("yyyyMMddHHss"))" }
 
           Write-Host "Running New-AzSubscriptionDeployment... $($params | Out-String)"
-          $result = $(New-AzSubscriptionDeployment @params | ConvertTo-Json)
-
-          echo "::set-output name=deployment::$($result)"
+          
+          # Capture what-if output if running in what-if mode
+          if ($params['WhatIf']) {
+            $whatIfResult = New-AzSubscriptionDeployment @params 2>&1 | Out-String
+            
+            # Write to GitHub output
+            $whatIfEscaped = $whatIfResult -replace '%', '%25' -replace "`n", '%0A' -replace "`r", '%0D'
+            echo "what_if_output<<EOF" >> $env:GITHUB_OUTPUT
+            echo "$whatIfResult" >> $env:GITHUB_OUTPUT
+            echo "EOF" >> $env:GITHUB_OUTPUT
+            
+            Write-Host $whatIfResult
+          } else {
+            $result = $(New-AzSubscriptionDeployment @params | ConvertTo-Json)
+            echo "deployment=$result" >> $env:GITHUB_OUTPUT
+          }
         azPSVersion: "latest"
-        failOnStandardError: "true"
+        failOnStandardError: "false"
