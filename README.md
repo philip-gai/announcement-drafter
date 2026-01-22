@@ -45,6 +45,7 @@ A note on org discussions: Org discussions are backed by repository discussions,
 <!--
 repo: https://github.com/philip-gai/announcement-drafter-demo
 category: announcements
+labels: enhancement, documentation
 -->
 
 <!-- This is the discussion title -->
@@ -81,6 +82,7 @@ Demo repo: [announcement-drafter demo]
 | `repository` or `repo`     | The full url to the repository to create the discussion in<br/>**Prerequisites:**<br/>&nbsp;&nbsp;1. Discussions are enabled<br/>&nbsp;&nbsp;2. The app is installed on the repo | **Conditional**: Required if no `team` is provided       | `https://github.com/philip-gai/announcement-drafter-demo` |
 | `team`           | The full url to the team to create the discussion in<br/>**Prerequisites:**<br/>&nbsp;&nbsp;1. The app is installed on the team organization                                     | **Conditional**: Required if no `repository` is provided | `https://github.com/orgs/elastico-group/teams/everyone`   |
 | `category`       | The name of the discussion category                                                                                                                                              | **Conditional**: Required if `repository` is provided    | `announcements`                                           |
+| `labels`         | Labels to add to the discussion. Can be comma-separated or YAML list format<br/>**Note:** Labels must already exist in the target repository                                      | No                                                       | `enhancement, documentation` or YAML list                 |
 | Discussion Title | The title of your discussion should be the first top-level header (i.e. `# Discussion Title`)                                                                                    | Yes                                                      | See [Example](#draft-an-org-or-repository-discussion)                                  |
 | Discussion Body  | The body of your discussion is everything after the top-level header                                                                                                             | Yes                                                      | See [Example](#draft-an-org-or-repository-discussion)                                  |
 

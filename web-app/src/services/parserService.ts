@@ -7,6 +7,7 @@ export interface ParsedMarkdownDiscussion {
   team: string | undefined;
   teamOwner: string | undefined;
   discussionCategoryName: string | undefined;
+  labels: string[];
   postBody: string;
   postTitle: string;
   headerEndLine: number;
@@ -96,6 +97,22 @@ export class ParserService {
     return categoryName;
   }
 
+  public getLabels(): string[] {
+    const rawLabels = this.getYamlHeader().labels;
+    if (!rawLabels) return [];
+    // Support both array format (YAML list) and comma-separated string
+    if (Array.isArray(rawLabels)) {
+      return rawLabels.map((label) => String(label).trim()).filter((label) => label.length > 0);
+    }
+    if (typeof rawLabels === "string") {
+      return rawLabels
+        .split(",")
+        .map((label) => label.trim())
+        .filter((label) => label.length > 0);
+    }
+    return [];
+  }
+
   public getPostTitle(): string {
     if (!this._content.includes("# ")) throw new Error("You must include a top level header # in your markdown that has the post title");
     const postTitle = this._content.split("# ")[1].split("\n")[0].trim();
@@ -127,6 +144,7 @@ export class ParserService {
       team: this.getTargetTeamName(),
       teamOwner: this.getTargetTeamOwner(),
       discussionCategoryName: this.getDiscussionCategoryName(),
+      labels: this.getLabels(),
       postBody: this.getPostBody(),
       postTitle: this.getPostTitle(),
       headerEndLine: this.getHeaderEndLine(),

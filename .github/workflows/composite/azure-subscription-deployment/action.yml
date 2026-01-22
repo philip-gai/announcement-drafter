@@ -110,8 +110,11 @@ runs:
             
             Write-Host $formattedOutput
           } else {
-            $result = $(New-AzSubscriptionDeployment @params | ConvertTo-Json)
-            "deployment=$result" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+            $result = $(New-AzSubscriptionDeployment @params | ConvertTo-Json -Compress -Depth 10)
+            # Use delimiter syntax for multi-line output
+            "deployment<<EOF" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+            $result | Out-File -FilePath $env:GITHUB_OUTPUT -Append -NoNewline
+            "EOF" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           }
         azPSVersion: "latest"
         failOnStandardError: "false"

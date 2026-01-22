@@ -14,6 +14,7 @@
   "scripts": {
     "build:dev": "tsc",
     "start": "probot run ./lib/index.js",
+    "start:bg": "lsof -ti :3000 | xargs -r kill -9 2>/dev/null; sleep 1; probot run ./lib/index.js &",
     "dev": "npm run build:dev && npm run start",
     "lint": "eslint '*/**/*.{js,ts,tsx}' --quiet --fix"
   },

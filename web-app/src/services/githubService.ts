@@ -1,5 +1,5 @@
 import { Octokit } from "@octokit/core";
-import { CreateDiscussionPayload, Discussion, DiscussionCategory, Maybe, Repository } from "@octokit/graphql-schema";
+import { CreateDiscussionPayload, Discussion, DiscussionCategory, Label, Maybe, Repository } from "@octokit/graphql-schema";
 import { PaginateInterface } from "@octokit/plugin-paginate-rest";
 import { RestEndpointMethods } from "@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types";
 import { Api } from "@octokit/plugin-rest-endpoint-methods/dist-types/types";
@@ -223,6 +223,7 @@ export class GitHubService {
       `mutation ($repoNodeId: ID!, $categoryNodeId: ID!, $postBody: String!, $postTitle: String!) {
         createDiscussion(input: {repositoryId: $repoNodeId, categoryId: $categoryNodeId, body: $postBody, title: $postTitle}) {
           discussion {
+            id
             title
             url
           }
@@ -285,5 +286,59 @@ export class GitHubService {
       throw new Error("Failed to get authenticated app");
     }
     return authenticatedApp.data as GitHubApp;
+  }
+
+  public async getRepoLabels(options: { repo: string; owner: string }): Promise<Maybe<Maybe<Label>[]> | undefined> {
+    this._logger.info(`Getting repository labels: ${JSON.stringify(options)}`);
+    const labelsResponse = await this._octokit.graphql<{
+      repository: Repository;
+    }>(
+      `query ($owner: String!, $repo: String!) {
+          repository(owner: $owner, name: $repo) {
+            labels(first: 100) {
+              nodes {
+                id
+                name
+              }
+            }
+          }
+        }`,
+      {
+        owner: options.owner,
+        repo: options.repo,
+      },
+    );
+    this._logger.trace(`labels: ${JSON.stringify(labelsResponse)}`);
+    return labelsResponse.repository.labels?.nodes;
+  }
+
+  public async addLabelsToDiscussion(options: { discussionId: string; labelIds: string[]; dryRun: boolean }): Promise<void> {
+    const isDryRun = this._appConfig.dry_run_posts || options.dryRun;
+    this._logger.info(`${isDryRun ? "DRY RUN: " : ""}Adding labels to discussion...`);
+    if (isDryRun) {
+      this._logger.info("Dry run, not adding labels.");
+      return;
+    }
+    if (options.labelIds.length === 0) {
+      this._logger.info("No labels to add.");
+      return;
+    }
+    await this._octokit.graphql(
+      `mutation ($labelableId: ID!, $labelIds: [ID!]!) {
+        addLabelsToLabelable(input: {labelableId: $labelableId, labelIds: $labelIds}) {
+          labelable {
+            ... on Discussion {
+              id
+              title
+            }
+          }
+        }
+      }`,
+      {
+        labelableId: options.discussionId,
+        labelIds: options.labelIds,
+      },
+    );
+    this._logger.info("Successfully added labels to the discussion.");
   }
 }
