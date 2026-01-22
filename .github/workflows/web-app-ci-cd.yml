@@ -20,7 +20,7 @@ env:
 
 permissions:
   id-token: write # Required for OIDC
-  contents: read
+  contents: write # Required for git push lint fixes
 
 jobs:
   build:
