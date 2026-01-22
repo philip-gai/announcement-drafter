@@ -52,16 +52,32 @@ runs:
 
           # Capture what-if output if running in what-if mode
           if ($params['WhatIf']) {
-            $whatIfResult = New-AzSubscriptionDeployment @params 2>&1 | Out-String
+            # Use Get-AzSubscriptionDeploymentWhatIfResult for better output capture
+            $whatIfParams = @{
+              Location = $params['Location']
+              TemplateFile = $params['TemplateFile']
+            }
+            if ($params['TemplateParameterFile']) {
+              $whatIfParams['TemplateParameterFile'] = $params['TemplateParameterFile']
+            }
+            
+            Write-Host "Running What-If deployment analysis..."
+            $whatIfResult = Get-AzSubscriptionDeploymentWhatIfResult @whatIfParams
+            
+            # Format the what-if result
+            $formattedOutput = $whatIfResult | Format-List | Out-String
+            if ([string]::IsNullOrWhiteSpace($formattedOutput)) {
+              $formattedOutput = "No changes detected. Infrastructure is up to date."
+            }
             
             # Write to file if output file path is specified
             $outputFile = "${{ inputs.what_if_output_file }}"
             if ($outputFile) {
-              $whatIfResult | Out-File -FilePath $outputFile -Encoding utf8
+              $formattedOutput | Out-File -FilePath $outputFile -Encoding utf8
               Write-Host "What-if output written to: $outputFile"
             }
             
-            Write-Host $whatIfResult
+            Write-Host $formattedOutput
           } else {
             $result = $(New-AzSubscriptionDeployment @params | ConvertTo-Json)
             "deployment=$result" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
