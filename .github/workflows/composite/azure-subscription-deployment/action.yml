@@ -64,16 +64,47 @@ runs:
             Write-Host "Running What-If deployment analysis..."
             $whatIfResult = Get-AzSubscriptionDeploymentWhatIfResult @whatIfParams
             
-            # Format the what-if result
-            $formattedOutput = $whatIfResult | Format-List | Out-String
-            if ([string]::IsNullOrWhiteSpace($formattedOutput)) {
-              $formattedOutput = "No changes detected. Infrastructure is up to date."
+            # Format the what-if result with proper structure
+            $outputLines = @()
+            $outputLines += "**Status:** $($whatIfResult.Status)"
+            $outputLines += ""
+            
+            if ($whatIfResult.Error) {
+              $outputLines += "**Error:** $($whatIfResult.Error)"
+              $outputLines += ""
             }
+            
+            if ($whatIfResult.Changes -and $whatIfResult.Changes.Count -gt 0) {
+              $outputLines += "### Resource Changes"
+              $outputLines += ""
+              $outputLines += "| Change | Resource |"
+              $outputLines += "|--------|----------|"
+              
+              foreach ($change in $whatIfResult.Changes) {
+                $changeType = $change.ChangeType
+                $icon = switch ($changeType) {
+                  "Create" { "🆕 Create" }
+                  "Delete" { "🗑️ Delete" }
+                  "Modify" { "✏️ Modify" }
+                  "Deploy" { "🚀 Deploy" }
+                  "NoChange" { "⚪ No Change" }
+                  "Ignore" { "⏭️ Ignore" }
+                  default { "❓ $changeType" }
+                }
+                $resourceId = $change.RelativeResourceId
+                if (-not $resourceId) { $resourceId = $change.ResourceId }
+                $outputLines += "| $icon | ``$resourceId`` |"
+              }
+            } else {
+              $outputLines += "✅ **No changes detected.** Infrastructure is up to date."
+            }
+            
+            $formattedOutput = $outputLines -join "`n"
             
             # Write to file if output file path is specified
             $outputFile = "${{ inputs.what_if_output_file }}"
             if ($outputFile) {
-              $formattedOutput | Out-File -FilePath $outputFile -Encoding utf8
+              $formattedOutput | Out-File -FilePath $outputFile -Encoding utf8 -NoNewline
               Write-Host "What-if output written to: $outputFile"
             }
             

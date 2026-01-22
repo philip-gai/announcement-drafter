@@ -72,30 +72,22 @@ jobs:
           cat > "${{ runner.temp }}/comment-body.md" << 'ENDOFCOMMENT'
           ## 🔍 Infrastructure What-If Deployment Results
 
-          The following changes would be made to Azure infrastructure:
-
-          ```
           ENDOFCOMMENT
-          
+
           if [ -f "${{ runner.temp }}/whatif-output.txt" ]; then
             cat "${{ runner.temp }}/whatif-output.txt" >> "${{ runner.temp }}/comment-body.md"
           else
-            echo "No what-if output available" >> "${{ runner.temp }}/comment-body.md"
+            echo "⚠️ No what-if output available" >> "${{ runner.temp }}/comment-body.md"
           fi
-          
-          cat >> "${{ runner.temp }}/comment-body.md" << 'ENDOFCOMMENT'
-          ```
 
+          cat >> "${{ runner.temp }}/comment-body.md" << 'ENDOFCOMMENT'
+
+          ---
           <details>
           <summary>ℹ️ About What-If</summary>
 
           This is a preview of what changes would occur if this PR is merged.
           No actual changes have been made to the infrastructure.
-
-          - ✅ **Create**: New resources that would be created
-          - 🔄 **Modify**: Existing resources that would be modified  
-          - ❌ **Delete**: Resources that would be removed
-          - ⚪ **NoChange**: Resources that remain unchanged
 
           </details>
           ENDOFCOMMENT
