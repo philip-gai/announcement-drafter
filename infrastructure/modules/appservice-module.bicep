@@ -1,7 +1,6 @@
 targetScope = 'resourceGroup'
 
 param appSettings array
-param basicPublishingCredentialsPoliciesLocation string
 param cosmosAccountName string
 param siteName string
 
@@ -126,7 +125,6 @@ resource website 'Microsoft.Web/sites@2021-01-15' = {
 
   resource ftpPublishingPolicies 'basicPublishingCredentialsPolicies@2021-01-15' = {
     name: 'ftp'
-    location: basicPublishingCredentialsPoliciesLocation
     properties: {
       allow: true
     }
@@ -134,7 +132,6 @@ resource website 'Microsoft.Web/sites@2021-01-15' = {
 
   resource scmPublishingPolicies 'basicPublishingCredentialsPolicies@2021-01-15' = {
     name: 'scm'
-    location: basicPublishingCredentialsPoliciesLocation
     properties: {
       allow: true
     }

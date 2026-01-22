@@ -40,7 +40,6 @@ module appServiceModule 'modules/appservice-module.bicep' = {
   name: 'appservice-${timestamp}'
   params: {
     appSettings: appSettings
-    basicPublishingCredentialsPoliciesLocation: regionName
     cosmosAccountName: cosmosAccountName
     siteName: siteName
   }

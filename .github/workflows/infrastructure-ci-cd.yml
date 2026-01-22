@@ -69,7 +69,7 @@ jobs:
         if: github.event_name == 'pull_request'
         shell: bash
         run: |
-          cat > "${{ runner.temp }}/comment-body.md" << 'ENDOFCOMMENT'
+          cat > "${{ runner.temp }}/comment-body.md" << ENDOFCOMMENT
           ## 🔍 Infrastructure What-If Deployment Results
 
           ENDOFCOMMENT
@@ -80,16 +80,10 @@ jobs:
             echo "⚠️ No what-if output available" >> "${{ runner.temp }}/comment-body.md"
           fi
 
-          cat >> "${{ runner.temp }}/comment-body.md" << 'ENDOFCOMMENT'
+          cat >> "${{ runner.temp }}/comment-body.md" << ENDOFCOMMENT
 
           ---
-          <details>
-          <summary>ℹ️ About What-If</summary>
-
-          This is a preview of what changes would occur if this PR is merged.
-          No actual changes have been made to the infrastructure.
-
-          </details>
+          📋 [View full workflow logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
           ENDOFCOMMENT
       - name: Comment on PR
         if: github.event_name == 'pull_request'
