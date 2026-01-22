@@ -64,18 +64,33 @@ jobs:
           template_file: ${{ env.template_file }}
           template_parameter_file: ${{ env.template_parameter_file }}
           what_if: ${{ env.what_if }}
+          what_if_output_file: ${{ runner.temp }}/whatif-output.txt
+      - name: Read What-If Output
+        if: github.event_name == 'pull_request'
+        id: read-whatif
+        shell: bash
+        run: |
+          if [ -f "${{ runner.temp }}/whatif-output.txt" ]; then
+            {
+              echo 'content<<EOF'
+              cat "${{ runner.temp }}/whatif-output.txt"
+              echo 'EOF'
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "content=No what-if output available" >> "$GITHUB_OUTPUT"
+          fi
       - name: Comment on PR
         if: github.event_name == 'pull_request'
-        uses: peter-evans/create-or-update-comment@v4
+        uses: marocchino/sticky-pull-request-comment@v2
         with:
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
+          header: whatif-infrastructure
+          message: |
             ## 🔍 Infrastructure What-If Deployment Results
 
             The following changes would be made to Azure infrastructure:
 
             ```
-            ${{ steps.whatif.outputs.what_if_output }}
+            ${{ steps.read-whatif.outputs.content }}
             ```
 
             <details>

@@ -14,14 +14,15 @@ inputs:
   what_if:
     required: true
     default: "true"
+  what_if_output_file:
+    description: "Path to write what-if output for external consumption"
+    required: false
+    default: ""
 
 outputs:
   deployment:
     description: "The deployment result as JSON"
     value: ${{ steps.deploy.outputs.deployment }}
-  what_if_output:
-    description: "The what-if output text"
-    value: ${{ steps.deploy.outputs.what_if_output }}
 
 runs:
   using: "composite"
@@ -53,10 +54,12 @@ runs:
           if ($params['WhatIf']) {
             $whatIfResult = New-AzSubscriptionDeployment @params 2>&1 | Out-String
             
-            # Write to GitHub output using proper PowerShell syntax
-            "what_if_output<<EOF" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-            $whatIfResult | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-            "EOF" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+            # Write to file if output file path is specified
+            $outputFile = "${{ inputs.what_if_output_file }}"
+            if ($outputFile) {
+              $whatIfResult | Out-File -FilePath $outputFile -Encoding utf8
+              Write-Host "What-if output written to: $outputFile"
+            }
             
             Write-Host $whatIfResult
           } else {
