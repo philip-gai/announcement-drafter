@@ -46,9 +46,10 @@ export class ConfigService {
       logger.info(`App ID: ${config.appId}`);
 
       return config;
-    } catch (error: any) {
-      context?.log.error(`Exception while parsing app config yml: ${error.message}`);
-      throw new Error(`Exception while parsing app config yml: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      context?.log.error(`Exception while parsing app config yml: ${message}`);
+      throw new Error(`Exception while parsing app config yml: ${message}`);
     }
   };
 

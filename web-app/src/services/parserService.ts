@@ -14,7 +14,7 @@ export interface ParsedMarkdownDiscussion {
 
 export class ParserService {
   private _content: string;
-  private _yamlHeader: any;
+  private _yamlHeader?: Record<string, unknown>;
   private _logger: Logger;
   private _fileLines?: string[];
 
@@ -27,22 +27,22 @@ export class ParserService {
     return new ParserService(fileContent, logger);
   }
 
-  private getYamlHeader(): any {
+  private getYamlHeader(): Record<string, unknown> {
     if (!this._yamlHeader) this._yamlHeader = this.parseYamlHeader(this._content);
     return this._yamlHeader;
   }
 
   // https://www.npmjs.com/package/yaml
-  private parseYamlHeader(content: string): any {
+  private parseYamlHeader(content: string): Record<string, unknown> {
     try {
       this._logger.info("Parsing YAML from the markdown comment header...");
       const startIndex = content.indexOf("<!--") + "<!--".length;
       const endIndex = content.indexOf("-->");
       const yamlStr = content.substring(startIndex, endIndex);
       this._logger.debug(yamlStr);
-      const yaml = YAML.parse(yamlStr);
+      const yaml = YAML.parse(yamlStr) as Record<string, unknown>;
       return yaml;
-    } catch (err) {
+    } catch (_err) {
       throw new Error("The YAML provided was invalid.");
     }
   }

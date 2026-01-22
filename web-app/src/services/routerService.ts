@@ -86,7 +86,7 @@ export class RouterService {
         if (state.pull_url && this.isValidHttpUrl(state.pull_url)) {
           redirectUrl = state.pull_url;
         }
-      } catch (error) {
+      } catch (_error) {
         res.status(400).send("Unable to parse state");
         return;
       }
@@ -125,7 +125,7 @@ export class RouterService {
     let url;
     try {
       url = new URL(string);
-    } catch (_) {
+    } catch (_error) {
       return false;
     }
     return url.protocol === "http:" || url.protocol === "https:";

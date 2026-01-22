@@ -3,6 +3,7 @@ import { AppConfig } from "../models/appConfig";
 import querystring from "querystring";
 import type { Logger } from "probot";
 import { encrypt } from "./cryptoService";
+import type { Request } from "express";
 
 export class AuthService {
   private _appConfig: AppConfig;
@@ -17,7 +18,7 @@ export class AuthService {
     return new AuthService(appConfig, logger);
   }
 
-  public getGitHubOAuthUrl(req: any): string {
+  public getGitHubOAuthUrl(req: Request): string {
     const protocol = req.headers["x-forwarded-proto"] || req.protocol;
     const host = req.headers["x-forwarded-host"] || req.get("host");
 

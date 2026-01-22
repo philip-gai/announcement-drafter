@@ -55,7 +55,7 @@ export class TokenService {
       try {
         const token = decrypt(tokenItem.refreshToken, this._appConfig.github_client_secret);
         tokenItem.refreshToken = token;
-      } catch (_) {
+      } catch (_error) {
         this._logger.error("Unable to decrypt token.");
         return undefined;
       }

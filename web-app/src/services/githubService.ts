@@ -69,7 +69,7 @@ export class GitHubService {
       this._logger.info(`Done getting repo data.`);
       if (!repoResponse?.data) throw new Error(`Could not find repo: ${JSON.stringify(options)}`);
       return repoResponse.data;
-    } catch (error: unknown) {
+    } catch (_error: unknown) {
       throw new Error(`Could not find the repository. Make sure the URL is correct and the GitHub App is installed on "${options.owner}/${options.repoName}"`);
     }
   }
