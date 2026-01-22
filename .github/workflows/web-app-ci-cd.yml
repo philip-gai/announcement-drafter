@@ -53,7 +53,7 @@ jobs:
     environment:
       name: "production"
       url: ${{ steps.azure-webapps-deploy.outputs.webapp-url }}
-    concurrency: production-deploy
+    concurrency: production-deploy-app
     env:
       slot_name: "Production"
       app_name: "announcement-drafter"

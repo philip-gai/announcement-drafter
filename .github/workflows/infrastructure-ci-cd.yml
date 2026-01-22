@@ -94,7 +94,7 @@ jobs:
   deploy:
     name: Deploy
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || ( github.event_name == 'workflow_dispatch' && github.event.inputs.What-If == 'false' ))
-    concurrency: production-deploy
+    concurrency: production-deploy-infra
     runs-on: ubuntu-latest
     environment:
       name: "production"
