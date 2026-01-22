@@ -65,46 +65,46 @@ jobs:
           template_parameter_file: ${{ env.template_parameter_file }}
           what_if: ${{ env.what_if }}
           what_if_output_file: ${{ runner.temp }}/whatif-output.txt
-      - name: Read What-If Output
+      - name: Create Comment Body
         if: github.event_name == 'pull_request'
-        id: read-whatif
         shell: bash
         run: |
+          cat > "${{ runner.temp }}/comment-body.md" << 'ENDOFCOMMENT'
+          ## 🔍 Infrastructure What-If Deployment Results
+
+          The following changes would be made to Azure infrastructure:
+
+          ```
+          ENDOFCOMMENT
+          
           if [ -f "${{ runner.temp }}/whatif-output.txt" ]; then
-            {
-              echo 'content<<EOF'
-              cat "${{ runner.temp }}/whatif-output.txt"
-              echo 'EOF'
-            } >> "$GITHUB_OUTPUT"
+            cat "${{ runner.temp }}/whatif-output.txt" >> "${{ runner.temp }}/comment-body.md"
           else
-            echo "content=No what-if output available" >> "$GITHUB_OUTPUT"
+            echo "No what-if output available" >> "${{ runner.temp }}/comment-body.md"
           fi
+          
+          cat >> "${{ runner.temp }}/comment-body.md" << 'ENDOFCOMMENT'
+          ```
+
+          <details>
+          <summary>ℹ️ About What-If</summary>
+
+          This is a preview of what changes would occur if this PR is merged.
+          No actual changes have been made to the infrastructure.
+
+          - ✅ **Create**: New resources that would be created
+          - 🔄 **Modify**: Existing resources that would be modified  
+          - ❌ **Delete**: Resources that would be removed
+          - ⚪ **NoChange**: Resources that remain unchanged
+
+          </details>
+          ENDOFCOMMENT
       - name: Comment on PR
         if: github.event_name == 'pull_request'
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: whatif-infrastructure
-          message: |
-            ## 🔍 Infrastructure What-If Deployment Results
-
-            The following changes would be made to Azure infrastructure:
-
-            ```
-            ${{ steps.read-whatif.outputs.content }}
-            ```
-
-            <details>
-            <summary>ℹ️ About What-If</summary>
-
-            This is a preview of what changes would occur if this PR is merged.
-            No actual changes have been made to the infrastructure.
-
-            - ✅ **Create**: New resources that would be created
-            - 🔄 **Modify**: Existing resources that would be modified  
-            - ❌ **Delete**: Resources that would be removed
-            - ⚪ **NoChange**: Resources that remain unchanged
-
-            </details>
+          path: ${{ runner.temp }}/comment-body.md
   deploy:
     name: Deploy
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || ( github.event_name == 'workflow_dispatch' && github.event.inputs.What-If == 'false' ))
