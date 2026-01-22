@@ -155,7 +155,7 @@ resource website 'Microsoft.Web/sites@2021-01-15' = {
       linuxFxVersion: linuxFxVersion
       requestTracingEnabled: false
       remoteDebuggingEnabled: false
-      remoteDebuggingVersion: 'VS2019'
+      remoteDebuggingVersion: 'VS2022'
       httpLoggingEnabled: true
       acrUseManagedIdentityCreds: false
       logsDirectorySizeLimit: 100
