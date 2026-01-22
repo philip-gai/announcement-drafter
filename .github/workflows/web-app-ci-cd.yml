@@ -14,6 +14,13 @@ on:
 
 env:
   working_directory: ./web-app
+  azure_client_id: "a815ac51-ea5e-4b31-aa3c-eefb9c87403b"
+  azure_subscription_id: "7100b295-05bb-4ecf-a59b-246bd1f17d9a"
+  azure_tenant_id: "87e276c0-7d18-4d86-948a-ba5eea990211"
+
+permissions:
+  id-token: write # Required for OIDC
+  contents: read
 
 jobs:
   build:
@@ -64,6 +71,12 @@ jobs:
         working-directory: ${{ env.working_directory }}
         shell: bash
         run: ./scripts/make_dist.sh
+      - name: Azure Login
+        uses: ./.github/workflows/composite/azure-login
+        with:
+          client_id: ${{ env.azure_client_id }}
+          subscription_id: ${{ env.azure_subscription_id }}
+          tenant_id: ${{ env.azure_tenant_id }}
       - name: "Deploy to Azure Web App"
         id: azure-webapps-deploy
         uses: azure/webapps-deploy@v2
@@ -72,5 +85,4 @@ jobs:
         with:
           app-name: ${{ env.app_name }}
           slot-name: ${{ env.slot_name }}
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
           package: "${{ env.working_directory }}/dist"
