@@ -122,12 +122,9 @@ export class PullRequestEventHandler {
             userLogin: authorLogin,
           });
 
-          // Only look for existing refresh tokens in production, otherwise always refresh and then clear
-          // This avoids the shared cosmos instance storing invalid refresh tokens
+          // In non-prod, we always ask the user to authorize because tokens are deleted after merge
+          // to avoid conflicts with prod. The token will be deleted in onMerged, not here.
           const isNonProd = this._configService.appConfig.appId !== ConfigService.prodAppId;
-          if (isNonProd && userRefreshToken) {
-            await this._tokenService.deleteRefreshToken(authorLogin);
-          }
           if (!userRefreshToken || isNonProd) {
             const fullAuthUrl = `${appConfig.base_url}${appConfig.auth_url}?pull_url=${pullRequest.html_url}`;
             commentBody += `- @${authorLogin} must [authorize the app](${fullAuthUrl}) before merging this pull request so the discussion can be created as you. This is not required every time.\n`;
@@ -416,12 +413,24 @@ export class PullRequestEventHandler {
     logger.trace(`repoData: ${JSON.stringify(repoData)}`);
     const discussionCategoryMatch = await this.getDiscussionCategory(appGitHubService, options.parsedItems);
 
+    // Resolve label names to label IDs if labels are specified
+    const labelIds = await this.resolveLabelIds(appGitHubService, logger, options.parsedItems);
+
     const newDiscussion = await userGithubService.createRepoDiscussion({
       ...options,
       ...options.parsedItems,
       repoNodeId: repoData.node_id,
       categoryNodeId: discussionCategoryMatch.id,
     });
+
+    // Add labels to the discussion if any were specified
+    if (newDiscussion && labelIds.length > 0) {
+      await userGithubService.addLabelsToDiscussion({
+        discussionId: newDiscussion.id,
+        labelIds: labelIds,
+        dryRun: options.dryRun,
+      });
+    }
 
     if (!options.dryRun) {
       if (newDiscussion) {
@@ -487,5 +496,48 @@ export class PullRequestEventHandler {
     const isMarkdown = filepath.endsWith(".md");
     const willPostOnMerge = matchingWatchFolders.length > 0 && matchingIgnoreFolders.length === 0 && isMarkdown;
     return willPostOnMerge;
+  }
+
+  private async resolveLabelIds(appGitHubService: GitHubService, logger: Logger, parsedItems: ParsedMarkdownDiscussion): Promise<string[]> {
+    const { repo, repoOwner, labels } = parsedItems;
+    if (!repo || !repoOwner) throw new Error("Missing repo or repo owner");
+    if (!labels || labels.length === 0) {
+      return [];
+    }
+
+    logger.info(`Resolving label IDs for labels: ${labels.join(", ")}`);
+    const repoLabels = await appGitHubService.getRepoLabels({
+      repo: repo,
+      owner: repoOwner,
+    });
+
+    if (!repoLabels || repoLabels.length === 0) {
+      logger.warn(`No labels found in repository ${repoOwner}/${repo}`);
+      return [];
+    }
+
+    const labelIds: string[] = [];
+    const notFoundLabels: string[] = [];
+
+    for (const labelName of labels) {
+      const labelMatch = repoLabels.find(
+        (node) =>
+          node?.name.trim().localeCompare(labelName, undefined, {
+            sensitivity: "accent", // this is case-insensitive
+          }) === 0,
+      );
+      if (labelMatch) {
+        labelIds.push(labelMatch.id);
+      } else {
+        notFoundLabels.push(labelName);
+      }
+    }
+
+    if (notFoundLabels.length > 0) {
+      logger.warn(`Could not find the following labels in "${repoOwner}/${repo}": ${notFoundLabels.join(", ")}`);
+    }
+
+    logger.info(`Resolved ${labelIds.length} label IDs`);
+    return labelIds;
   }
 }
