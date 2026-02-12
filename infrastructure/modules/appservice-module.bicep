@@ -43,6 +43,10 @@ var finalAppSettings = concat(appSettings, [
     value: 'true'
   }
   {
+    name: 'WEBHOOK_PATH'
+    value: '/'
+  }
+  {
     name: 'WEBHOOK_PROXY_URL'
     value: 'https://${siteUrl}'
   }
